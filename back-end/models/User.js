@@ -8,6 +8,8 @@ const UserSchema = new mongoose.Schema({
     role: { type: String, enum: ["admin", "user", "landowner"], required: true },
     otpSecret: { type: String }, // Secret key for 2FA
     is2FAEnabled: { type: Boolean, default: false }, // Track if 2FA is enabled
+    backupCodes: [{ type: String }],
+    hashedBackupCodes: [{ type: String }],
     googleId: { type: String }, // For Google OAuth users
 });
 
