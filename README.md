@@ -87,5 +87,5 @@ Follow these steps to set up the project locally on your machine.
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/parkwise.git
+   git clone https://github.com/Kelum-Tharindu/GAHDSE241F-ParkWise.git
    cd parkwise
