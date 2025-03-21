@@ -7,6 +7,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const passport = require("passport");
 const session = require("express-session"); 
+const cors = require("cors");
 
 dotenv.config();
 connectDB();
