@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import TwoFASetup from "./pages/TwoFASetup";
-import TwoFAVerify from "./pages/TwoFAVerify";
+import Login from "./pages/Login/Login";
+import Signup from "./pages/SignUp/Signup";
+import TwoFASetup from "./pages/2FA/TwoFASetup";
+import TwoFAVerify from "./pages/2FA/TwoFAVerify";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -19,3 +19,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     </Router>
   </React.StrictMode>
 );
+
+// import React from "react";
+// import ReactDOM from "react-dom/client";
+// import App from "./App";  // Keep App as the root component
+// import "./index.css";  // Ensure Tailwind is imported
+
+// ReactDOM.createRoot(document.getElementById("root")).render(
+//   <React.StrictMode>
+//     <App />
+//   </React.StrictMode>
+// );

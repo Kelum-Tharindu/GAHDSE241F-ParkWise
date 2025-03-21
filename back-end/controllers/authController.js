@@ -391,46 +391,89 @@ const bcrypt = require("bcryptjs");
 const generateBackupCodes = require("../utils/generateBackupCodes");
 const sendEmail = require("../utils/sendEmail");
 
+
 // Register user
 const registerUser = async (req, res) => {
-  try {
-    const { username, password, email, role } = req.body;
-    const existingUser = await User.findOne({ username });
-    if (existingUser) return res.status(400).json({ message: "User already exists" });
+    try {
+      const { username, password, email, role } = req.body;
+  
+      // Check if any field is empty or contains only spaces
+      if (!username || !username.trim()) {
+        return res.status(400).json({ message: "Username is required" });
+      }
+      if (!password || !password.trim()) {
+        return res.status(400).json({ message: "Password is required" });
+      }
+      if (!email || !email.trim()) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      if (!role || !role.trim()) {
+        return res.status(400).json({ message: "Role is required" });
+      }
+  
+      // Check if the username already exists
+      const existingUsername = await User.findOne({ username });
+      if (existingUsername) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+  
+      // Check if the email already exists
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+  
+      // If all validations pass, create a new user
+      const newUser = new User({ username, password, email, role });
+      await newUser.save();
+  
+      res.status(201).json({ message: "User registered successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error registering user", error });
+    }
+  };
 
-    const newUser = new User({ username, password, email, role });
-    await newUser.save();
-
-    res.status(201).json({ message: "User registered successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error registering user", error });
-  }
-};
 
 // Login user
 const loginUser = async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username });
-
-    if (!user) return res.status(400).json({ message: "Invalid username or password" });
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid username or password" });
-
-    // Check if 2FA is enabled
-    if (user.is2FAEnabled) {
-      // If 2FA is enabled, prompt the user to enter the OTP
-      return res.status(200).json({ message: "Enter OTP", userId: user._id });
-    } else {
-      // If 2FA is not enabled, log the user in directly
-      const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
-      res.status(200).json({ token, role: user.role });
+    try {
+      const { username, password } = req.body;
+  
+      // Check if username or password is empty
+      if (!username || !username.trim()) {
+        return res.status(400).json({ message: "Username is required" });
+      }
+      if (!password || !password.trim()) {
+        return res.status(400).json({ message: "Password is required" });
+      }
+  
+      // Find the user by username
+      const user = await User.findOne({ username });
+      if (!user) {
+        return res.status(400).json({ message: "Invalid username or password" });
+      }
+  
+      // Compare the provided password with the stored hash
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid username or password" });
+      }
+  
+      // Check if 2FA is enabled
+      if (user.is2FAEnabled) {
+        // If 2FA is enabled, prompt the user to enter the OTP
+        return res.status(200).json({ message: "Enter OTP", userId: user._id });
+      } else {
+        // If 2FA is not enabled, log the user in directly
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        res.status(200).json({ token, role: user.role });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Error logging in", error });
     }
-  } catch (error) {
-    res.status(500).json({ message: "Error logging in", error });
-  }
-};
+  };
+
+
 
 // Generate QR code and save secret for 2FA setup
 const setup2FA = async (req, res) => {
@@ -461,6 +504,8 @@ const setup2FA = async (req, res) => {
     res.status(500).json({ message: "Error setting up 2FA", error });
   }
 };
+
+
 
 // Verify OTP and enable 2FA
 const verifyAndEnable2FA = async (req, res) => {
@@ -516,6 +561,8 @@ const verifyAndEnable2FA = async (req, res) => {
   }
 };
 
+
+
 // Verify OTP for login
 const verifyOTP = async (req, res) => {
     const { userId, otp } = req.body; // Use `otp` instead of `token`
@@ -569,6 +616,8 @@ const verifyOTP = async (req, res) => {
     }
   };
 
+
+
 // Disable 2FA
 const disable2FA = async (req, res) => {
     const { userId, backupCode } = req.body;
@@ -605,6 +654,8 @@ const disable2FA = async (req, res) => {
       res.status(500).json({ message: "Error disabling 2FA", error });
     }
   };
+
+
 
 // Google OAuth callback
 const googleCallback = (req, res) => {
