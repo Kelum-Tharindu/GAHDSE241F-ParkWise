@@ -3,8 +3,9 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login/Login";
 import Signup from "./pages/SignUp/Signup";
-import TwoFASetup from "./pages/2FA/TwoFASetup";
-import TwoFAVerify from "./pages/2FA/TwoFAVerify";
+import QRGenerate from './pages/2FA/QRGenerate';
+import OTPverify from './pages/2FA/VerifyOTP';
+import TwoFAProcess from './pages/2FA/2faprocess';
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -13,8 +14,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/2fa-setup" element={<TwoFASetup />} />
-        <Route path="/2fa-verify" element={<TwoFAVerify />} />
+        <Route path="/qrgenerate" element={<QRGenerate />} />
+        <Route path="/verifyOTP" element={<OTPverify />} />
+        <Route path="/2faprocess" element={<TwoFAProcess />} />
       </Routes>
     </Router>
   </React.StrictMode>
