@@ -474,66 +474,94 @@ const loginUser = async (req, res) => {
   };
 
 
-
-// Generate QR code and save secret for 2FA setup
-const setup2FA = async (req, res) => {
-  const { userId } = req.body;
-
-  try {
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    // Check if 2FA is already enabled
-    if (user.is2FAEnabled) {
-      return res.status(400).json({ message: "2FA is already enabled" });
+  const setup2FA = async (req, res) => {
+    const { userId } = req.body;
+    console.log("Received request to setup 2FA"); // Log function entry
+    console.log("Request Body:", req.body);
+  
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        console.error(`User not found: ${userId}`);
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      console.log(`User found: ${user.email}, 2FA Enabled: ${user.is2FAEnabled}`);
+  
+      // Check if 2FA is already enabled
+      if (user.is2FAEnabled) {
+        console.warn(`2FA is already enabled for user: ${user.email}`);
+        return res.status(400).json({ message: "2FA is already enabled" });
+      }
+  
+      // Generate a new secret for 2FA
+      console.log("Generating new 2FA secret...");
+      const secret = speakeasy.generateSecret({ name: `ParkBooking:${user.email}` });
+  
+      // Save the secret to the user document (but do not enable 2FA yet)
+      user.otpSecret = secret.base32;
+      await user.save();
+      console.log(`2FA secret saved for user: ${user.email}`);
+  
+      // Generate QR code URL
+      console.log("Generating QR code...");
+      qrcode.toDataURL(secret.otpauth_url, (err, data_url) => {
+        if (err) {
+          console.error("Error generating QR code:", err);
+          throw err;
+        }
+  
+        console.log(`QR code generated successfully for user: ${user.email}`);
+        res.status(200).json({ qrCode: data_url, userId: user._id });
+      });
+    } catch (error) {
+      console.error("Error setting up 2FA:", error);
+      res.status(500).json({ message: "Error setting up 2FA", error: error.message });
     }
-
-    // Generate a new secret for 2FA
-    const secret = speakeasy.generateSecret({ name: `ParkBooking:${user.email}` });
-
-    // Save the secret to the user document (but do not enable 2FA yet)
-    user.otpSecret = secret.base32;
-    await user.save();
-
-    // Generate QR code URL
-    qrcode.toDataURL(secret.otpauth_url, (err, data_url) => {
-      if (err) throw err;
-      res.status(200).json({ qrCode: data_url, userId: user._id });
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error setting up 2FA", error });
-  }
-};
+  };
+  
 
 
-
-// Verify OTP and enable 2FA
 const verifyAndEnable2FA = async (req, res) => {
   const { userId, otp } = req.body;
+  console.log("Received request to verify and enable 2FA"); // Log function entry
+  console.log("Request Body:", req.body);
 
   try {
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      console.error(`User not found: ${userId}`);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log(`User found: ${user.email}, 2FA Enabled: ${user.is2FAEnabled}`);
 
     // Check if 2FA is already enabled
     if (user.is2FAEnabled) {
+      console.warn(`2FA is already enabled for user: ${user.email}`);
       return res.status(400).json({ message: "2FA is already enabled" });
     }
 
     // Verify the OTP with Google Authenticator
+    console.log("Verifying OTP...");
     const verified = speakeasy.totp.verify({
       secret: user.otpSecret,
       encoding: "base32",
-      token: String(token), 
+      token: String(otp),  // Ensure `otp` is used instead of `token`
       window: 1, // Allow 1-step time window for OTP validation
     });
 
     if (!verified) {
+      console.warn(`Invalid OTP for user: ${user.email}`);
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
+    console.log("OTP verified successfully");
+
     // Check if backup codes already exist
     if (!user.backupCodes || user.backupCodes.length === 0) {
+      console.log("Generating new backup codes...");
+
       // Generate backup codes
       const backupCodes = generateBackupCodes();
 
@@ -546,18 +574,26 @@ const verifyAndEnable2FA = async (req, res) => {
       user.backupCodes = backupCodes.map((code) => Buffer.from(code).toString("base64"));
       user.hashedBackupCodes = hashedBackupCodes;
 
+      console.log(`Generated and saved ${backupCodes.length} backup codes for user: ${user.email}`);
+
       // Send backup codes to the user's email
       const emailText = `Your backup codes are:\n\n${backupCodes.join("\n")}\n\nKeep these codes safe. Each code can be used only once.`;
       await sendEmail(user.email, "Your Backup Codes for 2FA", emailText);
+      console.log(`Backup codes sent to ${user.email}`);
+    } else {
+      console.log("User already has backup codes.");
     }
 
     // Enable 2FA
     user.is2FAEnabled = true;
     await user.save();
 
+    console.log(`2FA enabled successfully for user: ${user.email}`);
     res.status(200).json({ message: "2FA enabled successfully" });
+
   } catch (error) {
-    res.status(500).json({ message: "Error enabling 2FA", error });
+    console.error("Error enabling 2FA:", error);
+    res.status(500).json({ message: "Error enabling 2FA", error: error.message });
   }
 };
 

@@ -41,7 +41,7 @@ const TwoFAFlow = () => {
     setIsLoading(true); // Start loading
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/verify-otp", { userId, otp });
+      const response = await axios.post("http://localhost:5000/api/auth/verify-and-enable-2fa", { userId, otp });
       if (response.data.message === "2FA enabled successfully") {
         setSuccess("2FA enabled successfully! Check your email for backup codes.");
       }
