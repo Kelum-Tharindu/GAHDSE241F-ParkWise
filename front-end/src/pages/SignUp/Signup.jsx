@@ -33,6 +33,12 @@ const Signup = () => {
     }
   };
 
+  // Handle Google Sign-Up
+  const handleGoogleSignUp = () => {
+    // Redirect the user to the backend Google OAuth endpoint
+    window.location.href = "http://localhost:5000/api/auth/google";
+  };
+
   const styles = {
     container: "min-h-screen flex items-center justify-center bg-yellow-200", // Yellow background outside the container
     wrapper: "bg-white/50 shadow-2xl rounded-lg overflow-hidden w-full max-w-5xl flex flex-col md:flex-row", // Removed background color for transparency
@@ -74,7 +80,11 @@ const Signup = () => {
           <p className={styles.subtitle}>Sign up to get started with our services.</p>
 
           {/* Google Sign-Up Button */}
-          <button className={styles.googleButton}>
+          <button 
+            type="button" 
+            onClick={handleGoogleSignUp} 
+            className={styles.googleButton}
+          >
             <FaGoogle className="mr-2" />
             Sign up with Google
           </button>

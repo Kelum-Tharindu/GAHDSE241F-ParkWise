@@ -32,17 +32,24 @@
 
 const express = require("express");
 const {
-    registerUser,
+  registerUser,
   loginUser,
   setup2FA,
   verifyAndEnable2FA,
   verifyOTP,
   disable2FA,
+  googleLogin,
   googleCallback,
 } = require("../controllers/authController");
+const authController = require("../controllers/authController");
+
 const passport = require("passport");
 
 const router = express.Router();
+
+// Google OAuth routes
+router.get("/google", authController.googleLogin);
+router.get("/google/callback", authController.googleCallback);
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);

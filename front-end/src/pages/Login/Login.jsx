@@ -47,6 +47,12 @@ const Login = () => {
     }
   };
 
+  // Handle Google Login
+  const handleGoogleLogin = () => {
+    // Redirect the user to the backend Google OAuth endpoint
+    window.location.href = "http://localhost:5000/api/auth/google";
+  };
+
   const styles = {
     container: "min-h-screen flex items-center justify-center bg-yellow-200", // Yellow background outside the container
     wrapper: "bg-white/50 shadow-2xl rounded-lg overflow-hidden w-full max-w-5xl flex flex-col md:flex-row relative border-4 border-transparent", // Container with transparent border
@@ -91,7 +97,11 @@ const Login = () => {
           <p className={styles.subtitle}>Welcome back! Please enter your credentials.</p>
 
           {/* Google Login Button */}
-          <button className={styles.googleButton}>
+          <button 
+            type="button" 
+            onClick={handleGoogleLogin} 
+            className={styles.googleButton}
+          >
             <FaGoogle className="mr-2" />
             Login with Google
           </button>
