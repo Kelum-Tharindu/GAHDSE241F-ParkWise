@@ -1,8 +1,7 @@
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
 
-// Function to generate a QR code for 2FA
-const generate2FAQRCode = async (userEmail, secret) => {
+const twofaQR = async (userEmail, secret) => {
   const otpauthUrl = speakeasy.otpauthURL({
     secret: secret.base32,
     label: `ParkBooking:${userEmail}`,
@@ -20,4 +19,4 @@ const generate2FAQRCode = async (userEmail, secret) => {
   });
 };
 
-module.exports = generate2FAQRCode;
+module.exports = twofaQR; // Default export
