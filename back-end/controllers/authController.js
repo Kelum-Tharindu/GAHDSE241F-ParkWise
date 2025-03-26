@@ -199,6 +199,122 @@ const verifyOTP = async (req, res) => {
   }
 };
 
+// Forgot Password - Generate and send reset token
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return res.status(400).json({ message: "Valid email is required" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    // Return same message whether user exists or not (security best practice)
+    const responseMessage = "If this email exists in our system, you'll receive a reset link";
+
+    if (user) {
+      const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: '1h'
+      });
+
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpire = Date.now() + 3600000; // 1 hour
+      await user.save();
+
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+      const emailText = `Click to reset your password: ${resetUrl}\n\nLink expires in 1 hour.`;
+
+      try {
+        await sendEmail(user.email, "Password Reset Request", emailText);
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        // Don't fail the request - still return success message
+      }
+    }
+
+    res.status(200).json({ message: responseMessage });
+
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ 
+      message: "Error processing request",
+      error: error.message 
+    });
+  }
+};
+
+// Reset Password
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    // 1. Validate new password
+    if (!password || password.length < 8) {
+      return res.status(400).json({ 
+        message: "Password must be at least 8 characters" 
+      });
+    }
+
+    // 2. Verify token and find user
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({
+      _id: decoded.id,
+      resetPasswordToken: token,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ 
+        message: "Invalid or expired token" 
+      });
+    }
+
+    // 3. Update password and clear reset fields
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    // 4. Send confirmation email (with proper validation)
+    if (user.email) {  // Check email exists
+      const message = `Your password has been successfully updated.`;
+      try {
+        await sendEmail(
+          user.email,
+          "Password Updated Successfully",
+          message
+        );
+      } catch (emailError) {
+        console.error("Confirmation email failed:", emailError);
+        // Continue without failing the request
+      }
+    }
+
+    res.status(200).json({ 
+      message: "Password reset successful" 
+    });
+
+  } catch (error) {
+    console.error("Reset password error:", error);
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(400).json({ message: "Invalid token" });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(400).json({ message: "Token expired" });
+    }
+    
+    res.status(500).json({ 
+      message: "Error resetting password",
+      error: error.message 
+    });
+  }
+};
+
 // Disable 2FA
 const disable2FA = async (req, res) => {
   const { userId, backupCode } = req.body;
@@ -276,6 +392,8 @@ module.exports = {
   setup2FA,
   verifyAndEnable2FA,
   verifyOTP,
+  forgotPassword,
+  resetPassword,
   disable2FA,
   googleLogin,
   googleCallback,

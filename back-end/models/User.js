@@ -31,6 +31,12 @@ const UserSchema = new mongoose.Schema({
     default: "user",
     required: [true, "Role is required"],
   },
+  resetPasswordToken: {
+    type: String,
+  },
+  resetPasswordExpire: {
+    type: Date,
+  },
   otpSecret: { type: String }, // Secret key for 2FA
   is2FAEnabled: { type: Boolean, default: false }, // Track if 2FA is enabled
   backupCodes: [{ type: String }], // Backup codes for 2FA
