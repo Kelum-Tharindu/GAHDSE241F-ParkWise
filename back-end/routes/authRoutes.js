@@ -37,6 +37,8 @@ const {
   setup2FA,
   verifyAndEnable2FA,
   verifyOTP,
+  forgotPassword,
+  resetPassword,
   disable2FA,
   googleLogin,
   googleCallback,
@@ -58,6 +60,9 @@ router.post("/verify-and-enable-2fa", verifyAndEnable2FA);
 router.post("/verify-otp", verifyOTP);
 router.post("/disable-2fa", disable2FA);
 router.get("/google/callback", googleCallback);
+// Password reset routes
+router.post('/forgot-password', forgotPassword);
+router.put('/reset-password/:token', resetPassword);
 
 // Google OAuth routes
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));

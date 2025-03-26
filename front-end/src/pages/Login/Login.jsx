@@ -1,155 +1,148 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaUser, FaLock, FaGoogle } from 'react-icons/fa';
+import { FaFacebook, FaLinkedin, FaGoogle, FaUser, FaLock } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  });
-
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate(); // Initialize navigate
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setFormData(prev => ({ ...prev, email: rememberedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
-
+    setError('');
     try {
       const response = await axios.post("http://localhost:5000/api/auth/login", formData);
       if (response.data.message === "Enter OTP") {
-        // Handle 2FA case (redirect to OTP page or show OTP input)
         alert("2FA is enabled. Please enter your OTP.");
-        // You can redirect to an OTP page or show an OTP input field here
       } else {
-        // Login successful
-        alert("Login successful!");
-        // Save the token and role to localStorage or context
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('role', response.data.role);
-        // Redirect to the appropriate dashboard based on the role
-        if (response.data.role === 'admin') {
-          window.location.href = '/admin-dashboard';
-        } else {
-          window.location.href = '/user-dashboard';
-        }
+        rememberMe 
+          ? localStorage.setItem('rememberedEmail', formData.email) 
+          : localStorage.removeItem('rememberedEmail');
+        window.location.href = response.data.role === 'admin' ? '/admin-dashboard' : '/user-dashboard';
       }
     } catch (error) {
-      // Handle validation errors from the backend
-      if (error.response && error.response.data && error.response.data.message) {
-        setError(error.response.data.message);
-      } else {
-        setError("Error logging in. Please try again.");
-      }
+      setError(error.response?.data?.message || "Error logging in. Please try again.");
     }
   };
 
-  // Handle Google Login
-  const handleGoogleLogin = () => {
-    // Redirect the user to the backend Google OAuth endpoint
-    window.location.href = "http://localhost:5000/api/auth/google";
-  };
-
-  const styles = {
-    container: "min-h-screen flex items-center justify-center bg-yellow-200", // Yellow background outside the container
-    wrapper: "bg-white/50 shadow-2xl rounded-lg overflow-hidden w-full max-w-5xl flex flex-col md:flex-row relative border-4 border-transparent", // Container with transparent border
-    imageSection: "hidden md:block md:w-1/2 bg-cover bg-center flex items-center justify-center", // Center the image vertically
-    formSection: "w-full md:w-1/2 p-6 flex flex-col justify-center", // Reduced padding to p-6
-    title: "text-3xl font-bold text-center text-gray-800 mb-1", // Reduced margin-bottom to mb-1
-    subtitle: "text-lg text-center text-gray-600 mb-2", // Reduced margin-bottom to mb-2
-    inputContainer: "relative w-full mb-3", // Reduced margin-bottom to mb-3
-    input: "w-full px-10 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black transition-all",
-    inputIcon: "absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500",
-    button: "w-full bg-black text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:bg-gray-900 transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/50",
-    googleButton: "w-full bg-white text-black font-bold py-2 px-6 rounded-lg shadow-lg border border-black hover:bg-gray-100 transition-all focus:outline-none focus:ring-4 focus:ring-gray-500/50 flex items-center justify-center",
-    errorMessage: "text-red-500 text-center mb-3", // Reduced margin-bottom to mb-3
-    link: "text-center text-gray-600 mt-3", // Reduced margin-top to mt-3
-    linkText: "text-black font-medium hover:underline",
-    divider: "flex items-center my-3", // Reduced margin to my-3
-    dividerLine: "flex-grow border-t border-gray-300",
-    dividerText: "mx-4 text-gray-500",
-  };
+  const handleGoogleLogin = () => window.location.href = "http://localhost:5000/api/auth/google";
 
   return (
-    <div className={styles.container}>
-      <div 
-        className={styles.wrapper}
-        style={{
-          borderImage: "linear-gradient(45deg, black, yellow, black) 1",
-          animation: "borderAnimation 3s infinite linear",
-        }}
-      >
-        <div 
-          className={styles.imageSection} 
-          style={{ backgroundImage: "url('/src/assets/booking.png')", 
-            backgroundSize: 'contain',  
-            backgroundPosition: 'center',  
-            backgroundRepeat: 'no-repeat', 
-            paddingTop: '50%', 
-            height: '70vh',  
-          }}
-        ></div>
-        <div className={styles.formSection}>
-          <h1 className={styles.title}>Login to Your ParkWise Account</h1>
-          <p className={styles.subtitle}>Welcome back! Please enter your credentials.</p>
-
-          {/* Google Login Button */}
-          <button 
-            type="button" 
-            onClick={handleGoogleLogin} 
-            className={styles.googleButton}
-          >
-            <FaGoogle className="mr-2" />
-            Login with Google
-          </button>
-
-          {/* Divider */}
-          <div className={styles.divider}>
-            <div className={styles.dividerLine}></div>
-            <div className={styles.dividerText}>OR</div>
-            <div className={styles.dividerLine}></div>
+    <div className="min-h-screen bg-white">
+      <div className="bg-emerald-800 text-white px-10 py-6">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="text-2xl font-bold">ParkWise</div>
+          <div className="flex space-x-8">
+            <Link to="/" className="hover:text-gray-300">Home</Link>
+            <Link to="/about" className="hover:text-gray-300">About us</Link>
+            <Link to="/contact" className="hover:text-gray-300">Contact us</Link>
           </div>
+        </div>
+      </div>
 
-          {/* Display error message if any */}
-          {error && <p className={styles.errorMessage}>{error}</p>}
+      <div className="flex min-h-[calc(100vh-160px)]">
+        <div className="w-full lg:w-1/2 p-8 flex flex-col justify-center">
+          <div className="max-w-md mx-auto w-full">
+            <h2 className="text-2xl font-bold mb-4">Welcome back! Please login to your account.</h2>
+            
+            {error && <div className="mb-3 p-2 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit}>
-            <div className={styles.inputContainer}>
-              <FaUser className={styles.inputIcon} />
-              <input 
-                type="text" 
-                name="username" 
-                placeholder="Username" 
-                value={formData.username} 
-                onChange={handleChange} 
-                className={styles.input} 
-                required 
-              />
+            <form onSubmit={handleSubmit} className="mb-4">
+              <div className="mb-3">
+                <label className="block text-gray-700 mb-1 text-sm">Email Address</label>
+                <div className="relative">
+                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="hakeem@digital.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-gray-700 mb-1 text-sm">Password</label>
+                <div className="relative">
+                  <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="***********"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-1 block text-gray-700 text-sm">Remember Me</label>
+                </div>
+                <Link to="/forgot-password" className="text-blue-600 hover:underline text-sm">
+                  Forgot Password?
+                </Link>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-black hover:bg-gray-700 text-white font-medium py-2 px-4 rounded text-sm transition"
+              >
+                Login
+              </button>
+            </form>
+
+            <div className="mb-4">
+              <Link 
+                to="/signup" 
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded text-sm transition block text-center"
+              >
+                Sign Up
+              </Link>
             </div>
 
-            <div className={styles.inputContainer}>
-              <FaLock className={styles.inputIcon} />
-              <input 
-                type="password" 
-                name="password" 
-                placeholder="Password" 
-                value={formData.password} 
-                onChange={handleChange} 
-                className={styles.input} 
-                required 
-              />
+            <div className="text-center">
+              <p className="text-gray-500 mb-2 text-xs">Or login with</p>
+              <div className="flex justify-center space-x-4">
+                <button onClick={handleGoogleLogin} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full">
+                  <FaGoogle className="text-gray-700 text-sm" />
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <button type="submit" className={styles.button}>Login</button>
-          </form>
-
-          <p className={styles.link}>
-            Don't have an account? <a href="/signup" className={styles.linkText}>Sign up</a>
-          </p>
+        <div className="hidden lg:block lg:w-1/2 relative">
+          <img 
+            src={'/src/assets/login1.png'} 
+            alt="ParkWise Parking System" 
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
     </div>
