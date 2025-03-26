@@ -15,8 +15,7 @@ const App = () => {
         <Route path="/qrgenerate" element={<QRGenerate />} />
         <Route path="/verifyOTP" element={<OTPverify />} />
         <Route path="/2faprocess" element={<TwoFAProcess />} />
-        <Route path="/" element={<Login />} /> {/* Default route */}
-        
+        <Route path="/" element={<Login />} /> {/* Default route */} 
       </Routes>
     </Router>
   );

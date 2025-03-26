@@ -18,6 +18,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/verifyOTP" element={<OTPverify />} />
         <Route path="/2faprocess" element={<TwoFAProcess />} />
       </Routes>
+      
     </Router>
   </React.StrictMode>
 );
