@@ -37,8 +37,9 @@ const parkingSchema = new mongoose.Schema({
             country: { type: String, required: true },
             postalCode: { type: String, required: true }
         }
-    }
-}, { versionKey: false });  // Disables __v
+    },
+    qrCode: { type: String } // New field to store QR code URL or encoded data
+});
 
 const Parking = mongoose.model('Parking', parkingSchema);
 module.exports = Parking;

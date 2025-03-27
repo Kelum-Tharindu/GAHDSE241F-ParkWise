@@ -1,13 +1,96 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking QR Code Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            width: 80%;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        img {
+            margin-top: 20px;
+            width: 200px;
+            height: 200px;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Parking QR Code Preview</h1>
+        <input type="text" id="parkingID" placeholder="Enter Parking ID" />
+        <button onclick="fetchParkingQR()">Get QR Code</button>
+        <div id="qrCodeContainer" style="display: none;">
+            <h2>QR Code</h2>
+            <img id="qrCodeImage" src="" alt="QR Code" />
+        </div>
+        <div id="errorMessage" class="error" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function fetchParkingQR() {
+            const parkingID = document.getElementById("parkingID").value;
+            const errorMessage = document.getElementById("errorMessage");
+            const qrCodeContainer = document.getElementById("qrCodeContainer");
+            const qrCodeImage = document.getElementById("qrCodeImage");
+
+            errorMessage.style.display = "none";
+            qrCodeContainer.style.display = "none";
+
+            if (!parkingID) {
+                errorMessage.textContent = "Please enter a valid Parking ID.";
+                errorMessage.style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/parking/${parkingID}/qr`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    qrCodeImage.src = data.qrCode;
+                    qrCodeContainer.style.display = "block";
+                } else {
+                    errorMessage.textContent = "QR Code not available.";
+                    errorMessage.style.display = "block";
+                }
+            } catch (error) {
+                errorMessage.textContent = "Error fetching QR code.";
+                errorMessage.style.display = "block";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
 </html>

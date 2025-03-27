@@ -1,24 +1,36 @@
-const QRCode = require("qrcode");
-const crypto = require("crypto");
+const QRCode = require('qrcode');
+const Jimp = require('jimp');
+const jsQR = require('jsqr');
 
-// Function to generate unique QR code with a random salt
-async function generateQRCode(billingData) {
-    const { _id, parkingID, entryTime } = billingData;
+// Function to generate a QR Code
+const generateQRCode = async (parkingID) => {
+    try {
+        const qrCodeData = await QRCode.toDataURL(parkingID); // Generates QR code as a base64 string
+        return qrCodeData;
+    } catch (error) {
+        throw new Error("Failed to generate QR code");
+    }
+};
 
-    // Generate a random salt (could be timestamp or UUID)
-    const salt = crypto.randomBytes(8).toString("hex");
+// Function to decode QR Code from an image buffer
+const decodeQRCode = async (imageBuffer) => {
+    try {
+        const image = await Jimp.read(imageBuffer);
+        const imageData = {
+            data: new Uint8ClampedArray(image.bitmap.data),
+            width: image.bitmap.width,
+            height: image.bitmap.height,
+        };
 
-    // Combine _id with the salt to generate a unique hash
-    const hash = crypto.createHash('sha256')
-        .update(_id.toString() + salt)
-        .digest('hex');
+        const qrCodeResult = jsQR(imageData.data, imageData.width, imageData.height);
+        if (!qrCodeResult) {
+            throw new Error("QR code not found in image");
+        }
 
-    // Generate the QR code with the hash and other details
-    const qrData = { parkingID, entryTime, billingHash: hash };
-    const qrCode = await QRCode.toDataURL(JSON.stringify(qrData));
+        return qrCodeResult.data; // Decoded QR code data
+    } catch (error) {
+        throw new Error("Failed to decode QR code: " + error.message);
+    }
+};
 
-    // Return the QR code and billing hash (for storing in DB)
-    return { qrCode, billingHash: hash };
-}
-
-module.exports = generateQRCode;
+module.exports = { generateQRCode, decodeQRCode };
