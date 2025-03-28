@@ -5,7 +5,6 @@ import FourIsToThree from "../../components/ui/videos/FourIsToThree";
 import OneIsToOne from "../../components/ui/videos/OneIsToOne";
 import SixteenIsToNine from "../../components/ui/videos/SixteenIsToNine";
 import TwentyOneIsToNine from "../../components/ui/videos/TwentyOneIsToNine";
-import React, { useState } from 'react';
 
 export default function Videos() {
   return (
