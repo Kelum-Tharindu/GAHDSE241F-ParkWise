@@ -1,114 +1,77 @@
-// import React from 'react';
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import Signup from './pages/SignUp/Signup';
-// import Login from './pages/Login/Login';
-// import QRGenerate from './pages/2FA/QRGenerate';
-// import OTPverify from './pages/2FA/VerifyOTP';
-// import TwoFAProcess from './pages/2FA/2faprocess';
-
-// const App = () => {
-//   return (
-//     <Router>
-//       <Routes>
-//         <Route path="/signup" element={<Signup />} />
-//         <Route path="/login" element={<Login />} />
-//         <Route path="/qrgenerate" element={<QRGenerate />} />
-//         <Route path="/verifyOTP" element={<OTPverify />} />
-//         <Route path="/2faprocess" element={<TwoFAProcess />} />
-//         <Route path="/" element={<Login />} /> {/* Default route */}
-        
-        
-//       </Routes>
-//     </Router>
-//   );
-// };
-
-// export default App;
-
-
-// import Test from "./pages/test";  // Import the Test component
-
-// function App() {
-//   return (
-//     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-//       <Test />
-//     </div>
-//   );
-// }
-
-// export default App;
-
-
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Signup from './pages/SignUp/Signup';
 import Login from './pages/Login/Login';
-import ForgotPassword from './pages/Login/ForgotPassword';
-import ResetPassword from './pages/Login/ResetPassword';
-import NotFound from "./pages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
-import Videos from "./pages/UiElements/Videos";
-import Images from "./pages/UiElements/Images";
-import Alerts from "./pages/UiElements/Alerts";
-import Badges from "./pages/UiElements/Badges";
-import Avatars from "./pages/UiElements/Avatars";
-import Buttons from "./pages/UiElements/Buttons";
-import LineChart from "./pages/Charts/LineChart";
-import BarChart from "./pages/Charts/BarChart";
-import Calendar from "./pages/Calendar";
-import BasicTables from "./pages/Tables/BasicTables";
-import FormElements from "./pages/Forms/FormElements";
-import Blank from "./pages/Blank";
-import AppLayout from "./layout/AppLayout";
-import { ScrollToTop } from "./components/common/ScrollToTop";
-import Home from "./pages/Dashboard/Home";
 import QRGenerate from './pages/2FA/QRGenerate';
 import OTPverify from './pages/2FA/VerifyOTP';
 import TwoFAProcess from './pages/2FA/2faprocess';
-import "./index.css";
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import Dashboard from './pages/AdminDashboard/Dashboard';
 
 const App = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // This would typically be set after successful login/2FA verification
+  // For demo purposes, we'll just check if we're on a dashboard route
+  const checkAuth = () => {
+    return isAuthenticated || window.location.pathname === '/dashboard';
+  };
+
+  const PrivateRoute = ({ children }) => {
+    return checkAuth() ? (
+      <div className="flex h-screen bg-gray-100">
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+            {children}
+          </main>
+        </div>
+      </div>
+    ) : (
+      <Navigate to="/login" />
+    );
+  };
+
   return (
     <Router>
-      <ScrollToTop />
       <Routes>
-        {/* Authentication Routes */}
+        {/* Public routes */}
         <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/qrgenerate" element={<QRGenerate />} />
-        <Route path="/verifyOTP" element={<OTPverify />} />
-        <Route path="/2faprocess" element={<TwoFAProcess />} />
-
-        {/* Main Application Routes (Protected) */}
-        <Route element={<AppLayout />}>
-          <Route index path="/" element={<Home />} />
-          <Route path="/profile" element={<UserProfiles />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/blank" element={<Blank />} />
-          <Route path="/form-elements" element={<FormElements />} />
-          <Route path="/basic-tables" element={<BasicTables />} />
-          <Route path="/alerts" element={<Alerts />} />
-          <Route path="/avatars" element={<Avatars />} />
-          <Route path="/badge" element={<Badges />} />
-          <Route path="/buttons" element={<Buttons />} />
-          <Route path="/images" element={<Images />} />
-          <Route path="/videos" element={<Videos />} />
-          <Route path="/line-chart" element={<LineChart />} />
-          <Route path="/bar-chart" element={<BarChart />} />
-        </Route>
-
-        {/* Fallback Route */}
-        <Route path="*" element={<NotFound />} />
+        <Route path="/verifyOTP" element={<OTPverify setIsAuthenticated={setIsAuthenticated} />} />
+        <Route path="/2faprocess" element={<TwoFAProcess setIsAuthenticated={setIsAuthenticated} />} />
+        
+        {/* Private routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        
+        {/* Default routes */}
+        <Route
+          path="/"
+          element={
+            checkAuth() ? (
+              <Navigate to="/dashboard" />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to={checkAuth() ? "/dashboard" : "/login"} />} />
       </Routes>
     </Router>
   );
 };
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+export default App;
