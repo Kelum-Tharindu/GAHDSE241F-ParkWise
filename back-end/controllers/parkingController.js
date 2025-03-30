@@ -69,9 +69,7 @@ const getParkingByOwnerIdOrName = async (req, res) => {
         // Check if identifier is a valid ObjectId
         if (mongoose.Types.ObjectId.isValid(identifier)) {
             query = { ownerId: identifier }; // Query by Owner ID if valid
-        } else {
-            query = { name: identifier }; // Otherwise, query by Name
-        }
+        } 
 
         const parking = await Parking.findOne(query);
         if (!parking) {
