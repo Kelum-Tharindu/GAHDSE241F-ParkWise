@@ -1,13 +1,12 @@
 const express = require('express');
-const ParkingController = require('../controllers/ParkingController');
-
 const router = express.Router();
+const parkingController = require('../controllers/parkingController');
 
-router.post('/parking', ParkingController.addParking);
-router.get('/parking', ParkingController.getAllParkings);
-router.get('/parking/:id', ParkingController.getParkingById);
-router.put('/parking/:id', ParkingController.updateParking);
-router.delete('/parking/:id', ParkingController.deleteParking);
-router.get('/get-qr/:parkingID', ParkingController.getQRCodeByParkingID);
+router.post('/add', parkingController.addParking);
+router.get('/all', parkingController.getAllParking);
+router.get('/:identifier', parkingController.getParkingByIdOrName);
+router.get('/owner/:identifier', parkingController.getParkingByOwnerIdOrName);
+router.put('/update/:identifier', parkingController.updateParking);
+router.delete('/delete/:identifier', parkingController.deleteParking);
 
 module.exports = router;

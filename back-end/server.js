@@ -3,7 +3,6 @@ const express = require('express');
 const connectDB = require('./config/db');
 const parkingRoutes = require('./routes/parkingRoutes');
 const billingRoutes = require("./routes/billingRoutes");
-const qrRoutes = require("./routes/qrRoutes");
 const cors = require("cors"); // Import CORS
 
 
@@ -29,7 +28,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/parking', parkingRoutes);
 app.use("/billing", billingRoutes);
-app.use("/qr", qrRoutes);
+
 
 // Server start
 const PORT = process.env.PORT || 5000;

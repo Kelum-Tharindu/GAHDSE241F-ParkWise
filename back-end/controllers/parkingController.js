@@ -1,107 +1,152 @@
-const Parking = require('../models/parkingmodel');
-const { generateQRCode } = require('../utils/qrGenerator'); 
+const mongoose = require("mongoose");
+const Parking = require("../models/parkingModel");
+const { generateQRCode } = require("../utils/qrGenertor");
 
-class ParkingController {
-    // Add new parking and generate QR code
-    static async addParking(req, res) {
-        try {
-            console.log("Received Data:", req.body);
+// Add a New Parking
+const addParking = async (req, res) => {
+    try {
+        const { name, ownerId, slotDetails, location } = req.body;
 
-            // Save parking entry
-            const parking = new Parking(req.body);
-            await parking.save();
-            console.log("Parking Saved:", parking._id);
-
-            // Generate QR code based on the parking ID
-            const qrCodeData = await generateQRCode(parking._id.toString());
-
-            // Update parking with QR code
-            parking.qrCode = qrCodeData;
-            await parking.save();
-
-            res.status(201).json({
-                message: "Parking added successfully with QR Code",
-                parking
-            });
-        } catch (error) {
-            console.error("Error saving parking:", error.message);
-            res.status(400).json({ error: error.message });
+        // Check if the parking name already exists
+        const existingParking = await Parking.findOne({ name });
+        if (existingParking) {
+            return res.status(400).json({ message: "Parking with this name already exists." });
         }
-    }
 
-    // Get all parking records
-    static async getAllParkings(req, res) {
-        try {
-            const parkings = await Parking.find();
-            res.status(200).json({ message: "All parkings retrieved", parkings });
-        } catch (error) {
-            console.error("Error fetching parkings:", error.message);
-            res.status(500).json({ error: error.message });
+        // Generate QR Code
+        const qrCode = await generateQRCode(name);
+
+        // Save new parking
+        const newParking = new Parking({ name, ownerId, slotDetails, location, qrCode });
+        await newParking.save();
+
+        res.status(201).json({ message: "Parking added successfully.", parking: newParking });
+    } catch (error) {
+        res.status(500).json({ message: "Error adding parking.", error: error.message });
+    }
+};
+
+// Get All Parking Details
+const getAllParking = async (req, res) => {
+    try {
+        const parkingList = await Parking.find();
+        res.status(200).json(parkingList);
+    } catch (error) {
+        res.status(500).json({ message: "Error retrieving parking list.", error: error.message });
+    }
+};
+
+// Get Parking by ID or Name
+const getParkingByIdOrName = async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        let query;
+
+        // Check if identifier is a valid ObjectId
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            query = { _id: identifier }; // Query by ID if valid
+        } else {
+            query = { name: identifier }; // Otherwise, query by name
         }
-    }
 
-    // Get a specific parking by ID
-    static async getParkingById(req, res) {
-        try {
-            const parking = await Parking.findById(req.params.id);
-            if (!parking) {
-                return res.status(404).json({ message: "Parking not found" });
-            }
-            res.status(200).json({ message: "Parking retrieved", parking });
-        } catch (error) {
-            console.error("Error fetching parking:", error.message);
-            res.status(500).json({ error: error.message });
+        const parking = await Parking.findOne(query);
+        if (!parking) {
+            return res.status(404).json({ message: "Parking not found." });
         }
+
+        res.status(200).json(parking);
+    } catch (error) {
+        res.status(500).json({ message: "Error retrieving parking details.", error: error.message });
     }
+};
 
-    // Update parking details
-    static async updateParking(req, res) {
-        try {
-            const updatedParking = await Parking.findByIdAndUpdate(
-                req.params.id, 
-                req.body, 
-                { new: true }
-            );
+// Get Parking by Owner ID or Name
+const getParkingByOwnerIdOrName = async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        let query;
 
-            if (!updatedParking) {
-                return res.status(404).json({ message: "Parking not found" });
-            }
-
-            res.status(200).json({ message: "Parking updated successfully", updatedParking });
-        } catch (error) {
-            console.error("Error updating parking:", error.message);
-            res.status(500).json({ error: error.message });
+        // Check if identifier is a valid ObjectId
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            query = { ownerId: identifier }; // Query by Owner ID if valid
+        } else {
+            query = { name: identifier }; // Otherwise, query by Name
         }
-    }
 
-    // Delete a parking record
-    static async deleteParking(req, res) {
-        try {
-            const parking = await Parking.findByIdAndDelete(req.params.id);
-            if (!parking) {
-                return res.status(404).json({ message: "Parking not found" });
-            }
-            res.status(200).json({ message: "Parking deleted successfully" });
-        } catch (error) {
-            console.error("Error deleting parking:", error.message);
-            res.status(500).json({ error: error.message });
+        const parking = await Parking.findOne(query);
+        if (!parking) {
+            return res.status(404).json({ message: "Parking not found." });
         }
+
+        res.status(200).json(parking);
+    } catch (error) {
+        res.status(500).json({ message: "Error retrieving parking details.", error: error.message });
     }
+};
 
-    // Fetch QR code for a parking ID
-    static async getParkingQRCode(req, res) {
-        try {
-            const parking = await Parking.findById(req.params.id);
-            if (!parking || !parking.qrCode) {
-                return res.status(404).json({ message: "QR Code not found for this parking" });
-            }
+// Update Parking Details
+const updateParking = async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        const updateData = req.body;
 
-            res.status(200).json({ qrCode: parking.qrCode });
-        } catch (error) {
-            console.error("Error fetching QR code:", error.message);
-            res.status(500).json({ error: error.message });
+        // Prevent updating the qrCode or _id
+        delete updateData.qrCode;
+        delete updateData._id;
+
+        let query;
+
+        // Check if identifier is a valid ObjectId
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            query = { _id: identifier }; // Query by ID if valid
+        } else {
+            query = { name: identifier }; // Otherwise, query by Name
         }
-    }
-}
 
-module.exports = ParkingController;
+        // Find and update parking
+        const updatedParking = await Parking.findOneAndUpdate(query, updateData, { new: true });
+
+        if (!updatedParking) {
+            return res.status(404).json({ message: "Parking not found." });
+        }
+
+        res.status(200).json({ message: "Parking updated successfully.", parking: updatedParking });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating parking.", error: error.message });
+    }
+};
+
+// Delete Parking
+const deleteParking = async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        let query;
+
+        // Check if identifier is a valid ObjectId
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            query = { _id: identifier }; // Query by ID if valid
+        } else {
+            query = { name: identifier }; // Otherwise, query by Name
+        }
+
+        // Find and delete parking
+        const deletedParking = await Parking.findOneAndDelete(query);
+
+        if (!deletedParking) {
+            return res.status(404).json({ message: "Parking not found." });
+        }
+
+        res.status(200).json({ message: "Parking deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting parking.", error: error.message });
+    }
+};
+
+module.exports = {
+    addParking,
+    getAllParking,
+    getParkingByIdOrName,
+    getParkingByOwnerIdOrName,
+    updateParking,
+    deleteParking,
+};
