@@ -5,12 +5,6 @@ import StatsCard from '@components/StatsCard';
 import RevenueChart from '@components/RevenueChart';
 import SpaceUtilization from '@components/SpaceUtilization';
 
-// Import individual SVG icons
-import MoneyIcon from '@icons/plus.svg';
-import BookingsIcon from '@icons/pencil.svg';
-import ParkingIcon from '@icons/time.svg';
-import SatisfactionIcon from '@icons/trash.svg';
-
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -31,28 +25,28 @@ const Dashboard = () => {
             <StatsCard 
               title="Total Revenue" 
               value="$12,345" 
-              icon="event_available" 
-              color="bg-green-500"
+              icon="payments" 
+              color="bg-[#1F7D53]"
             />
             <StatsCard 
               title="Total Bookings" 
               value="156" 
               change="+8%" 
               icon="event_available" 
-              color="bg-green-500"
+              color="bg-[#1F7D53]"
             />
             <StatsCard 
               title="Active Spaces" 
               value="42" 
               change="-3%" 
               icon="local_parking" 
-              color="bg-blue-500"
+              color="bg-[#1F7D53]"
             />
             <StatsCard 
               title="Customer Satisfaction" 
               value="94%" 
               icon="sentiment_satisfied" 
-              color="bg-purple-500"
+              color="bg-[#1F7D53]"
             />
           </div>
 
@@ -61,10 +55,10 @@ const Dashboard = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-800">Revenue Overview</h2>
               <div className="flex space-x-2">
-                <button className="px-3 py-1 text-sm bg-indigo-600 text-white rounded-md">
+                <button className="px-3 py-1 text-sm bg-[#013220] text-white rounded-md hover:bg-[#024a2d] transition-colors">
                   Monthly
                 </button>
-                <button className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md">
+                <button className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
                   Weekly
                 </button>
               </div>

@@ -1,63 +1,86 @@
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState(null);
   const menuRefs = useRef({});
 
-  // Menu data
-  const menus = {
-    main: [
-      { name: 'Dashboard', path: '/', count: 88 },
-      { name: 'Ecommerce', path: '/ecommerce' }
-    ],
-    secondary: [
-      { name: 'Calendar', path: '/calendar' },
-      { name: 'User Profile', path: '/profile' }
-    ],
-    forms: [
-      { name: 'Form Elements', path: '/forms' }
-    ],
-    tables: [
-      { name: 'Basic Tables', path: '/tables' }
-    ],
-    pages: [
-      { name: 'Blank Page', path: '/blank' },
-      { name: '404 Error', path: '/404' }
-    ]
+  // Menu data with icons
+  const menuSections = {
+    management: {
+      title: "Management",
+      icon: "manage_accounts",
+      items: [
+        { name: 'Users', path: '/users', icon: 'people' },
+        { name: 'Landowners', path: '/landowners', icon: 'home_work' }
+      ]
+    },
+    parking: {
+      title: "Parking Control",
+      icon: "directions_car",
+      items: [
+        { name: 'Parking Slots', path: '/parking-slots', icon: 'local_parking' },
+        { name: 'Zones', path: '/zones', icon: 'map' }
+      ]
+    },
+    operations: {
+      title: "Operations",
+      icon: "business_center",
+      items: [
+        { name: 'Bookings', path: '/bookings', icon: 'event_available' },
+        { name: 'Transactions', path: '/transactions', icon: 'payments' },
+        { name: 'Refunds', path: '/refunds', icon: 'assignment_return' }
+      ]
+    },
+    monitoring: {
+      title: "Monitoring",
+      icon: "monitor_heart",
+      items: [
+        { name: 'IoT Devices', path: '/iot-devices', icon: 'sensors' },
+        { name: 'Alerts', path: '/alerts', icon: 'notifications_active' },
+        { name: 'Audit Logs', path: '/audit-logs', icon: 'history' }
+      ]
+    },
+    analytics: {
+      title: "Analytics",
+      icon: "insights",
+      items: [
+        { name: 'Usage', path: '/analytics/usage', icon: 'show_chart' },
+        { name: 'Revenue', path: '/analytics/revenue', icon: 'bar_chart' },
+        { name: 'User Growth', path: '/analytics/user-growth', icon: 'trending_up' }
+      ]
+    },
+    system: {
+      title: "System",
+      icon: "settings",
+      items: [
+        { name: 'Configuration', path: '/settings', icon: 'tune' },
+        { name: 'Backup', path: '/backup', icon: 'cloud_done' }
+      ]
+    }
   };
 
-  const others = {
-    charts: [
-      { name: 'Line Chart', path: '/line-chart' },
-      { name: 'Bar Chart', path: '/bar-chart' }
-    ],
-    elements: [
-      { name: 'Alerts', path: '/alerts' },
-      { name: 'Buttons', path: '/buttons' }
-    ]
-  };
-
-  // Check active path
+  // Check if path is active
   const isActive = (path) => location.pathname === path;
 
-  // Toggle menu
+  // Toggle menu section
   const toggleMenu = (menu) => {
     setActiveMenu(activeMenu === menu ? null : menu);
   };
 
-  // Auto-expand active menu
+  // Auto-expand active menu on route change
   useEffect(() => {
-    for (const [menu, items] of Object.entries({ ...menus, ...others })) {
-      if (items.some(item => isActive(item.path))) {
+    for (const [menu, section] of Object.entries(menuSections)) {
+      if (section.items.some(item => isActive(item.path))) {
         setActiveMenu(menu);
         break;
       }
     }
   }, [location]);
 
-  // Set menu heights for animation
+  // Set menu heights for smooth animation
   useEffect(() => {
     if (activeMenu && menuRefs.current[activeMenu]) {
       menuRefs.current[activeMenu].style.height = 
@@ -65,202 +88,110 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     }
   }, [activeMenu]);
 
+  // Handle sign out
+  const handleSignOut = () => {
+    localStorage.removeItem('authToken');
+    navigate('/login');
+  };
+
   return (
     <div className={`
-      fixed inset-y-0 left-0 z-30 w-64 bg-gray-800 text-white
+      fixed inset-y-0 left-0 z-30 w-64
       transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       md:relative md:translate-x-0 transition-transform duration-200
+      flex flex-col
+      bg-white text-gray-800 shadow-lg
     `}>
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center">
-          <h1 className="text-xl font-bold">ParkAdmin</h1>
+          <span className="material-icons mr-2 text-[#013220]">local_parking</span>
+          <h1 className="text-xl font-bold">ParkWise Admin</h1>
         </div>
         <button 
           onClick={() => setSidebarOpen(false)}
-          className="md:hidden text-gray-400 hover:text-white"
+          className="md:hidden text-gray-600 hover:text-gray-900"
         >
-          Close
+          <span className="material-icons">close</span>
         </button>
       </div>
 
-      <div className="p-4 overflow-y-auto h-[calc(100vh-64px)]">
-        {/* MENU Section */}
-        <div className="mb-6">
-          <h3 className="text-xs uppercase text-gray-400 mb-3 px-2">MENU</h3>
-          
-          {/* Dashboard */}
-          <div className="mb-1">
-            <NavLink
-              to="/"
-              className={({ isActive }) => `
-                flex items-center justify-between p-3 rounded-lg
-                ${isActive ? 'bg-gray-700' : 'hover:bg-gray-700'}
-              `}
-            >
-              <div className="flex items-center">
-                <span>Dashboard</span>
-              </div>
-              <span className="bg-blue-500 text-xs px-2 py-1 rounded-full">88</span>
-            </NavLink>
-          </div>
-
-          {/* Ecommerce */}
-          <div className="mb-1">
-            <NavLink
-              to="/ecommerce"
-              className={({ isActive }) => `
-                flex items-center p-3 rounded-lg
-                ${isActive ? 'bg-gray-700' : 'hover:bg-gray-700'}
-              `}
-            >
-              <span>Ecommerce</span>
-            </NavLink>
-          </div>
-
-          {/* Calendar */}
-          <div className="mb-1">
-            <NavLink
-              to="/calendar"
-              className={({ isActive }) => `
-                flex items-center p-3 rounded-lg
-                ${isActive ? 'bg-gray-700' : 'hover:bg-gray-700'}
-              `}
-            >
-              <span>Calendar</span>
-            </NavLink>
-          </div>
-
-          {/* User Profile */}
-          <div className="mb-1">
-            <NavLink
-              to="/profile"
-              className={({ isActive }) => `
-                flex items-center p-3 rounded-lg
-                ${isActive ? 'bg-gray-700' : 'hover:bg-gray-700'}
-              `}
-            >
-              <span>User Profile</span>
-            </NavLink>
-          </div>
-        </div>
-
-        {/* Forms Section */}
-        <div className="mb-6">
-          <h3 className="text-xs uppercase text-gray-400 mb-3 px-2">FORMS</h3>
-          <div className="mb-1">
-            <NavLink
-              to="/forms"
-              className={({ isActive }) => `
-                flex items-center p-3 rounded-lg
-                ${isActive ? 'bg-gray-700' : 'hover:bg-gray-700'}
-              `}
-            >
-              <span>Form Elements</span>
-            </NavLink>
-          </div>
-        </div>
-
-        {/* OTHERS Section */}
-        <div className="mb-6">
-          <h3 className="text-xs uppercase text-gray-400 mb-3 px-2">OTHERS</h3>
-          
-          {/* Charts */}
-          <div className="mb-2">
-            <button 
-              onClick={() => toggleMenu('charts')}
-              className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-700"
-            >
-              <div className="flex items-center">
-                <span>Charts</span>
-              </div>
-              <span className={`transition-transform ${activeMenu === 'charts' ? 'rotate-180' : ''}`}>
-                ▼
-              </span>
-            </button>
-
-            <div
-              ref={el => menuRefs.current['charts'] = el}
-              className="overflow-hidden transition-all duration-300"
-              style={{ height: activeMenu === 'charts' ? `${menuRefs.current['charts']?.scrollHeight || 0}px` : '0px' }}
-            >
-              <div className="pl-12 py-1">
-                <NavLink
-                  to="/line-chart"
-                  className={({ isActive }) => `
-                    flex items-center p-2 rounded-lg text-sm
-                    ${isActive ? 'text-blue-400' : 'hover:text-gray-300'}
-                  `}
-                >
-                  Line Chart
-                </NavLink>
-                <NavLink
-                  to="/bar-chart"
-                  className={({ isActive }) => `
-                    flex items-center p-2 rounded-lg text-sm
-                    ${isActive ? 'text-blue-400' : 'hover:text-gray-300'}
-                  `}
-                >
-                  Bar Chart
-                </NavLink>
-              </div>
-            </div>
-          </div>
-
-          {/* UI Elements */}
-          <div>
-            <button 
-              onClick={() => toggleMenu('elements')}
-              className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-700"
-            >
-              <div className="flex items-center">
-                <span>UI Elements</span>
-              </div>
-              <span className={`transition-transform ${activeMenu === 'elements' ? 'rotate-180' : ''}`}>
-                ▼
-              </span>
-            </button>
-
-            <div
-              ref={el => menuRefs.current['elements'] = el}
-              className="overflow-hidden transition-all duration-300"
-              style={{ height: activeMenu === 'elements' ? `${menuRefs.current['elements']?.scrollHeight || 0}px` : '0px' }}
-            >
-              <div className="pl-12 py-1">
-                <NavLink
-                  to="/alerts"
-                  className={({ isActive }) => `
-                    flex items-center p-2 rounded-lg text-sm
-                    ${isActive ? 'text-blue-400' : 'hover:text-gray-300'}
-                  `}
-                >
-                  Alerts
-                </NavLink>
-                <NavLink
-                  to="/buttons"
-                  className={({ isActive }) => `
-                    flex items-center p-2 rounded-lg text-sm
-                    ${isActive ? 'text-blue-400' : 'hover:text-gray-300'}
-                  `}
-                >
-                  Buttons
-                </NavLink>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Help Section */}
-        <div className="border-t border-gray-700 pt-4">
+      {/* Scrollable Menu Content */}
+      <div className="p-4 overflow-y-auto flex-1">
+        {/* Dashboard (Always visible) */}
+        <div className="mb-3">
           <NavLink
-            to="/help"
+            to="/"
             className={({ isActive }) => `
-              flex items-center p-3 rounded-lg
-              ${isActive ? 'bg-gray-700' : 'hover:bg-gray-700'}
+              flex items-center p-3 rounded-lg mb-1
+              ${isActive ? 'bg-[#013220] text-white' : 'hover:bg-[#013220] hover:text-white text-gray-700'}
+              transition-colors duration-200
             `}
           >
-            <span>Help Center</span>
+            <span className="material-icons mr-3">dashboard</span>
+            <span>Dashboard</span>
           </NavLink>
         </div>
+
+        {/* Dynamic Menu Sections */}
+        {Object.entries(menuSections).map(([key, section]) => (
+          <div key={key} className="mb-3">
+            <button 
+              onClick={() => toggleMenu(key)}
+              className={`
+                flex items-center justify-between w-full p-3 rounded-lg
+                hover:bg-[#013220] hover:text-white text-gray-700
+                transition-colors duration-200
+              `}
+            >
+              <div className="flex items-center">
+                <span className="material-icons mr-3">{section.icon}</span>
+                <span>{section.title}</span>
+              </div>
+              <span className={`material-icons transition-transform ${activeMenu === key ? 'rotate-180' : ''}`}>
+                expand_more
+              </span>
+            </button>
+
+            <div
+              ref={el => menuRefs.current[key] = el}
+              className="overflow-hidden transition-all duration-300"
+              style={{ height: activeMenu === key ? `${menuRefs.current[key]?.scrollHeight || 0}px` : '0px' }}
+            >
+              <div className="pl-12 py-1">
+                {section.items.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) => `
+                      flex items-center p-2 rounded-lg text-sm mb-1
+                      ${isActive ? 'bg-[#013220] text-white' : 'hover:bg-[#013220] hover:text-white text-gray-600'}
+                      transition-colors duration-200
+                    `}
+                  >
+                    <span className="material-icons mr-2 text-sm">{item.icon}</span>
+                    {item.name}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom Section with Sign Out */}
+      <div className="p-4 border-t border-gray-200">
+        <button 
+          onClick={handleSignOut}
+          className={`
+            flex items-center w-full p-3 rounded-lg
+            hover:bg-[#013220] hover:text-white text-gray-700
+            transition-colors duration-200
+          `}
+        >
+          <span className="material-icons mr-3">logout</span>
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   );
