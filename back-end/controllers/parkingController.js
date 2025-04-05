@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 const Parking = require("../models/parkingModel");
 const { generateQRCode } = require("../utils/qrGenertor");
 
-// Add a New Parking
 const addParking = async (req, res) => {
+    let newParking;
     try {
         const { name, ownerId, slotDetails, location } = req.body;
 
@@ -13,18 +13,45 @@ const addParking = async (req, res) => {
             return res.status(400).json({ message: "Parking with this name already exists." });
         }
 
-        // Generate QR Code
-        const qrCode = await generateQRCode(name);
+        // Save new parking with the provided details
+        newParking = new Parking({ name, ownerId, slotDetails, location });
+        console.log("New parking object:", newParking);
+        await newParking.save();
+        console.log("New parking created:", newParking);
 
-        // Save new parking
-        const newParking = new Parking({ name, ownerId, slotDetails, location, qrCode });
+        // Generate QR code with the parking ID and name
+    
+            if (!newParking._id) {
+                throw new Error("Parking ID is not available.");
+            }
+        try{
+            console.log("Generating QR code for:");
+         const qrCode = await generateQRCode(newParking._id, name);
+        }
+        catch (error) {
+            if (newParking && newParking._id) {
+                await Parking.findByIdAndDelete(newParking._id);
+            } // Delete the created parking record if QR code generation fails
+            throw new Error("Failed to generate QR code: " + error.message);
+            
+        }
+
+        // Update the parking document with the generated QR code
+        newParking.qrCode = qrCode;
         await newParking.save();
 
         res.status(201).json({ message: "Parking added successfully.", parking: newParking });
     } catch (error) {
+        // If any error occurs, delete the parking document created
+        if (newParking && newParking._id) {
+            await Parking.findByIdAndDelete(newParking._id); // Delete the created parking record
+        }
+
         res.status(500).json({ message: "Error adding parking.", error: error.message });
     }
 };
+
+
 
 // Get All Parking Details
 const getAllParking = async (req, res) => {

@@ -57,11 +57,6 @@
 </head>
 <body>
     <div class="container">
-        <h1>Upload Image</h1>
-        <input type="file" id="imageUpload" />
-        <input type="text" id="imageName" placeholder="Enter image name" />
-        <button onclick="uploadImage()">Upload Image</button>
-
         <h1>Get Image</h1>
         <input type="text" id="imageId" placeholder="Enter image ID" />
         <button onclick="getImage()">Get Image</button>
@@ -75,57 +70,29 @@
     </div>
 
     <script>
-        // Function to upload image to the backend
-        async function uploadImage() {
-            const fileInput = document.getElementById('imageUpload');
-            const nameInput = document.getElementById('imageName');
-            const file = fileInput.files[0];
-            const name = nameInput.value;
+        // Function to manually get the image by src
+        function getImage() {
+            const imageId = document.getElementById('imageId').value;
 
-            if (!file || !name) {
-                alert("Please select a file and enter a name");
+            // Manually hard-code the src for specific image IDs
+            let imageSrc = "";
+
+            // For example, hardcode local image sources based on ID
+            if (imageId === "1") {
+                imageSrc = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIQAAACECAYAAABRRIOnAAAAAklEQVR4AewaftIAAAO4SURBVO3BQY4jSQIDQWdA//+ybx3mwFMAQko9XbM0iz+Y+cdhphxmymGmHGbKYaYcZsphphxmymGmHGbKYaYcZsphphxmymGmvHgoCX+SyhNJuFFpSWgq70jCn6TyxGGmHGbKYaa8+DCVT0rCTRKaSkvCjUpLQlP5JJVPSsInHWbKYaYcZsqLL0vCO1TeodKScKNyo3KThKbyRBLeofJNh5lymCmHmfLi/1wSblSayn/ZYaYcZsphprz45ZLQVFoSblRaEt6RhKbymx1mymGmHGbKiy9T+SaVloSm0pLQVJpKS8I3qfxNDjPlMFMOM+XFhyXhT0pCU2lJaCotCU3lRqUl4R1J+JsdZsphphxmSvzBf0gSblQ+KQlN5Tc7zJTDTDnMlBcPJaGptCQ0lZaEptKS0FRuVFoSWhKayr8pCU3lJglN5ZMOM+UwUw4z5cVDKjcqT6i0JNyo3Ki0JNyofJPKO1RaEprKE4eZcpgph5ny4qEk3Ki0JLwjCU3lJglN5R0qLQlN5R1JaCotCTcqLQnfdJgph5lymCkvHlJpSWhJaCrvULlJwjuS0FRaEp5IQlNpSWgq71BpSfikw0w5zJTDTIk/eCAJT6jcJOFGpSWhqTyRhE9SeSIJTeWTDjPlMFMOMyX+4IuS0FRaEprKO5LQVG6S0FRuktBUWhKeULlJwjtUnjjMlMNMOcyU+IMHktBUWhI+SeUmCTcqN0loKk8koak8kYQblScOM+UwUw4zJf7gg5LQVN6RhKbSktBUbpJwo/KOJDSVJ5LQVG6S0FQ+6TBTDjPlMFPiDx5IQlNpSWgqLQnfpHKThKZyk4Q/SaUl4UblicNMOcyUw0yJP/jFktBUWhKeUGlJuFF5RxKayk0SmsonHWbKYaYcZsqLh5LwJ6k0lZaEptKScKPSkvBEEprKO5Jwk4Sm8sRhphxmymGmvPgwlU9KwieptCS0JNyotCTcqDyh0pLQVD7pMFMOM+UwU158WRLeofKOJLwjCU3lJgnvSMI3qbQkNJUnDjPlMFMOM+XFL6fyN1G5ScI7ktBUmsonHWbKYaYcZsqLXy4JTeVG5SYJTeVGpSWhqbwjCU3lJglN5YnDTDnMlMNMefFlKt+k0pLQVFoSmkpTuUnCEyotCU3lJglN5ZMOM+UwUw4z5cWHJeFPSkJTaUloKi0JTeUJlZsk3CShqdwkoak8cZgph5lymCnxBzP/OMyUw0w5zJTDTDnMlMNMOcyUw0w5zJTDTDnMlMNMOcyUw0w5zJT/AfUwyO5gcLn9AAAAAElFTkSuQmCC"; // Replace with the relative path to your local image
+            } else if (imageId === "2") {
+                imageSrc = "images/image2.jpg"; // Replace with the relative path to your local image
+            } else {
+                alert("Image not found!");
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                const base64Image = reader.result.split(',')[1]; // Get base64 image string
+            // Display the image
+            const imagePreview = document.getElementById('imagePreview');
+            imagePreview.src = imageSrc;
 
-                try {
-                    const response = await fetch('http://localhost:5000/api/images/upload', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ name, image: base64Image })
-                    });
-
-                    const result = await response.json();
-                    if (response.ok) {
-                        alert("Image uploaded successfully!");
-                    } else {
-                        alert("Error uploading image");
-                    }
-                } catch (error) {
-                    alert("Error uploading image");
-                    console.error(error);
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Function to get image by ID from the backend
-        async function getImage() {
-            const imageId = document.getElementById('imageId').value;           
-        try {
-                const imagePreview = document.getElementById('imagePreview');
-                imagePreview.src = "data:image/png;base64,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";
-
-                document.getElementById('imageContainer').style.display = 'block';
-            } catch (error) {
-                alert("Error retrieving image");
-                console.error(error);
-            }
+            // Show the image container
+            document.getElementById('imageContainer').style.display = 'block';
         }
     </script>
 </body>

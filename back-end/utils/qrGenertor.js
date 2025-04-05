@@ -1,11 +1,16 @@
-const QRCode = require('qrcode');
+
 const Jimp = require('jimp');
 const jsQR = require('jsqr');
 
-// Function to generate a QR Code
-const generateQRCode = async (parkingID) => {
+
+const QRCode = require('qrcode');
+
+// Function to generate a QR Code with parking ID and name
+const generateQRCode = async (parkingID, name) => {
     try {
-        const qrCodeData = await QRCode.toDataURL(parkingID); // Generates QR code as a base64 string
+
+        // console.log("Generating QR code for:", parkingID, name);
+        const qrCodeData = await QRCode.toDataURL(`${parkingID}:${name}`);
         return qrCodeData;
     } catch (error) {
         throw new Error("Failed to generate QR code");
@@ -13,3 +18,17 @@ const generateQRCode = async (parkingID) => {
 };
 
 module.exports = { generateQRCode };
+
+
+
+
+module.exports = { generateQRCode };
+async function generateQR(data) {
+    try {
+        return await QRCode.toDataURL(JSON.stringify(data));
+    } catch (error) {
+        throw new Error("QR Code Generation Failed");
+    }
+}
+
+module.exports = { generateQR };
