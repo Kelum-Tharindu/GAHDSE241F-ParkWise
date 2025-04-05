@@ -29,7 +29,6 @@
 // );
 
 // module.exports = router;
-
 const express = require("express");
 const {
   registerUser,
@@ -43,32 +42,29 @@ const {
   googleLogin,
   googleCallback,
 } = require("../controllers/authController");
-const authController = require("../controllers/authController");
-
 const passport = require("passport");
 
 const router = express.Router();
 
-// Google OAuth routes
-router.get("/google", authController.googleLogin);
-router.get("/google/callback", authController.googleCallback);
-
+// Registration and Login
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+
+// 2FA Routes
 router.post("/setup-2fa", setup2FA);
 router.post("/verify-and-enable-2fa", verifyAndEnable2FA);
 router.post("/verify-otp", verifyOTP);
 router.post("/disable-2fa", disable2FA);
-router.get("/google/callback", googleCallback);
-// Password reset routes
+
+// Password Reset Routes
 router.post('/forgot-password', forgotPassword);
 router.put('/reset-password/:token', resetPassword);
 
-// Google OAuth routes
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+// Google OAuth Routes
+router.get("/google", googleLogin);
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
+  passport.authenticate("google", { failureRedirect: "/login", session: false }),
   googleCallback
 );
 
