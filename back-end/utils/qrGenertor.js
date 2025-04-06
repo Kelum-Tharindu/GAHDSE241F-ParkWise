@@ -6,7 +6,7 @@ const jsQR = require('jsqr');
 const QRCode = require('qrcode');
 
 // Function to generate a QR Code with parking ID and name
-const generateQRCode = async (parkingID, name) => {
+const generateQRCode123 = async (parkingID, name) => {
     try {
 
         // console.log("Generating QR code for:", parkingID, name);
@@ -17,12 +17,12 @@ const generateQRCode = async (parkingID, name) => {
     }
 };
 
-module.exports = { generateQRCode };
 
 
 
 
-module.exports = { generateQRCode };
+
+
 async function generateQR(data) {
     try {
         return await QRCode.toDataURL(JSON.stringify(data));
@@ -31,4 +31,4 @@ async function generateQR(data) {
     }
 }
 
-module.exports = { generateQR };
+module.exports = { generateQR,generateQRCode123 };

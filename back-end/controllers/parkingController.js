@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Parking = require("../models/parkingModel");
-const { generateQRCode } = require("../utils/qrGenertor");
+const { generateQRCode123 } = require("../utils/qrGenertor");
 
 const addParking = async (req, res) => {
     let newParking;
@@ -20,20 +20,19 @@ const addParking = async (req, res) => {
         console.log("New parking created:", newParking);
 
         // Generate QR code with the parking ID and name
-    
-            if (!newParking._id) {
-                throw new Error("Parking ID is not available.");
-            }
-        try{
-            console.log("Generating QR code for:");
-         const qrCode = await generateQRCode(newParking._id, name);
+        if (!newParking._id) {
+            throw new Error("Parking ID is not available.");
         }
-        catch (error) {
+
+        let qrCode;
+        try {
+            console.log("Generating QR code for:");
+            qrCode = await generateQRCode123(newParking._id, name); // This will assign the QR code to the qrCode variable
+        } catch (error) {
             if (newParking && newParking._id) {
-                await Parking.findByIdAndDelete(newParking._id);
-            } // Delete the created parking record if QR code generation fails
+                await Parking.findByIdAndDelete(newParking._id); // Delete the created parking record if QR code generation fails
+            }
             throw new Error("Failed to generate QR code: " + error.message);
-            
         }
 
         // Update the parking document with the generated QR code

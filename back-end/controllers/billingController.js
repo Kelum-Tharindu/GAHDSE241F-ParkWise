@@ -1,56 +1,51 @@
-const Billing = require("../models/billingModel");
-const { generateQR } = require("../utils/qrGenertor");
+const Billing = require("../models/billingmodel");
+const crypto = require("crypto");
+const QRCode = require("qrcode");
 
-exports.entryScan = async (req, res) => {
-    try {
-        const { userID, parkingID } = req.body;
+exports.createBilling = async (req, res) => {
+  try {
+    const { parkingID, userID } = req.body;
 
-        if (!userID || !parkingID) {
-            return res.status(400).json({ message: "User ID and Parking ID are required" });
-        }
-
-        const entryTime = new Date();
-        const billingHash = `${userID}-${parkingID}-${entryTime.getTime()}`;
-
-        const newBilling = new Billing({
-            userID,
-            parkingID,
-            entryTime,
-            billingHash,
-        });
-
-        await newBilling.save();
-
-        const qrCode = await generateQR({ billingHash });
-
-        res.status(201).json({ message: "Entry recorded", qrCode, billingHash });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    if (!parkingID || !userID) {
+      return res.status(400).json({ error: "parkingID and userID are required" });
     }
-};
 
-exports.exitScan = async (req, res) => {
-    try {
-        const { billingHash } = req.body;
+    const entryTime = new Date();
 
-        const billing = await Billing.findOne({ billingHash });
+    // Generate hash
+    const hashString = `${parkingID}_${userID}_${entryTime.toISOString()}`;
+    const billingHash = crypto.createHash("sha256").update(hashString).digest("hex");
 
-        if (!billing || billing.exitTime) {
-            return res.status(400).json({ message: "Invalid or already exited QR" });
-        }
+    // QR payload
+    const qrPayload = {
+      parkingID,
+      entryTime,
+      billingHash
+    };
 
-        const exitTime = new Date();
-        const duration = Math.round((exitTime - billing.entryTime) / (1000 * 60)); 
-        const fee = duration * 0.5;
+    const qrText = JSON.stringify(qrPayload);
 
-        billing.exitTime = exitTime;
-        billing.duration = duration;
-        billing.fee = fee;
-        billing.paymentStatus = "pending";
-        await billing.save();
+    // Generate QR image as base64
+    const qrImage = await QRCode.toDataURL(qrText);
 
-        res.status(200).json({ message: "Exit recorded", duration, fee });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    // Save billing with QR image
+    const newBilling = new Billing({
+      userID,
+      parkingID,
+      entryTime,
+      billingHash,
+      qrImage // 🆕 base64 stored here
+    });
+
+    const savedBilling = await newBilling.save();
+
+    res.status(201).json({
+      message: "Billing created with QR image stored",
+      billing: savedBilling
+    });
+
+  } catch (error) {
+    console.error("Error creating billing:", error);
+    res.status(500).json({ error: "Server error" });
+  }
 };
