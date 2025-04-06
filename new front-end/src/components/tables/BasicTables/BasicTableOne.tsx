@@ -8,113 +8,106 @@ import {
 
 import Badge from "../../ui/badge/Badge";
 
-interface Order {
+interface Booking {
   id: number;
   user: {
     image: string;
     name: string;
     role: string;
   };
-  projectName: string;
-  team: {
-    images: string[];
-  };
+  vehicleType: string;
+  vehicleNumber: string;
+  allocatedTime: string;
+  parkingName: string;
+  parkingSlotId: string;
   status: string;
-  budget: string;
+  fee: string;
 }
 
-// Define the table data using the interface
-const tableData: Order[] = [
+// Booking table data (Sri Lankan themed)
+const tableData: Booking[] = [
   {
     id: 1,
     user: {
       image: "/images/user/user-17.jpg",
-      name: "Lindsey Curtis",
-      role: "Web Designer",
+      name: "Nuwan Perera",
+      role: "Car Owner",
     },
-    projectName: "Agency Website",
-    team: {
-      images: [
-        "/images/user/user-22.jpg",
-        "/images/user/user-23.jpg",
-        "/images/user/user-24.jpg",
-      ],
-    },
-    budget: "3.9K",
+    vehicleType: "Toyota Axio",
+    vehicleNumber: "CAG-1234",
+    allocatedTime: "8:00 AM - 10:00 AM",
+    parkingName: "Colombo City Parking",
+    parkingSlotId: "P-101",
+    fee: "Rs. 1,200",
     status: "Active",
   },
   {
     id: 2,
     user: {
       image: "/images/user/user-18.jpg",
-      name: "Kaiya George",
-      role: "Project Manager",
+      name: "Ishara Fernando",
+      role: "Van Driver",
     },
-    projectName: "Technology",
-    team: {
-      images: ["/images/user/user-25.jpg", "/images/user/user-26.jpg"],
-    },
-    budget: "24.9K",
+    vehicleType: "Nissan Caravan",
+    vehicleNumber: "BBA-4567",
+    allocatedTime: "10:30 AM - 1:00 PM",
+    parkingName: "Kandy Parking Zone",
+    parkingSlotId: "P-202",
+    fee: "Rs. 2,500",
     status: "Pending",
   },
   {
     id: 3,
     user: {
       image: "/images/user/user-17.jpg",
-      name: "Zain Geidt",
-      role: "Content Writing",
+      name: "Thilini Jayasuriya",
+      role: "Bike Rider",
     },
-    projectName: "Blog Writing",
-    team: {
-      images: ["/images/user/user-27.jpg"],
-    },
-    budget: "12.7K",
+    vehicleType: "Honda Dio",
+    vehicleNumber: "EP-3344",
+    allocatedTime: "2:00 PM - 4:00 PM",
+    parkingName: "Galle Public Parking",
+    parkingSlotId: "P-008",
+    fee: "Rs. 300",
     status: "Active",
   },
   {
     id: 4,
     user: {
       image: "/images/user/user-20.jpg",
-      name: "Abram Schleifer",
-      role: "Digital Marketer",
+      name: "Sahan Madushanka",
+      role: "Three-Wheeler Driver",
     },
-    projectName: "Social Media",
-    team: {
-      images: [
-        "/images/user/user-28.jpg",
-        "/images/user/user-29.jpg",
-        "/images/user/user-30.jpg",
-      ],
-    },
-    budget: "2.8K",
+    vehicleType: "Bajaj RE",
+    vehicleNumber: "SP-1199",
+    allocatedTime: "11:00 AM - 12:30 PM",
+    parkingName: "Negombo Parking Center",
+    parkingSlotId: "P-055",
+    fee: "Rs. 500",
     status: "Cancel",
   },
   {
     id: 5,
     user: {
       image: "/images/user/user-21.jpg",
-      name: "Carla George",
-      role: "Front-end Developer",
+      name: "Nadeesha Rajapaksha",
+      role: "SUV Owner",
     },
-    projectName: "Website",
-    team: {
-      images: [
-        "/images/user/user-31.jpg",
-        "/images/user/user-32.jpg",
-        "/images/user/user-33.jpg",
-      ],
-    },
-    budget: "4.5K",
+    vehicleType: "Kia Sportage",
+    vehicleNumber: "CBA-7888",
+    allocatedTime: "4:00 PM - 6:00 PM",
+    parkingName: "Maharagama Park Hub",
+    parkingSlotId: "P-120",
+    fee: "Rs. 1,800",
     status: "Active",
   },
 ];
 
-export default function BasicTableOne() {
+export default function BookingListTable() {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
         <Table>
-          {/* Table Header */}
           <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
             <TableRow>
               <TableCell
@@ -127,13 +120,31 @@ export default function BasicTableOne() {
                 isHeader
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Project Name
+                Vehicle Type
               </TableCell>
               <TableCell
                 isHeader
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Team
+                Vehicle No.
+              </TableCell>
+              <TableCell
+                isHeader
+                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+              >
+                Allocated Time
+              </TableCell>
+              <TableCell
+                isHeader
+                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+              >
+                Parking Name
+              </TableCell>
+              <TableCell
+                isHeader
+                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+              >
+                Slot ID
               </TableCell>
               <TableCell
                 isHeader
@@ -145,72 +156,65 @@ export default function BasicTableOne() {
                 isHeader
                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
               >
-                Budget
+                Parking Fee
               </TableCell>
             </TableRow>
           </TableHeader>
 
-          {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {tableData.map((order) => (
-              <TableRow key={order.id}>
+            {tableData.map((booking) => (
+              <TableRow key={booking.id}>
                 <TableCell className="px-5 py-4 sm:px-6 text-start">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 overflow-hidden rounded-full">
                       <img
                         width={40}
                         height={40}
-                        src={order.user.image}
-                        alt={order.user.name}
+                        src={booking.user.image}
+                        alt={booking.user.name}
                       />
                     </div>
                     <div>
                       <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {order.user.name}
+                        {booking.user.name}
                       </span>
                       <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                        {order.user.role}
+                        {booking.user.role}
                       </span>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {order.projectName}
+                  {booking.vehicleType}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <div className="flex -space-x-2">
-                    {order.team.images.map((teamImage, index) => (
-                      <div
-                        key={index}
-                        className="w-6 h-6 overflow-hidden border-2 border-white rounded-full dark:border-gray-900"
-                      >
-                        <img
-                          width={24}
-                          height={24}
-                          src={teamImage}
-                          alt={`Team member ${index + 1}`}
-                          className="w-full size-6"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  {booking.vehicleNumber}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  {booking.allocatedTime}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  {booking.parkingName}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  {booking.parkingSlotId}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                   <Badge
                     size="sm"
                     color={
-                      order.status === "Active"
+                      booking.status === "Active"
                         ? "success"
-                        : order.status === "Pending"
+                        : booking.status === "Pending"
                         ? "warning"
                         : "error"
                     }
                   >
-                    {order.status}
+                    {booking.status}
                   </Badge>
                 </TableCell>
                 <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {order.budget}
+                  {booking.fee}
                 </TableCell>
               </TableRow>
             ))}

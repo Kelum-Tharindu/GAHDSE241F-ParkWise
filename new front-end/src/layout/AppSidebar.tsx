@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
 import {
-  BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
   GridIcon,
@@ -11,7 +10,7 @@ import {
   ListIcon,
   PageIcon,
   PieChartIcon,
-  PlugInIcon,
+  // PlugInIcon,
   TableIcon,
   UserCircleIcon,
 } from "../icons";
@@ -45,7 +44,7 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     subItems: [
       { name: 'Bookings', path: '/basic-tables', pro: false },
-      { name: 'Parking Slots', path: '/parkingSlots', pro: true }, 
+      { name: 'Parking Slots', path: '/parking-tables', pro: true }, 
     ],
     
   },
