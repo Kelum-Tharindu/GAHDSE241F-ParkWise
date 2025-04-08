@@ -4,8 +4,8 @@ import {
   TableCell,
   TableHeader,
   TableRow,
-} from "../ui/table";
-import Badge from "../ui/badge/Badge";
+} from "../uiMy/table";
+import Badge from "../uiMy/badge/Badge";
 
 // Define the TypeScript interface for the table rows
 interface ParkingSlots {

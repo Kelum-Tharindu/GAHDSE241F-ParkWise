@@ -1,10 +1,10 @@
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import FourIsToThree from "../../components/ui/videos/FourIsToThree";
-import OneIsToOne from "../../components/ui/videos/OneIsToOne";
-import SixteenIsToNine from "../../components/ui/videos/SixteenIsToNine";
-import TwentyOneIsToNine from "../../components/ui/videos/TwentyOneIsToNine";
+import FourIsToThree from "../../components/uiMy/videos/FourIsToThree";
+import OneIsToOne from "../../components/uiMy/videos/OneIsToOne";
+import SixteenIsToNine from "../../components/uiMy/videos/SixteenIsToNine";
+import TwentyOneIsToNine from "../../components/uiMy/videos/TwentyOneIsToNine";
 
 export default function Videos() {
   return (

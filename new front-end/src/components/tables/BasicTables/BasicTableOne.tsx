@@ -4,9 +4,9 @@ import {
   TableCell,
   TableHeader,
   TableRow,
-} from "../../ui/table";
+} from "../../uiMy/table";
 
-import Badge from "../../ui/badge/Badge";
+import Badge from "../../uiMy/badge/Badge";
 
 interface Booking {
   id: number;

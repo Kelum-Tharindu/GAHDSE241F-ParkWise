@@ -1,7 +1,7 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import ResponsiveImage from "../../components/ui/images/ResponsiveImage";
-import TwoColumnImageGrid from "../../components/ui/images/TwoColumnImageGrid";
-import ThreeColumnImageGrid from "../../components/ui/images/ThreeColumnImageGrid";
+import ResponsiveImage from "../../components/uiMy/images/ResponsiveImage";
+import TwoColumnImageGrid from "../../components/uiMy/images/TwoColumnImageGrid";
+import ThreeColumnImageGrid from "../../components/uiMy/images/ThreeColumnImageGrid";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
+import { Dropdown } from "../uiMy/dropdown/Dropdown";
+import { DropdownItem } from "../uiMy/dropdown/DropdownItem";
 import { Link } from "react-router";
 
 export default function NotificationDropdown() {
