@@ -17,6 +17,8 @@ import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
+import LoginPage from "./pages/auth/login";
+import RegisterPage from "./pages/auth/signup";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 
@@ -55,9 +57,9 @@ export default function App() {
             <Route path="/bar-chart" element={<BarChart />} />
           </Route>
 
-          {/* Auth Layout
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} /> */}
+          Auth Layout
+          <Route path="/signin" element={<LoginPage />} />
+          <Route path="/signup" element={<RegisterPage />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
