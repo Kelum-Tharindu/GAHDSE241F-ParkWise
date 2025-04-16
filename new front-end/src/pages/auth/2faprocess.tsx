@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, FormEvent} from 'react';
 import axios from 'axios';
 import QRCodeForm from '@/components/QRCodeForm';
 import OTPForm from '@/components/OTPForm';
