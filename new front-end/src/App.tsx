@@ -19,6 +19,7 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import LoginPage from "./pages/auth/login";
 import RegisterPage from "./pages/auth/signup";
+import TwoFactorAuth from "./pages/auth/2faprocess";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 
@@ -59,6 +60,7 @@ export default function App() {
 
           Auth Layout
           <Route path="/signin" element={<LoginPage />} />
+          <Route path="/2fa" element={<TwoFactorAuth />} />
           <Route path="/signup" element={<RegisterPage />} />
 
           {/* Fallback Route */}
