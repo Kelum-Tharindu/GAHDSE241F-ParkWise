@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const billingController = require("../controllers/billingController");
+const { createBilling } = require("../controllers/billingController");
 
-// POST: Create a billing entry and return QR
-router.post("/entry", billingController.createBilling);
+router.post("/", createBilling);
 
 module.exports = router;

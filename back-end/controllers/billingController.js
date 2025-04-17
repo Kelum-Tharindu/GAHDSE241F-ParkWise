@@ -1,4 +1,4 @@
-const Billing = require("../models/billingmodel");
+const Billing = require("../models/billingModel");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
 
@@ -6,46 +6,66 @@ exports.createBilling = async (req, res) => {
   try {
     const { parkingID, userID } = req.body;
 
-    if (!parkingID || !userID) {
-      return res.status(400).json({ error: "parkingID and userID are required" });
+    // ✅ Step 1: Validate input
+    if (!parkingID || typeof parkingID !== "string" || parkingID.trim() === "") {
+      console.error("❌ Validation Error: Missing or invalid parkingID");
+      return res.status(400).json({ error: "Invalid parkingID" });
     }
 
+    if (!userID || typeof userID !== "string" || userID.trim() === "") {
+      console.error("❌ Validation Error: Missing or invalid userID");
+      return res.status(400).json({ error: "Invalid userID" });
+    }
+
+    console.log("✅ Input validated: parkingID and userID received");
+
+    // ✅ Step 2: Generate entry time
     const entryTime = new Date();
+    console.log("🕒 Entry time:", entryTime.toISOString());
 
-    // Generate hash
-    const hashString = `${parkingID}_${userID}_${entryTime.toISOString()}`;
-    const billingHash = crypto.createHash("sha256").update(hashString).digest("hex");
+    // ✅ Step 3: Generate SHA-256 hash
+    const hashSource = `${parkingID}_${userID}_${entryTime.toISOString()}`;
+    const billingHash = crypto.createHash("sha256").update(hashSource).digest("hex");
+    console.log("🔐 Billing hash generated:", billingHash);
 
-    // QR payload
+    // ✅ Step 4: Create QR payload
     const qrPayload = {
       parkingID,
-      entryTime,
-      billingHash
+      userID,
+      createdTime: entryTime,
+      billingHash,
     };
 
-    const qrText = JSON.stringify(qrPayload);
+    // ✅ Step 5: Generate QR Code image
+    const qrImage = await QRCode.toDataURL(JSON.stringify(qrPayload));
+    if (!qrImage) {
+      console.error("❌ QR code generation failed");
+      return res.status(500).json({ error: "Failed to generate QR code" });
+    }
+    console.log("✅ QR code generated");
 
-    // Generate QR image as base64
-    const qrImage = await QRCode.toDataURL(qrText);
-
-    // Save billing with QR image
-    const newBilling = new Billing({
-      userID,
+    // ✅ Step 6: Save billing data
+    const billing = new Billing({
       parkingID,
+      userID,
       entryTime,
       billingHash,
-      qrImage // 🆕 base64 stored here
+      qrImage,
     });
 
-    const savedBilling = await newBilling.save();
+    const saved = await billing.save();
+    if (!saved) {
+      console.error("❌ Failed to save billing entry");
+      return res.status(500).json({ error: "Failed to save billing entry" });
+    }
 
-    res.status(201).json({
-      message: "Billing created with QR image stored",
-      billing: savedBilling
-    });
+    console.log("💾 Billing entry saved:", saved._id);
 
-  } catch (error) {
-    console.error("Error creating billing:", error);
-    res.status(500).json({ error: "Server error" });
+    // ✅ Step 7: Send success response
+    res.status(201).json({ billing: saved });
+
+  } catch (err) {
+    console.error("❌ Error in createBilling:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
