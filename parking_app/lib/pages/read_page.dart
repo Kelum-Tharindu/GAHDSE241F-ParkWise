@@ -18,117 +18,53 @@ class _ReadPageState extends State<ReadPage> {
   String? scannedData;
 
   void handleDetection(BarcodeCapture capture) async {
-    if (scanned) return; // Prevent scanning again if already done
-    if (kDebugMode) {
-      print("##=====Scanning started...");
-    }
+    if (scanned) return;
+    if (kDebugMode) print("##=====Scanning started...");
 
-    final barcodes = capture.barcodes; // Get all detected barcodes
-    if (barcodes.isEmpty) {
-      if (kDebugMode) {
-        print("##=====No barcodes detected.");
-      }
-      return; // Exit if no barcodes detected
-    }
+    final barcodes = capture.barcodes;
+    if (barcodes.isEmpty) return;
 
-    final String? code =
-        barcodes.first.rawValue; // Extract the raw value from the first barcode
-    if (code == null) {
-      if (kDebugMode) {
-        print("##=====Scanned QR code is null.");
-      }
-      return; // If no code is detected, exit
-    }
-
-    if (kDebugMode) {
-      print("##=====QR code detected: $code");
-    }
+    final String? code = barcodes.first.rawValue;
+    if (code == null) return;
 
     try {
-      // Validate if the QR code contains valid JSON
-      final data = jsonDecode(code); // Try decoding the code into a JSON object
-      if (kDebugMode) {
-        print("##=====Decoded QR data: $data");
-      }
-
-      // Ensure the data is in the expected format (i.e., Map<String, dynamic>)
+      final data = jsonDecode(code);
       if (data is! Map<String, dynamic>) {
-        throw FormatException('Scanned data is not in a valid JSON format');
-      }
-      if (kDebugMode) {
-        print("##=====Data is in a valid JSON format");
+        throw FormatException('Scanned data is not a valid JSON');
       }
 
-      // Mark the scan as successful and store the data
       setState(() {
         scanned = true;
-        scannedData = code; // Store the scanned QR data
+        scannedData = code;
       });
 
-      controller.stop(); // Stop the scanner once the QR is detected
-      if (kDebugMode) {
-        print("##=====Scanner stopped.");
-      }
+      controller.stop();
 
-      // Log the scanned QR data for debugging
-      if (kDebugMode) {
-        print("##=====Scanned QR Data: $data");
-      }
-
-      // Send the scanned data to the backend (in JSON format)
       final response = await ApiService.sendScannedData(data);
-      if (kDebugMode) {
-        print("##=====Response from backend: $response");
-      }
 
-      if (!mounted) return; // Ensure the widget is still mounted
+      if (!mounted) return;
 
-      // Log the backend response for debugging
-      if (kDebugMode) {
-        print("##=====Backend Response: $response");
-      }
-
-      // Navigate to the preview page with the backend response
       if (response != null) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => QRPreviewPage(qrData: response)),
         );
-        if (kDebugMode) {
-          print("##=====Navigation to QR Preview page.");
-        }
       } else {
-        // If the response is null, show an error message
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("Invalid QR")));
-        if (kDebugMode) {
-          print("##=====Invalid QR response received.");
-        }
       }
     } catch (e) {
-      // Log the error for debugging
-      if (kDebugMode) {
-        print("##=====Error during QR code processing: $e");
-      }
-
       if (!mounted) return;
 
-      // Show user-friendly error messages based on the exception type
       if (e is FormatException) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("Invalid QR format")));
-        if (kDebugMode) {
-          print("##=====Invalid QR format detected.");
-        }
       } else {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("An error occurred")));
-        if (kDebugMode) {
-          print("##=====An error occurred during QR code processing.");
-        }
       }
     }
   }
@@ -136,36 +72,61 @@ class _ReadPageState extends State<ReadPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Scan QR')),
+      backgroundColor: const Color(0xFF013220), // Dark green background
+      appBar: AppBar(
+        title: const Text('Scan QR Code'),
+        backgroundColor: const Color(0xFF013220),
+        foregroundColor: Colors.white,
+      ),
       body: Stack(
         children: [
+          // QR Scanner
           MobileScanner(controller: controller, onDetect: handleDetection),
-          if (scannedData != null)
-            Center(
+
+          // Overlay with transparent scanner hole
+          Positioned.fill(
+            child: ClipPath(
+              clipper: _ScannerHoleClipper(),
               child: Container(
-                padding: const EdgeInsets.all(16),
-                color: Color.fromRGBO(
-                  0,
-                  0,
-                  0,
-                  0.5,
-                ), // Use Color.fromRGBO instead of withOpacity
-                child: Text(
-                  'Scanned Data: $scannedData',
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  textAlign: TextAlign.center,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withAlpha((0.9 * 255).toInt()),
+                      Colors.black.withAlpha((0.6 * 255).toInt()),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
             ),
+          ),
 
+          // Stylish scan box
           Center(
             child: Container(
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.green, width: 4),
+                border: Border.all(color: Colors.white, width: 4),
                 borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+
+          // Optional scan label
+          Positioned(
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                "Align QR within the box",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
@@ -173,4 +134,26 @@ class _ReadPageState extends State<ReadPage> {
       ),
     );
   }
+}
+
+// Custom clipper for transparent hole
+class _ScannerHoleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    const boxSize = 250.0;
+    final center = Offset(size.width / 2, size.height / 2);
+    final hole = Rect.fromCenter(
+      center: center,
+      width: boxSize,
+      height: boxSize,
+    );
+
+    return Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRRect(RRect.fromRectAndRadius(hole, const Radius.circular(16)))
+      ..fillType = PathFillType.evenOdd;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }

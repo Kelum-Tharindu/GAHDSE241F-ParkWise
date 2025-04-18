@@ -4,6 +4,7 @@ const QRCode = require("qrcode");
 
 exports.createBilling = async (req, res) => {
   try {
+    console.log("🛠️ createBilling function called");
     const { parkingID, userID } = req.body;
 
     // ✅ Step 1: Validate input

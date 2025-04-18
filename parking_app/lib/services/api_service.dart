@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = "http://localhost:5000/api/billing";
+  static const String baseUrl = "http://192.168.8.145:5000/api/billing";
 
   static Future<Map<String, dynamic>?> sendScannedData(
     Map<String, dynamic> data,

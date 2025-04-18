@@ -2,21 +2,33 @@ require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
-const path = require('path');
+const os = require('os');
 
-// Routes
-const parkingRoutes = require('./routes/parkingRoutes');
-const billingRoutes = require('./routes/billingRoutes');
-const qrRoutes = require('./routes/qrRoutes');
+// -------------------- GET LOCAL IP --------------------
+const getLocalIP = () => {
+  const interfaces = os.networkInterfaces();
+  for (let iface in interfaces) {
+    for (let config of interfaces[iface]) {
+      if (config.family === 'IPv4' && !config.internal) {
+        return config.address;
+      }
+    }
+  }
+  return 'localhost';
+};
 
+const localIP = getLocalIP();
+
+// -------------------- EXPRESS INIT --------------------
 const app = express();
 
 // -------------------- CORS CONFIG --------------------
 const allowedOrigins = [
   'http://localhost:5173',  // React Dev
   'http://localhost:3000',  // Optional other dev port
-  'http://localhost:5500',  // Optional Flutter Web dev
-  process.env.FRONTEND_URL  // React Prod from .env
+  'http://localhost:5500',  // Flutter Web dev
+  `http://${localIP}:3000`, // Flutter or React from another device
+  process.env.FRONTEND_URL  // React Prod
 ];
 
 app.use(cors({
@@ -24,7 +36,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('❌ Not allowed by CORS: ' + origin));
     }
   },
   methods: "GET,POST,PUT,DELETE",
@@ -43,11 +55,14 @@ app.get('/', (req, res) => {
   res.send('✅ MongoDB Connection Test Successful');
 });
 
-// -------------------- API ROUTES --------------------
-app.use('/parking', parkingRoutes);
-app.use("/api/billing", billingRoutes);
-app.use('/api/qr', qrRoutes);
+// -------------------- ROUTES --------------------
+const parkingRoutes = require('./routes/parkingRoutes');
+const billingRoutes = require('./routes/billingRoutes');
+const qrRoutes = require('./routes/qrRoutes');
 
+app.use('/parking', parkingRoutes);
+app.use('/api/billing', billingRoutes);
+app.use('/api/qr', qrRoutes);
 
 // -------------------- ERROR HANDLERS --------------------
 
@@ -64,6 +79,7 @@ app.use((err, req, res, next) => {
 
 // -------------------- SERVER START --------------------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at: http://localhost:${PORT}`);
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running at: http://${localIP}:${PORT}`);
 });
