@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:parking_app/pages/add_booking_page.dart';
+import 'package:parking_app/pages/booking_history_page.dart';
 import 'package:parking_app/pages/generate_page.dart';
 import 'package:parking_app/pages/nearest_parking_page.dart';
 import 'package:parking_app/pages/ongoing_booking_page.dart';
@@ -35,8 +37,8 @@ class MyApp extends StatelessWidget {
         // '/scan': (context) => const ScanPage(),
         // '/saved': (context) => const SavedPage(),
         '/profile': (context) => const ProfilePage(),
-        '/add-booking': (context) => const Placeholder(),
-        '/booking-history': (context) => const Placeholder(),
+        '/add-booking': (context) => const AddBooking(),
+        '/booking-history': (context) => const BookingHistory(),
         '/ongoing': (context) => const Placeholder(),
         '/nearest-parking': (context) => const Placeholder(),
         '/enter-parking': (context) => const ReadPage(),
