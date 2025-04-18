@@ -7,7 +7,6 @@ exports.createBilling = async (req, res) => {
     console.log("🛠️ createBilling function called");
     const { parkingID, userID } = req.body;
 
-    // ✅ Step 1: Validate input
     if (!parkingID || typeof parkingID !== "string" || parkingID.trim() === "") {
       console.error("❌ Validation Error: Missing or invalid parkingID");
       return res.status(400).json({ error: "Invalid parkingID" });
@@ -20,18 +19,15 @@ exports.createBilling = async (req, res) => {
 
     console.log("✅ Input validated: parkingID and userID received");
 
-   // ✅ Step 2: Generate Sri Lanka time (UTC+5:30)
-const nowUTC = new Date();
-const sriLankaOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 mins in milliseconds
-const entryTime = new Date(nowUTC.getTime() + sriLankaOffset);
-console.log("🕒 Entry time (SLST):", entryTime.toISOString());
+    const nowUTC = new Date();
+    const sriLankaOffset = 5.5 * 60 * 60 * 1000;
+    const entryTime = new Date(nowUTC.getTime() + sriLankaOffset);
+    console.log("🕒 Entry time (SLST):", entryTime.toISOString());
 
-    // ✅ Step 3: Generate SHA-256 hash
     const hashSource = `${parkingID}_${userID}_${entryTime.toISOString()}`;
     const billingHash = crypto.createHash("sha256").update(hashSource).digest("hex");
     console.log("🔐 Billing hash generated:", billingHash);
 
-    // ✅ Step 4: Create QR payload
     const qrPayload = {
       parkingID,
       userID,
@@ -39,15 +35,14 @@ console.log("🕒 Entry time (SLST):", entryTime.toISOString());
       billingHash,
     };
 
-    // ✅ Step 5: Generate QR Code image
     const qrImage = await QRCode.toDataURL(JSON.stringify(qrPayload));
     if (!qrImage) {
       console.error("❌ QR code generation failed");
       return res.status(500).json({ error: "Failed to generate QR code" });
     }
     console.log("✅ QR code generated");
+    console.log("📸 QR code image data URL:", qrImage);
 
-    // ✅ Step 6: Save billing data
     const billing = new Billing({
       parkingID,
       userID,
@@ -64,7 +59,6 @@ console.log("🕒 Entry time (SLST):", entryTime.toISOString());
 
     console.log("💾 Billing entry saved:", saved._id);
 
-    // ✅ Step 7: Send success response
     res.status(201).json({ billing: saved });
 
   } catch (err) {

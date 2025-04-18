@@ -21,7 +21,7 @@ class QRPreviewPage extends StatelessWidget {
       final date = DateTime.parse(rawDate);
       return DateFormat('yyyy-MM-dd – HH:mm:ss').format(date);
     } catch (e) {
-      if (kDebugMode) print("❌ Error parsing date: $e");
+      if (kDebugMode) print("###❌ Error parsing date: $e");
       return "Invalid date format";
     }
   }
@@ -43,7 +43,7 @@ class QRPreviewPage extends StatelessWidget {
 
       await Share.shareXFiles([XFile(file.path)], text: 'Here is your QR Code');
     } catch (e) {
-      if (kDebugMode) print('❌ Error sharing image: $e');
+      if (kDebugMode) print('###❌ Error sharing image: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
@@ -60,6 +60,11 @@ class QRPreviewPage extends StatelessWidget {
     final int? duration = qrData['duration'];
     final num? fee = qrData['fee'];
     final String? paymentStatus = qrData['paymentStatus'];
+
+    // ✅ Debug print to check QR image string
+    if (kDebugMode) {
+      print("###📦 Received QR Image (base64): $qrImage...");
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -133,6 +138,14 @@ class QRPreviewPage extends StatelessWidget {
   Widget _buildBase64QRImage(String base64Str, BuildContext context) {
     try {
       final String cleanedBase64 = base64Str.split(',').last;
+
+      // ✅ Debug print to verify base64 string
+      if (kDebugMode) {
+        print(
+          "###🧹 Cleaned Base64 (first 50 chars): ${cleanedBase64.substring(0, 50)}...",
+        );
+      }
+
       Uint8List imageBytes = base64Decode(cleanedBase64);
 
       return GestureDetector(
@@ -184,8 +197,11 @@ class QRPreviewPage extends StatelessWidget {
         ),
       );
     } catch (e) {
-      if (kDebugMode) print("❌ Error decoding base64 image: $e");
-      return const Text("Failed to load QR image");
+      if (kDebugMode) print("####❌ Error decoding base64 image: $e");
+      return const Text(
+        "Failed to load QR image",
+        style: TextStyle(color: Colors.red),
+      );
     }
   }
 

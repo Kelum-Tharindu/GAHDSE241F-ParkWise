@@ -22,7 +22,14 @@ class GlassmorphicBottomNavBar extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: primaryColor.withAlpha(160),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                const Color(0xFF013220).withAlpha(200),
+                const Color(0xFF013220).withAlpha(160),
+              ],
+            ),
             border: Border(
               top: BorderSide(color: Colors.white.withAlpha(50), width: 1),
             ),
