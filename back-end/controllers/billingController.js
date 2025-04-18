@@ -20,9 +20,11 @@ exports.createBilling = async (req, res) => {
 
     console.log("✅ Input validated: parkingID and userID received");
 
-    // ✅ Step 2: Generate entry time
-    const entryTime = new Date();
-    console.log("🕒 Entry time:", entryTime.toISOString());
+   // ✅ Step 2: Generate Sri Lanka time (UTC+5:30)
+const nowUTC = new Date();
+const sriLankaOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 mins in milliseconds
+const entryTime = new Date(nowUTC.getTime() + sriLankaOffset);
+console.log("🕒 Entry time (SLST):", entryTime.toISOString());
 
     // ✅ Step 3: Generate SHA-256 hash
     const hashSource = `${parkingID}_${userID}_${entryTime.toISOString()}`;

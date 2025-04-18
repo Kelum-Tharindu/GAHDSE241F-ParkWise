@@ -90,7 +90,7 @@ class QRPreviewPage extends StatelessWidget {
             if (qrImage != null)
               RepaintBoundary(
                 key: _globalKey,
-                child: _buildBase64QRImage(qrImage),
+                child: _buildBase64QRImage(qrImage, context),
               )
             else
               const Text(
@@ -130,16 +130,58 @@ class QRPreviewPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBase64QRImage(String base64Str) {
+  Widget _buildBase64QRImage(String base64Str, BuildContext context) {
     try {
       final String cleanedBase64 = base64Str.split(',').last;
       Uint8List imageBytes = base64Decode(cleanedBase64);
 
-      return Image.memory(
-        imageBytes,
-        width: 200,
-        height: 200,
-        fit: BoxFit.cover,
+      return GestureDetector(
+        onTap: () {
+          showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder:
+                (_) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  insetPadding: EdgeInsets.zero,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: InteractiveViewer(
+                          child: Container(
+                            color: Colors.black,
+                            child: Center(
+                              child: Image.memory(
+                                imageBytes,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 40,
+                        right: 20,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          );
+        },
+        child: Image.memory(
+          imageBytes,
+          width: 200,
+          height: 200,
+          fit: BoxFit.cover,
+        ),
       );
     } catch (e) {
       if (kDebugMode) print("❌ Error decoding base64 image: $e");
