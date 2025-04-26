@@ -19,6 +19,7 @@ class StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassmorphicContainer(
+      height: 160, // Added the required height parameter
       gradientColors: [primaryColor.withAlpha(160), accentColor.withAlpha(160)],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

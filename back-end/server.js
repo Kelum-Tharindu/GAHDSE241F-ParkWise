@@ -59,10 +59,13 @@ app.get('/', (req, res) => {
 const parkingRoutes = require('./routes/parkingRoutes');
 const billingRoutes = require('./routes/billingRoutes');
 const qrRoutes = require('./routes/qrRoutes');
+const bookingRoutes = require('./routes/bookingRoute');
+
 
 app.use('/parking', parkingRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/qr', qrRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // -------------------- ERROR HANDLERS --------------------
 

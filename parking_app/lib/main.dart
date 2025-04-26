@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/pages/add_booking_page.dart';
+// import 'package:parking_app/pages/add_booking_page.dart';
 import 'package:parking_app/pages/booking_history_page.dart';
+import 'package:parking_app/pages/booking_page.dart';
 import 'package:parking_app/pages/generate_page.dart';
 import 'package:parking_app/pages/nearest_parking_page.dart';
 import 'package:parking_app/pages/ongoing_booking_page.dart';
@@ -37,7 +38,8 @@ class MyApp extends StatelessWidget {
         // '/scan': (context) => const ScanPage(),
         // '/saved': (context) => const SavedPage(),
         '/profile': (context) => const ProfilePage(),
-        '/add-booking': (context) => const AddBooking(),
+        // '/add-booking': (context) => const AddBooking(),
+        '/bookingPage': (context) => const BookingPage(),
         '/booking-history': (context) => const BookingHistory(),
         '/ongoing': (context) => const Placeholder(),
         '/nearest-parking': (context) => const Placeholder(),
@@ -64,6 +66,7 @@ class _MainWrapperState extends State<MainWrapper> {
     const NearestParkingPage(),
     const OngoingBookingPage(),
     const GeneratePage(),
+    // const BookingPage(),
   ];
 
   final List<BottomNavigationBarItem> _navItems = const [

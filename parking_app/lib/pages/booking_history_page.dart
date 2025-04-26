@@ -114,6 +114,7 @@ class BookingHistory extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
                   child: GlassmorphicContainer(
+                    height: 160, // Added required height parameter
                     gradientColors: [
                       primaryColor.withAlpha(160),
                       accentColor.withAlpha(160),
@@ -329,6 +330,7 @@ class BookingHistory extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: GlassmorphicContainer(
+        height: 180, // Added required height parameter
         gradientColors: [
           booking['color'].withAlpha(100),
           booking['color'].withAlpha(60),

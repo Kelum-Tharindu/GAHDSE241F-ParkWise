@@ -26,6 +26,7 @@ class FeatureCard extends StatelessWidget {
         Navigator.pushNamed(context, route);
       },
       child: GlassmorphicContainer(
+        height: 180, // Added the required height parameter
         gradientColors: gradientColors,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

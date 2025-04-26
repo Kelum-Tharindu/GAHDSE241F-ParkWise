@@ -41,5 +41,7 @@ const parkingSchema = new mongoose.Schema({
     qrCode: { type: String } // New field to store QR code URL or encoded data
 });
 
-const Parking = mongoose.model('Parking', parkingSchema);
+// ✅ Prevent OverwriteModelError during development
+const Parking = mongoose.models.Parking || mongoose.model('Parking', parkingSchema);
+
 module.exports = Parking;

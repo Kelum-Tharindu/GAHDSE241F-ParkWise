@@ -64,7 +64,7 @@ class DashboardScreen extends StatelessWidget {
         'title': 'Nearest Parking',
         'subtitle': 'Find parking spots near you',
         'icon': Icons.map,
-        'route': '/nearest-parking',
+        'route': '/bookingPage',
         'gradient': [const Color(0xFF015740), highlightColor],
       },
     ];

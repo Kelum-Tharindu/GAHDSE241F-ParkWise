@@ -17,6 +17,7 @@ class GlassmorphicContainer extends StatelessWidget {
     this.borderRadius = const BorderRadius.all(Radius.circular(20)),
     this.borderWidth = 1.5,
     this.blurAmount = 5.0,
+    required int height,
   });
 
   @override
