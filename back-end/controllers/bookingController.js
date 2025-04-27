@@ -84,7 +84,18 @@ const confirmBooking = async (req, res) => {
   }
 };
 
+const getParkingNames = async (req, res) => {
+  try {
+    const parkingNames = await Parking.find({}, 'name'); // Fetch only the 'name' field
+    res.status(200).json(parkingNames.map(parking => parking.name));
+  } catch (error) {
+    console.error('Error fetching parking names:', error);
+    res.status(500).json({ message: 'Failed to fetch parking names', error: error.message });
+  }
+};
+
 module.exports = {
   calculateFee,
-  confirmBooking
+  confirmBooking,
+  getParkingNames
 };

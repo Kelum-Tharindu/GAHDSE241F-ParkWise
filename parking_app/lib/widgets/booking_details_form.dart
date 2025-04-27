@@ -7,6 +7,7 @@ class BookingDetailsForm extends StatelessWidget {
   final TextEditingController exitTimeController;
   final String vehicleType;
   final List<String> vehicleTypes;
+  final List<String> parkingNames; // Add this parameter
   final Function(String?) onVehicleTypeChanged;
   final Future<void> Function(BuildContext, TextEditingController)
   selectDateTime;
@@ -28,6 +29,7 @@ class BookingDetailsForm extends StatelessWidget {
     required this.validateVehicleType,
     required this.validateEntryTime,
     required this.validateExitTime,
+    required this.parkingNames, // Add this parameter
   });
 
   @override
@@ -40,8 +42,11 @@ class BookingDetailsForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextFormField(
-              controller: parkingNameController,
+            DropdownButtonFormField<String>(
+              value:
+                  parkingNameController.text.isNotEmpty
+                      ? parkingNameController.text
+                      : null,
               decoration: const InputDecoration(
                 labelText: 'Parking Name',
                 prefixIcon: Icon(Icons.local_parking),
@@ -56,6 +61,18 @@ class BookingDetailsForm extends StatelessWidget {
                   borderSide: BorderSide(color: Colors.red),
                 ),
               ),
+              items:
+                  parkingNames.map((String name) {
+                    return DropdownMenuItem<String>(
+                      value: name,
+                      child: Text(name),
+                    );
+                  }).toList(),
+              onChanged: (newValue) {
+                if (newValue != null) {
+                  parkingNameController.text = newValue;
+                }
+              },
               validator: validateParkingName,
             ),
             const SizedBox(height: 16),

@@ -2,15 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parking_app/widgets/booking_details_form.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../widgets/glassmorphic_app_bar.dart';
 import '../widgets/section_header.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/fee_row.dart';
 import 'booking_preview.dart';
 import '../services/booking_service.dart';
-import 'dart:io';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -38,6 +37,7 @@ class _BookingPageState extends State<BookingPage> {
   DateTime? exitTime;
 
   final List<String> vehicleTypes = ['car', 'bicycle', 'truck'];
+  List<String> parkingNames = [];
 
   @override
   void initState() {
@@ -49,6 +49,35 @@ class _BookingPageState extends State<BookingPage> {
     final later = now.add(const Duration(hours: 1));
     exitTime = later;
     exitTimeController.text = DateFormat('yyyy-MM-dd HH:mm').format(later);
+
+    _fetchParkingNames(); // Fetch parking names on initialization
+  }
+
+  Future<void> _fetchParkingNames() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:5000/api/bookings/parking-names'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> names = jsonDecode(response.body);
+        setState(() {
+          parkingNames = names.cast<String>();
+        });
+      } else {
+        throw Exception('Failed to load parking names');
+      }
+    } catch (e) {
+      debugPrint('Error fetching parking names: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading parking names: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -122,12 +151,14 @@ class _BookingPageState extends State<BookingPage> {
           showFeeSection = true;
           apiResponseDetails = 'API Error: $e';
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error calculating fees: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error calculating fees: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         });
       }
     }
@@ -152,59 +183,6 @@ class _BookingPageState extends State<BookingPage> {
       showFeeSection = false;
       apiResponseDetails = '';
     });
-  }
-
-  Future<void> _viewApiLogs() async {
-    try {
-      final logs = await BookingService.getApiLogs();
-
-      if (!mounted) return;
-
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('API Logs'),
-              content: SingleChildScrollView(child: Text(logs)),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    final tempDir = await getTemporaryDirectory();
-                    final file = File('${tempDir.path}/api_logs.txt');
-                    await file.writeAsString(logs);
-
-                    await Share.shareXFiles([
-                      XFile(file.path),
-                    ], text: 'Parking App API Logs');
-                  },
-                  child: const Text('Share'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    await BookingService.clearApiLogs();
-                    if (!mounted) return;
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('API logs cleared')),
-                    );
-                  },
-                  child: const Text('Clear Logs'),
-                ),
-              ],
-            ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error viewing logs: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   Future<void> _selectDateTime(
@@ -281,12 +259,14 @@ class _BookingPageState extends State<BookingPage> {
 
         if (controller == exitTimeController) {
           if (entryTime != null && combinedDateTime.isBefore(entryTime!)) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Exit time cannot be before entry time'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Exit time cannot be before entry time'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
 
             final validExitTime = entryTime!.add(const Duration(hours: 1));
             controller.text = DateFormat(
@@ -373,22 +353,24 @@ class _BookingPageState extends State<BookingPage> {
             apiResponseDetails = 'Booking confirmed successfully!';
           });
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => BookingPreviewScreen(
-                    parkingName: parkingNameController.text,
-                    vehicleType: vehicleType,
-                    entryTime: entryTime!,
-                    exitTime: exitTime!,
-                    usageFee: usageFee,
-                    bookingFee: bookingFee,
-                    totalFee: totalFee,
-                    duration: durationText,
-                  ),
-            ),
-          );
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => BookingPreviewScreen(
+                      parkingName: parkingNameController.text,
+                      vehicleType: vehicleType,
+                      entryTime: entryTime!,
+                      exitTime: exitTime!,
+                      usageFee: usageFee,
+                      bookingFee: bookingFee,
+                      totalFee: totalFee,
+                      duration: durationText,
+                    ),
+              ),
+            );
+          }
         } catch (e) {
           if (!mounted) return;
           setState(() {
@@ -396,12 +378,14 @@ class _BookingPageState extends State<BookingPage> {
             apiResponseDetails = 'Error: $e';
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to process booking: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to process booking: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       });
     }
@@ -428,13 +412,7 @@ class _BookingPageState extends State<BookingPage> {
         title: 'Book Parking',
         primaryColor: primaryColor,
         textColor: textColor,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: _viewApiLogs,
-            tooltip: 'View API Logs',
-          ),
-        ],
+        actions: [],
       ),
       body: Container(
         width: double.infinity,
@@ -466,6 +444,7 @@ class _BookingPageState extends State<BookingPage> {
                     exitTimeController: exitTimeController,
                     vehicleType: vehicleType,
                     vehicleTypes: vehicleTypes,
+                    parkingNames: parkingNames, // Pass parking names here
                     onVehicleTypeChanged: (newValue) {
                       if (newValue != null && vehicleTypes.contains(newValue)) {
                         setState(() {
