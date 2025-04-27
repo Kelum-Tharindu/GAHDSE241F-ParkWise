@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parking_app/widgets/booking_details_form.dart';
@@ -6,6 +7,10 @@ import '../widgets/section_header.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/fee_row.dart';
 import 'booking_preview.dart';
+import '../services/booking_service.dart';
+import 'dart:io';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -22,19 +27,17 @@ class _BookingPageState extends State<BookingPage> {
 
   String vehicleType = 'car';
   double usageFee = 0.0;
-  double bookingFee = 5.0;
+  double bookingFee = 0.0;
   double totalFee = 0.0;
   String durationText = '0h 0m';
+  bool isLoading = false;
+  bool showFeeSection = false;
+  String apiResponseDetails = '';
 
   DateTime? entryTime;
   DateTime? exitTime;
 
   final List<String> vehicleTypes = ['car', 'bicycle', 'truck'];
-  final Map<String, double> ratesPerHalfHour = {
-    'car': 2.0,
-    'bicycle': 1.0,
-    'truck': 3.5,
-  };
 
   @override
   void initState() {
@@ -46,11 +49,6 @@ class _BookingPageState extends State<BookingPage> {
     final later = now.add(const Duration(hours: 1));
     exitTime = later;
     exitTimeController.text = DateFormat('yyyy-MM-dd HH:mm').format(later);
-
-    _updateCalculations();
-
-    entryTimeController.addListener(_updateCalculations);
-    exitTimeController.addListener(_updateCalculations);
   }
 
   @override
@@ -61,34 +59,151 @@ class _BookingPageState extends State<BookingPage> {
     super.dispose();
   }
 
-  void _updateCalculations() {
-    if (entryTimeController.text.isNotEmpty &&
-        exitTimeController.text.isNotEmpty) {
-      try {
+  Future<void> _fetchFeeDetails() async {
+    if (mounted) {
+      setState(() {
+        isLoading = true;
+        apiResponseDetails = 'Sending request to backend...';
+      });
+    }
+
+    try {
+      if (entryTimeController.text.isNotEmpty) {
         entryTime = DateFormat(
           'yyyy-MM-dd HH:mm',
         ).parse(entryTimeController.text);
+      }
+
+      if (exitTimeController.text.isNotEmpty) {
         exitTime = DateFormat(
           'yyyy-MM-dd HH:mm',
         ).parse(exitTimeController.text);
-
-        if (exitTime!.isAfter(entryTime!)) {
-          final duration = exitTime!.difference(entryTime!);
-          final hours = duration.inHours;
-          final minutes = duration.inMinutes % 60;
-          durationText = '${hours}h ${minutes}m';
-
-          final halfHours = (duration.inMinutes / 30).ceil();
-          usageFee = halfHours * ratesPerHalfHour[vehicleType]!;
-          totalFee = usageFee + bookingFee;
-
-          if (mounted) {
-            setState(() {});
-          }
-        }
-      } catch (e) {
-        debugPrint('Error parsing dates: $e');
       }
+
+      if (kDebugMode) {
+        print('Sending to backend:');
+        print('Parking Name: ${parkingNameController.text}');
+        print('Vehicle Type: $vehicleType');
+        print('Entry Time: $entryTime');
+        print('Exit Time: $exitTime');
+      }
+
+      final feeDetails = await BookingService.calculateFees(
+        parkingName: parkingNameController.text,
+        vehicleType: vehicleType,
+        entryTime: entryTime,
+        exitTime: exitTime,
+      );
+
+      if (kDebugMode) {
+        print('Received from backend: $feeDetails');
+      }
+
+      if (mounted) {
+        setState(() {
+          usageFee = (feeDetails['usageFee'] as num).toDouble();
+          bookingFee = (feeDetails['bookingFee'] as num).toDouble();
+          totalFee = (feeDetails['totalFee'] as num).toDouble();
+          durationText = feeDetails['totalDuration'] as String;
+          isLoading = false;
+          showFeeSection = true;
+          apiResponseDetails = 'API Response Success: Received fee details';
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching fee details: $e');
+      if (mounted) {
+        setState(() {
+          usageFee = 0.0;
+          bookingFee = 0.0;
+          totalFee = 0.0;
+          durationText = '0h 0m';
+          isLoading = false;
+          showFeeSection = true;
+          apiResponseDetails = 'API Error: $e';
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error calculating fees: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        });
+      }
+    }
+  }
+
+  void _resetValues() {
+    setState(() {
+      final now = DateTime.now();
+      entryTime = now;
+      entryTimeController.text = DateFormat('yyyy-MM-dd HH:mm').format(now);
+
+      final later = now.add(const Duration(hours: 1));
+      exitTime = later;
+      exitTimeController.text = DateFormat('yyyy-MM-dd HH:mm').format(later);
+
+      parkingNameController.clear();
+      vehicleType = 'car';
+      usageFee = 0.0;
+      bookingFee = 0.0;
+      totalFee = 0.0;
+      durationText = '0h 0m';
+      showFeeSection = false;
+      apiResponseDetails = '';
+    });
+  }
+
+  Future<void> _viewApiLogs() async {
+    try {
+      final logs = await BookingService.getApiLogs();
+
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('API Logs'),
+              content: SingleChildScrollView(child: Text(logs)),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final tempDir = await getTemporaryDirectory();
+                    final file = File('${tempDir.path}/api_logs.txt');
+                    await file.writeAsString(logs);
+
+                    await Share.shareXFiles([
+                      XFile(file.path),
+                    ], text: 'Parking App API Logs');
+                  },
+                  child: const Text('Share'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await BookingService.clearApiLogs();
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('API logs cleared')),
+                    );
+                  },
+                  child: const Text('Clear Logs'),
+                ),
+              ],
+            ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error viewing logs: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -165,7 +280,7 @@ class _BookingPageState extends State<BookingPage> {
         ).format(combinedDateTime);
 
         if (controller == exitTimeController) {
-          if (combinedDateTime.isBefore(entryTime!)) {
+          if (entryTime != null && combinedDateTime.isBefore(entryTime!)) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Exit time cannot be before entry time'),
@@ -221,14 +336,15 @@ class _BookingPageState extends State<BookingPage> {
     }
     try {
       final exit = DateFormat('yyyy-MM-dd HH:mm').parse(value);
+      if (entryTimeController.text.isEmpty) {
+        return 'Please select entry time first';
+      }
       final entry = DateFormat(
         'yyyy-MM-dd HH:mm',
       ).parse(entryTimeController.text);
-
       if (exit.isBefore(entry) || exit.isAtSameMomentAs(entry)) {
         return 'Exit time must be after entry time';
       }
-
       final duration = exit.difference(entry);
       if (duration.inDays > 7) {
         return 'Maximum booking duration is 7 days';
@@ -239,43 +355,61 @@ class _BookingPageState extends State<BookingPage> {
     return null;
   }
 
-  Future<void> _processBooking(BuildContext context) async {
+  void _processBooking(BuildContext context) {
     if (_formKey.currentState!.validate()) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder:
-            (_) => const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF15A66E)),
-              ),
+      setState(() {
+        isLoading = true;
+        apiResponseDetails = 'Sending booking confirmation request...';
+      });
+
+      Future.delayed(Duration.zero, () async {
+        try {
+          if (!mounted) return;
+
+          if (!mounted) return;
+
+          setState(() {
+            isLoading = false;
+            apiResponseDetails = 'Booking confirmed successfully!';
+          });
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => BookingPreviewScreen(
+                    parkingName: parkingNameController.text,
+                    vehicleType: vehicleType,
+                    entryTime: entryTime!,
+                    exitTime: exitTime!,
+                    usageFee: usageFee,
+                    bookingFee: bookingFee,
+                    totalFee: totalFee,
+                    duration: durationText,
+                  ),
             ),
-      );
+          );
+        } catch (e) {
+          if (!mounted) return;
+          setState(() {
+            isLoading = false;
+            apiResponseDetails = 'Error: $e';
+          });
 
-      await Future.delayed(const Duration(seconds: 1));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to process booking: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
+    }
+  }
 
-      if (!mounted) return;
-
-      Navigator.of(context).pop(); // close loading
-
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (context) => BookingPreviewScreen(
-                parkingName: parkingNameController.text,
-                vehicleType: vehicleType,
-                entryTime: entryTime!,
-                exitTime: exitTime!,
-                usageFee: usageFee,
-                bookingFee: bookingFee,
-                totalFee: totalFee,
-                duration: durationText,
-              ),
-        ),
-      );
+  void _calculateFee() {
+    if (_formKey.currentState!.validate()) {
+      _fetchFeeDetails();
     }
   }
 
@@ -294,6 +428,13 @@ class _BookingPageState extends State<BookingPage> {
         title: 'Book Parking',
         primaryColor: primaryColor,
         textColor: textColor,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: _viewApiLogs,
+            tooltip: 'View API Logs',
+          ),
+        ],
       ),
       body: Container(
         width: double.infinity,
@@ -326,10 +467,9 @@ class _BookingPageState extends State<BookingPage> {
                     vehicleType: vehicleType,
                     vehicleTypes: vehicleTypes,
                     onVehicleTypeChanged: (newValue) {
-                      if (newValue != null) {
+                      if (newValue != null && vehicleTypes.contains(newValue)) {
                         setState(() {
                           vehicleType = newValue;
-                          _updateCalculations();
                         });
                       }
                     },
@@ -340,20 +480,101 @@ class _BookingPageState extends State<BookingPage> {
                     validateExitTime: validateExitTime,
                   ),
                   const SizedBox(height: 24),
-                  const SectionHeader(title: 'Fee Calculation'),
-                  const SizedBox(height: 20),
-                  FeeCalculationContainer(
-                    durationText: durationText,
-                    usageFee: usageFee,
-                    bookingFee: bookingFee,
-                    totalFee: totalFee,
-                  ),
-                  const SizedBox(height: 30),
+
+                  // Calculate Fee Button
                   GradientButton(
-                    text: 'Confirm Booking',
-                    onPressed: () => _processBooking(context),
+                    text: isLoading ? 'Calculating...' : 'Calculate Fee',
+                    onPressed: isLoading ? () {} : _calculateFee,
                     gradientColors: [accentColor, highlightColor],
                   ),
+
+                  // API Response Indicator
+                  if (apiResponseDetails.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFF15A66E),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline,
+                            color: Color(0xFF15A66E),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              apiResponseDetails,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  // Fee Calculation Section - Only show if showFeeSection is true
+                  if (showFeeSection) ...[
+                    const SectionHeader(title: 'Fee Calculation'),
+                    const SizedBox(height: 20),
+                    isLoading
+                        ? const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF15A66E),
+                            ),
+                          ),
+                        )
+                        : FeeCalculationContainer(
+                          durationText: durationText,
+                          usageFee: usageFee,
+                          bookingFee: bookingFee,
+                          totalFee: totalFee,
+                        ),
+                    const SizedBox(height: 30),
+
+                    // Buttons Row
+                    Row(
+                      children: [
+                        // Cancel Button
+                        Expanded(
+                          child: GradientButton(
+                            text: 'Cancel',
+                            onPressed: _resetValues,
+                            gradientColors: [
+                              Colors.grey.shade800,
+                              Colors.grey.shade700,
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Confirm Button
+                        Expanded(
+                          child: GradientButton(
+                            text:
+                                isLoading ? 'Processing...' : 'Confirm Booking',
+                            onPressed:
+                                isLoading
+                                    ? () {}
+                                    : () => _processBooking(context),
+                            gradientColors: [accentColor, highlightColor],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
