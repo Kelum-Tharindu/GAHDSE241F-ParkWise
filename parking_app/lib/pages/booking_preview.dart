@@ -55,7 +55,6 @@ class BookingPreviewScreen extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
-          color: backgroundColor,
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -93,7 +92,7 @@ class BookingPreviewScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 30),
                 GlassmorphicContainer(
-                  height: 400, // Adjusted height
+                  height: 400,
                   gradientColors: const [Color(0xFF013220), Color(0xFF025939)],
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -146,35 +145,64 @@ class BookingPreviewScreen extends StatelessWidget {
                           isHighlighted: true,
                         ),
                         const SizedBox(height: 20),
-                        Image.memory(
-                          base64Decode(qrImage.split(',')[1]),
-                          height: 150,
-                          width: 150,
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => Dialog(
+                                    backgroundColor: Colors.transparent,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Text(
+                                            'QR Code Preview',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Image.memory(
+                                            base64Decode(qrImage.split(',')[1]),
+                                            height: 300,
+                                            width: 300,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          TextButton(
+                                            onPressed:
+                                                () => Navigator.pop(context),
+                                            child: const Text(
+                                              'Close',
+                                              style: TextStyle(
+                                                color: Colors.white70,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                            );
+                          },
+                          child: Image.memory(
+                            base64Decode(qrImage.split(',')[1]),
+                            height: 150,
+                            width: 150,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 30),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GradientButton(
-                        text: 'Download Receipt',
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Receipt downloaded successfully!'),
-                              backgroundColor: Color(0xFF025939),
-                            ),
-                          );
-                        },
-                        gradientColors: [primaryColor, accentColor],
-                        icon: Icons.download,
-                      ),
-                    ),
-                  ],
-                ),
+
                 const SizedBox(height: 16),
                 Row(
                   children: [
