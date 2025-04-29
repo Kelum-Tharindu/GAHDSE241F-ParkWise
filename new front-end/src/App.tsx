@@ -15,58 +15,71 @@ import Calendar from "./pages/Calendar";
 import ParkingTable from "./pages/Tables/ParkingSlots";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
+import Twofa from "./pages/auth/2faprocess";
+import Login from "./pages/auth/login";
+import Register from "./pages/auth/signup";
+import FAQ from "./pages/supportFAQ/FAQpage"
+import AdminManagemet from "./pages/Tables/adminManagement";
+import LandownerManagement from "./pages/Tables/landownerManagement";
+import UserManagement from "./pages/Tables/userManagement";
+import BulkmanagerTables from "./pages/Tables/bulkManagerManagement"
+import AccountSettings from "./pages/accountSettings/AccountSettingsUI"
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
-import LoginPage from "./pages/auth/login";
-import RegisterPage from "./pages/auth/signup";
-import TwoFactorAuth from "./pages/auth/2faprocess";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import Home from "./pages/Dashboard/Home";
+import Home from "./pages/Dashboard/AdminHome";
 
 export default function App() {
   return (
-    <>
-      <Router>
-        <ScrollToTop />
-        <Routes>
-          {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
+    <Router>
+      <ScrollToTop />
+      <Routes>
+        {/* Dashboard Layout */}
+        <Route element={<AppLayout />}>
+          <Route index path="/" element={<Home />} />
 
-            {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/blank" element={<Blank />} />
+          {/* Others Page */}
+          <Route path="/profile" element={<UserProfiles />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/blank" element={<Blank />} />
 
-            {/* Forms */}
-            <Route path="/form-elements" element={<FormElements />} />
+          {/* Forms */}
+          <Route path="/form-elements" element={<FormElements />} />
 
-            {/* Tables */}
-            <Route path="/basic-tables" element={<BasicTables />} />
-            <Route path="/parking-tables" element={<ParkingTable />} />
+          {/* Tables */}
+          <Route path="/basic-tables" element={<BasicTables />} />
+          <Route path="/parking-tables" element={<ParkingTable />} />
+          <Route path="/user-management" element={<UserManagement />} />
+          <Route path="/admin-management" element={<AdminManagemet />} />
+          <Route path="/landowner-management" element={<LandownerManagement />} />
+          <Route path="/bulkmanager-management" element={<BulkmanagerTables />} />
 
-            {/* Ui Elements */}
-            <Route path="/alerts" element={<Alerts />} />
-            <Route path="/avatars" element={<Avatars />} />
-            <Route path="/badge" element={<Badges />} />
-            <Route path="/buttons" element={<Buttons />} />
-            <Route path="/images" element={<Images />} />
-            <Route path="/videos" element={<Videos />} />
+          {/* Ui Elements */}
+          <Route path="/alerts" element={<Alerts />} />
+          <Route path="/avatars" element={<Avatars />} />
+          <Route path="/badge" element={<Badges />} />
+          <Route path="/buttons" element={<Buttons />} />
+          <Route path="/images" element={<Images />} />
+          <Route path="/videos" element={<Videos />} />
 
-            {/* Charts */}
-            <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
-          </Route>
+          {/* Charts */}
+          <Route path="/line-chart" element={<LineChart />} />
+          <Route path="/bar-chart" element={<BarChart />} />
 
-          Auth Layout
-          <Route path="/signin" element={<LoginPage />} />
-          <Route path="/2fa" element={<TwoFactorAuth />} />
-          <Route path="/signup" element={<RegisterPage />} />
+          {/* Support Page */}
+          <Route path="/support" element={<FAQ />} />
 
-          {/* Fallback Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </>
+          <Route path="/account-settings" element={<AccountSettings/>} />
+        </Route>
+
+        {/* Auth Layout */}
+        <Route path="/signin" element={<Login />} />
+        <Route path="/2fa" element={<Twofa />} />
+        <Route path="/signup" element={<Register />} />
+
+        {/* Fallback Route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
   );
 }
