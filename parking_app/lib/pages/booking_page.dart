@@ -1,15 +1,16 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:parking_app/widgets/booking_details_form.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../widgets/glassmorphic_app_bar.dart';
 import '../widgets/section_header.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/fee_row.dart';
 import 'booking_preview.dart';
 import '../services/booking_service.dart';
+import 'package:parking_app/widgets/glassmorphic_bottom_nav_bar.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -35,6 +36,11 @@ class _BookingPageState extends State<BookingPage> {
 
   DateTime? entryTime;
   DateTime? exitTime;
+  //print entry and exit time to console
+  void printEntryExitTime() {
+    debugPrint('==============###Entry Time: $entryTime');
+    debugPrint('==============### Exit Time: $exitTime');
+  }
 
   final List<String> vehicleTypes = ['car', 'bicycle', 'truck'];
   List<String> parkingNames = [];
@@ -42,41 +48,46 @@ class _BookingPageState extends State<BookingPage> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    entryTime = now;
-    entryTimeController.text = DateFormat('yyyy-MM-dd HH:mm').format(now);
-
-    final later = now.add(const Duration(hours: 1));
-    exitTime = later;
-    exitTimeController.text = DateFormat('yyyy-MM-dd HH:mm').format(later);
-
     _fetchParkingNames(); // Fetch parking names on initialization
+
+    // Adding listeners to log updates to input fields
+    parkingNameController.addListener(() {
+      debugPrint('===Parking Name updated: ${parkingNameController.text}');
+    });
+
+    entryTimeController.addListener(() {
+      entryTime = DateFormat(
+        'yyyy-MM-dd HH:mm',
+      ).parse(entryTimeController.text);
+      debugPrint('====Entry Time updated: $entryTime');
+    });
+
+    exitTimeController.addListener(() {
+      exitTime = DateFormat('yyyy-MM-dd HH:mm').parse(exitTimeController.text);
+      debugPrint('======Exit Time updated: $exitTime');
+    });
   }
 
   Future<void> _fetchParkingNames() async {
     try {
-      final response = await http.get(
-        Uri.parse('http://localhost:5000/api/bookings/parking-names'),
-      );
+      final names = await BookingService.fetchParkingNames();
+      if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final List<dynamic> names = jsonDecode(response.body);
-        setState(() {
-          parkingNames = names.cast<String>();
-        });
-      } else {
-        throw Exception('Failed to load parking names');
-      }
+      // Log the received parking names to the console
+      debugPrint('=====================! Received parking names: $names');
+
+      setState(() {
+        parkingNames = names;
+      });
     } catch (e) {
       debugPrint('Error fetching parking names: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading parking names: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading parking names: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -97,26 +108,6 @@ class _BookingPageState extends State<BookingPage> {
     }
 
     try {
-      if (entryTimeController.text.isNotEmpty) {
-        entryTime = DateFormat(
-          'yyyy-MM-dd HH:mm',
-        ).parse(entryTimeController.text);
-      }
-
-      if (exitTimeController.text.isNotEmpty) {
-        exitTime = DateFormat(
-          'yyyy-MM-dd HH:mm',
-        ).parse(exitTimeController.text);
-      }
-
-      if (kDebugMode) {
-        print('Sending to backend:');
-        print('Parking Name: ${parkingNameController.text}');
-        print('Vehicle Type: $vehicleType');
-        print('Entry Time: $entryTime');
-        print('Exit Time: $exitTime');
-      }
-
       final feeDetails = await BookingService.calculateFees(
         parkingName: parkingNameController.text,
         vehicleType: vehicleType,
@@ -124,43 +115,35 @@ class _BookingPageState extends State<BookingPage> {
         exitTime: exitTime,
       );
 
-      if (kDebugMode) {
-        print('Received from backend: $feeDetails');
-      }
-
-      if (mounted) {
-        setState(() {
-          usageFee = (feeDetails['usageFee'] as num).toDouble();
-          bookingFee = (feeDetails['bookingFee'] as num).toDouble();
-          totalFee = (feeDetails['totalFee'] as num).toDouble();
-          durationText = feeDetails['totalDuration'] as String;
-          isLoading = false;
-          showFeeSection = true;
-          apiResponseDetails = 'API Response Success: Received fee details';
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        usageFee = (feeDetails['usageFee'] as num).toDouble();
+        bookingFee = (feeDetails['bookingFee'] as num).toDouble();
+        totalFee = (feeDetails['totalFee'] as num).toDouble();
+        durationText = feeDetails['totalDuration'] as String;
+        isLoading = false;
+        showFeeSection = true;
+        apiResponseDetails = 'API Response Success: Received fee details';
+      });
     } catch (e) {
       debugPrint('Error fetching fee details: $e');
-      if (mounted) {
-        setState(() {
-          usageFee = 0.0;
-          bookingFee = 0.0;
-          totalFee = 0.0;
-          durationText = '0h 0m';
-          isLoading = false;
-          showFeeSection = true;
-          apiResponseDetails = 'API Error: $e';
+      if (!mounted) return;
+      setState(() {
+        usageFee = 0.0;
+        bookingFee = 0.0;
+        totalFee = 0.0;
+        durationText = '0h 0m';
+        isLoading = false;
+        showFeeSection = true;
+        apiResponseDetails = 'API Error: $e';
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error calculating fees: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        });
-      }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error calculating fees: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      });
     }
   }
 
@@ -259,14 +242,20 @@ class _BookingPageState extends State<BookingPage> {
 
         if (controller == exitTimeController) {
           if (entryTime != null && combinedDateTime.isBefore(entryTime!)) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Exit time cannot be before entry time'),
-                  backgroundColor: Colors.red,
-                ),
+            if (kDebugMode) {
+              print(
+                '=======enrtryTime: $entryTime, exitTime: $combinedDateTime',
               );
             }
+            if (kDebugMode) {
+              if (!mounted) return;
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Exit time cannot be before entry time'),
+                backgroundColor: Colors.red,
+              ),
+            );
 
             final validExitTime = entryTime!.add(const Duration(hours: 1));
             controller.text = DateFormat(
@@ -335,64 +324,92 @@ class _BookingPageState extends State<BookingPage> {
     return null;
   }
 
-  void _processBooking(BuildContext context) {
+  Future<void> _processBooking(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         isLoading = true;
         apiResponseDetails = 'Sending booking confirmation request...';
       });
 
-      Future.delayed(Duration.zero, () async {
-        try {
-          if (!mounted) return;
+      try {
+        final responseData = await BookingService.confirmBooking(
+          parkingName: parkingNameController.text,
+          userId: "662b3c9c12c85f01e8d5d679", // Hardcoded user ID
+          bookingDate: DateTime.now(), // Current date as booking date
+          entryTime: entryTime!,
+          exitTime: exitTime!,
+          usageFee: usageFee,
+          bookingFee: bookingFee,
+          totalFee: totalFee,
+          vehicleType: vehicleType,
+        );
 
-          if (!mounted) return;
+        debugPrint(
+          '====Request Body: {\n'
+          '  "parkingName": "${parkingNameController.text}",\n'
+          '  "userId": "662b3c9c12c85f01e8d5d679",\n'
+          '  "bookingDate": "${DateTime.now()}",\n'
+          '  "entryTime": "$entryTime",\n'
+          '  "exitTime": "$exitTime",\n'
+          '  "usageFee": "$usageFee",\n'
+          '  "bookingFee": "$bookingFee",\n'
+          '  "totalFee": "$totalFee",\n'
+          '  "vehicleType": "$vehicleType"\n'
+          '}',
+        );
 
-          setState(() {
-            isLoading = false;
-            apiResponseDetails = 'Booking confirmed successfully!';
-          });
+        if (!mounted) return;
+        setState(() {
+          isLoading = false;
+          apiResponseDetails = 'Booking confirmed successfully!';
+        });
 
-          if (mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder:
-                    (context) => BookingPreviewScreen(
-                      parkingName: parkingNameController.text,
-                      vehicleType: vehicleType,
-                      entryTime: entryTime!,
-                      exitTime: exitTime!,
-                      usageFee: usageFee,
-                      bookingFee: bookingFee,
-                      totalFee: totalFee,
-                      duration: durationText,
-                    ),
-              ),
-            );
-          }
-        } catch (e) {
-          if (!mounted) return;
-          setState(() {
-            isLoading = false;
-            apiResponseDetails = 'Error: $e';
-          });
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => BookingPreviewScreen(
+                  parkingName: responseData['parkingName'],
+                  vehicleType: responseData['vehicleType'],
+                  entryTime: DateTime.parse(responseData['entryTime']),
+                  exitTime: DateTime.parse(responseData['exitTime']),
+                  usageFee: responseData['fee']['usageFee'].toDouble(),
+                  bookingFee: responseData['fee']['bookingFee'].toDouble(),
+                  totalFee: responseData['fee']['totalFee'].toDouble(),
+                  duration: responseData['totalDuration'],
+                  qrImage: responseData['qrImage'],
+                  paymentStatus: responseData['paymentStatus'],
+                  bookingState: responseData['bookingState'],
+                ),
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          isLoading = false;
+          apiResponseDetails = 'Error: $e';
+        });
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Failed to process booking: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        }
-      });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to process booking: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   void _calculateFee() {
     if (_formKey.currentState!.validate()) {
+      // Print input values to console
+      debugPrint('===== CALCULATE FEE INPUTS =====');
+      debugPrint('=====Parking Name: ${parkingNameController.text}');
+      debugPrint('======Vehicle Type: $vehicleType');
+      debugPrint('=====Entry Time: $entryTime');
+      debugPrint('========Exit Time: $exitTime');
+      debugPrint('===============================');
+
       _fetchFeeDetails();
     }
   }
@@ -521,6 +538,10 @@ class _BookingPageState extends State<BookingPage> {
                           usageFee: usageFee,
                           bookingFee: bookingFee,
                           totalFee: totalFee,
+                          totalFeeStyle: const TextStyle(
+                            color: Colors.white, // Change color to white
+                            fontWeight: FontWeight.bold, // Make it bold
+                          ),
                         ),
                     const SizedBox(height: 30),
 
@@ -559,6 +580,57 @@ class _BookingPageState extends State<BookingPage> {
             ),
           ),
         ),
+      ),
+      bottomNavigationBar: GlassmorphicBottomNavBar(
+        currentIndex: 0, // Set appropriate index based on navigation
+        onTap: (index) {
+          // Handle navigation based on index
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, '/dashboard');
+              break;
+            case 1:
+              // Search functionality
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, '/enter-parking');
+              break;
+            case 3:
+              // Saved functionality
+              break;
+            case 4:
+              Navigator.pushReplacementNamed(context, '/profile');
+              break;
+          }
+        },
+        primaryColor: Theme.of(context).colorScheme.primary,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_scanner_outlined),
+            activeIcon: Icon(Icons.qr_code_scanner),
+            label: 'Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_outline),
+            activeIcon: Icon(Icons.bookmark),
+            label: 'Saved',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

@@ -52,6 +52,7 @@ class FeatureCard extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white,
+
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

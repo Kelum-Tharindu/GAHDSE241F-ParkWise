@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:convert';
+import 'package:parking_app/widgets/glassmorphic_bottom_nav_bar.dart';
 
 class GeneratePage extends StatefulWidget {
   const GeneratePage({super.key});
@@ -95,6 +96,57 @@ class _GeneratePageState extends State<GeneratePage> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: GlassmorphicBottomNavBar(
+        currentIndex: 2, // Assuming this is related to the QR scan tab
+        onTap: (index) {
+          // Handle navigation based on index
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, '/dashboard');
+              break;
+            case 1:
+              // Search functionality
+              break;
+            case 2:
+              // Already on QR related page
+              break;
+            case 3:
+              // Saved functionality
+              break;
+            case 4:
+              Navigator.pushReplacementNamed(context, '/profile');
+              break;
+          }
+        },
+        primaryColor: Theme.of(context).colorScheme.primary,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_scanner_outlined),
+            activeIcon: Icon(Icons.qr_code_scanner),
+            label: 'Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_outline),
+            activeIcon: Icon(Icons.bookmark),
+            label: 'Saved',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

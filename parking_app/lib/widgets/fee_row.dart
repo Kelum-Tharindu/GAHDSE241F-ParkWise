@@ -33,7 +33,7 @@ class FeeRow extends StatelessWidget {
             style: TextStyle(
               fontSize: isTotal ? 18 : 16,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? const Color(0xFF15A66E) : Colors.white,
+              color: Colors.white,
             ),
           ),
         ],
@@ -54,6 +54,7 @@ class FeeCalculationContainer extends StatelessWidget {
     required this.usageFee,
     required this.bookingFee,
     required this.totalFee,
+    required TextStyle totalFeeStyle,
   });
 
   @override

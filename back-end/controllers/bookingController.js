@@ -42,7 +42,7 @@ const calculateFee = async (req, res) => {
 const confirmBooking = async (req, res) => {
   try {
     const {
-      parkingId,
+      parkingName,
       userId,
       bookingDate,
       entryTime,
@@ -54,7 +54,7 @@ const confirmBooking = async (req, res) => {
     } = req.body;
 
     // Generate unique billingHash and qrImage
-    const hashData = `${parkingId}${userId}${Date.now()}`;
+    const hashData = `${parkingName}${userId}${Date.now()}`;
     const billingHash = crypto.createHash('sha256').update(hashData).digest('hex');
     const qrImage = await generateQR(billingHash);
 
@@ -62,7 +62,7 @@ const confirmBooking = async (req, res) => {
     const totalDuration = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
 
     const newBooking = new Booking({
-      parkingId,
+      parkingName,
       userId,
       bookingDate,
       entryTime,
@@ -86,8 +86,10 @@ const confirmBooking = async (req, res) => {
 
 const getParkingNames = async (req, res) => {
   try {
+    console.log('Fetching parking names...');
     const parkingNames = await Parking.find({}, 'name'); // Fetch only the 'name' field
     res.status(200).json(parkingNames.map(parking => parking.name));
+    console.log('Fetched parking names:', parkingNames.map(parking => parking.name));
   } catch (error) {
     console.error('Error fetching parking names:', error);
     res.status(500).json({ message: 'Failed to fetch parking names', error: error.message });

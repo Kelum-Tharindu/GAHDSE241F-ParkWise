@@ -31,6 +31,16 @@ class BookingDetailsForm extends StatelessWidget {
     required this.validateExitTime,
     required this.parkingNames, // Add this parameter
   });
+  //print the values of the all the parameters in the constructor
+
+  void printParameters() {
+    debugPrint('**Parking Name Controller: ${parkingNameController.text}');
+    debugPrint('**Entry Time Controller: ${entryTimeController.text}');
+    debugPrint('**Exit Time Controller: ${exitTimeController.text}');
+    debugPrint('**Vehicle Type: $vehicleType');
+    debugPrint('**Vehicle Types: $vehicleTypes');
+    debugPrint('**Parking Names: $parkingNames');
+  }
 
   @override
   Widget build(BuildContext context) {

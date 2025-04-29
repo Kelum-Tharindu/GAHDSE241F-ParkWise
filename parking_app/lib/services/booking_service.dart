@@ -4,8 +4,48 @@ import 'package:http/http.dart' as http;
 // For jsonEncode and jsonDecode
 
 class BookingService {
+  // Updated URL with fallback options
   static const String baseUrl =
-      'http://localhost:5000/api/bookings'; // Replace with your actual API endpoint
+      //     'http://192.168.8.145:5000/api/bookings'; // For Android emulator pointing to localhost
+      // Alternative URLs to try if the primary fails:
+      // 'http://192.168.8.145:5000/api/bookings'
+      'http://localhost:5000/api/bookings';
+
+  // Method to fetch parking names from the backend
+  static Future<List<String>> fetchParkingNames() async {
+    try {
+      if (kDebugMode) {
+        print(
+          '=====Attempting to fetch parking names from $baseUrl/parking-names',
+        );
+      }
+
+      final response = await http.get(Uri.parse('$baseUrl/parking-names'));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> names = jsonDecode(response.body);
+        if (kDebugMode) {
+          print('================Fetched parking names: $names');
+        }
+        return names.cast<String>();
+      } else {
+        if (kDebugMode) {
+          print(
+            '=====Failed to load parking names: ${response.statusCode} - ${response.body}',
+          );
+        }
+        throw Exception(
+          '===========Failed to load parking names: Status ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('===========Error fetching parking names: $e');
+      }
+
+      throw Exception('========Error fetching parking names: $e');
+    }
+  }
 
   // Method to fetch fee details from the backend
   static Future<Map<String, dynamic>> calculateFees({
@@ -14,19 +54,12 @@ class BookingService {
     required DateTime? entryTime,
     required DateTime? exitTime,
   }) async {
-    // Return default values if any of the required fields are null
+    // Throw exception if any of the required fields are null
     if (parkingName.isEmpty ||
         vehicleType.isEmpty ||
         entryTime == null ||
         exitTime == null) {
-      return {
-        "usageFee": 0.0,
-        "bookingFee": 0.0,
-        "totalFee": 0.0,
-        "entryTime": entryTime?.toIso8601String() ?? "",
-        "exitTime": exitTime?.toIso8601String() ?? "",
-        "totalDuration": "0h 0m",
-      };
+      throw Exception('==========Missing required fields for fee calculation');
     }
 
     try {
@@ -74,38 +107,47 @@ class BookingService {
           print('================📄 Error body: ${response.body}');
         }
 
-        throw Exception('Failed to calculate fees: ${response.statusCode}');
+        throw Exception(
+          '==========Failed to calculate fees: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       if (kDebugMode) {
         print('===================⚠️ Exception caught: $e');
       }
 
-      // If there's an error, return default values
-      return {
-        "usageFee": 0.0,
-        "bookingFee": 0.0,
-        "totalFee": 0.0,
-        "entryTime": entryTime.toIso8601String(),
-        "exitTime": exitTime.toIso8601String(),
-        "totalDuration": "0h 0m",
-      };
+      // Rethrow the exception instead of returning default values
+      throw Exception('========Error calculating fees: $e');
     }
   }
 
   // Method to submit the booking
   static Future<Map<String, dynamic>> confirmBooking({
     required String parkingName,
-    required String vehicleType,
+    required String userId,
+    required DateTime bookingDate,
     required DateTime entryTime,
     required DateTime exitTime,
+    required double usageFee,
+    required double bookingFee,
+    required double totalFee,
+    required String vehicleType,
   }) async {
     try {
       final Map<String, dynamic> requestBody = {
         "parkingName": parkingName,
-        "vehicleType": vehicleType,
+        "userId": userId,
+        "bookingDate": bookingDate.toIso8601String(),
         "entryTime": entryTime.toIso8601String(),
         "exitTime": exitTime.toIso8601String(),
+        "fee": {
+          "usageFee": usageFee,
+          "bookingFee": bookingFee,
+          "totalFee": totalFee,
+        },
+        "paymentStatus": "pending", // Hardcoded value
+        "bookingState": "active", // Hardcoded value
+        "vehicleType": vehicleType,
       };
 
       if (kDebugMode) {
@@ -125,25 +167,29 @@ class BookingService {
         final responseData = jsonDecode(response.body);
 
         if (kDebugMode) {
-          print('✅ Response received with status code: ${response.statusCode}');
-          print('📄 Response body: ${response.body}');
+          print(
+            '============✅ Response received with status code: ${response.statusCode}',
+          );
+          print('============📄 Response body: ${response.body}');
         }
 
         return responseData;
       } else {
         if (kDebugMode) {
-          print('❌ Error response with status code: ${response.statusCode}');
-          print('📄 Error body: ${response.body}');
+          print(
+            '===============❌ Error response with status code: ${response.statusCode}',
+          );
+          print('============📄 Error body: ${response.body}');
         }
 
         throw Exception('Failed to confirm booking: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('⚠️ Exception caught: $e');
+        print('=============⚠️ Exception caught: $e');
       }
 
-      throw Exception('Error confirming booking: $e');
+      throw Exception('================Error confirming booking: $e');
     }
   }
 }

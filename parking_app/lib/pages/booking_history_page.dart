@@ -4,6 +4,7 @@ import 'package:parking_app/widgets/gradient_button.dart';
 import 'package:parking_app/widgets/glassmorphic_app_bar.dart';
 import 'package:parking_app/widgets/glassmorphic_container.dart';
 import 'package:parking_app/widgets/section_header.dart';
+import 'package:parking_app/widgets/glassmorphic_bottom_nav_bar.dart';
 
 class BookingHistory extends StatelessWidget {
   const BookingHistory({super.key});
@@ -252,12 +253,62 @@ class BookingHistory extends StatelessWidget {
           ),
         ),
       ),
-      // Bottom navigation bar has been removed as requested
       floatingActionButton: GradientButton(
         text: 'Filter Results',
         icon: Icons.filter_alt,
         onPressed: () {},
         gradientColors: [primaryColor, highlightColor],
+      ),
+      bottomNavigationBar: GlassmorphicBottomNavBar(
+        currentIndex: 0, // Set appropriate index based on navigation
+        onTap: (index) {
+          // Handle navigation based on index
+          switch (index) {
+            case 0:
+              Navigator.pushReplacementNamed(context, '/dashboard');
+              break;
+            case 1:
+              // Search functionality
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, '/enter-parking');
+              break;
+            case 3:
+              // Saved functionality
+              break;
+            case 4:
+              Navigator.pushReplacementNamed(context, '/profile');
+              break;
+          }
+        },
+        primaryColor: primaryColor,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_scanner_outlined),
+            activeIcon: Icon(Icons.qr_code_scanner),
+            label: 'Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_outline),
+            activeIcon: Icon(Icons.bookmark),
+            label: 'Saved',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

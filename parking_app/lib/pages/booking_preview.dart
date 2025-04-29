@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
 import '../widgets/glassmorphic_app_bar.dart';
 import '../widgets/glassmorphic_container.dart';
 import '../widgets/gradient_button.dart';
@@ -14,6 +15,9 @@ class BookingPreviewScreen extends StatelessWidget {
   final double bookingFee;
   final double totalFee;
   final String duration;
+  final String qrImage;
+  final String paymentStatus;
+  final String bookingState;
 
   const BookingPreviewScreen({
     super.key,
@@ -25,6 +29,9 @@ class BookingPreviewScreen extends StatelessWidget {
     required this.bookingFee,
     required this.totalFee,
     required this.duration,
+    required this.qrImage,
+    required this.paymentStatus,
+    required this.bookingState,
   });
 
   @override
@@ -86,7 +93,7 @@ class BookingPreviewScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 30),
                 GlassmorphicContainer(
-                  height: 350, // Explicit height
+                  height: 400, // Adjusted height
                   gradientColors: const [Color(0xFF013220), Color(0xFF025939)],
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -118,6 +125,11 @@ class BookingPreviewScreen extends StatelessWidget {
                           ).format(exitTime),
                         ),
                         DetailRow(label: 'Duration', value: duration),
+                        DetailRow(
+                          label: 'Payment Status',
+                          value: paymentStatus,
+                        ),
+                        DetailRow(label: 'Booking State', value: bookingState),
                         const Divider(color: Colors.white30),
                         DetailRow(
                           label: 'Usage Fee',
@@ -132,6 +144,12 @@ class BookingPreviewScreen extends StatelessWidget {
                           label: 'Total Fee',
                           value: '\$${totalFee.toStringAsFixed(2)}',
                           isHighlighted: true,
+                        ),
+                        const SizedBox(height: 20),
+                        Image.memory(
+                          base64Decode(qrImage.split(',')[1]),
+                          height: 150,
+                          width: 150,
                         ),
                       ],
                     ),

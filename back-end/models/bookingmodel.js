@@ -13,7 +13,7 @@ const ExitedBookingTimeSchema = new mongoose.Schema({
 }, { _id: false });
 
 const BookingSchema = new mongoose.Schema({
-  parkingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Parking', required: true },
+  parkingName: { type: String, required: true }, // Changed from parkingName to parkingName
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   bookingDate: { type: Date, required: true },
   vehicleType: { type: String, enum: ['car', 'bicycle', 'truck'], required: true }, 

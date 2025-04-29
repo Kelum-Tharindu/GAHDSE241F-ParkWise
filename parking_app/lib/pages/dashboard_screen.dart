@@ -5,6 +5,7 @@ import '../widgets/status_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/feature_card.dart';
 import '../widgets/activity_item.dart';
+import 'package:parking_app/widgets/glassmorphic_bottom_nav_bar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -48,7 +49,7 @@ class DashboardScreen extends StatelessWidget {
         'title': 'Add Booking',
         'subtitle': 'Reserve a parking spot',
         'icon': Icons.add_box,
-        'route': '/add-booking',
+        'route': '/bookingPage',
         'gradient': [accentColor, const Color(0xFF01573A)],
       },
 
@@ -64,7 +65,7 @@ class DashboardScreen extends StatelessWidget {
         'title': 'Nearest Parking',
         'subtitle': 'Find parking spots near you',
         'icon': Icons.map,
-        'route': '/bookingPage',
+        'route': '/nearest-parking',
         'gradient': [const Color(0xFF015740), highlightColor],
       },
     ];
@@ -249,10 +250,56 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.white,
-        child: Icon(Icons.add, color: primaryColor),
+      bottomNavigationBar: GlassmorphicBottomNavBar(
+        currentIndex: 0, // Dashboard is usually the home tab (index 0)
+        onTap: (index) {
+          // Handle navigation based on index
+          switch (index) {
+            case 0:
+              // Already on dashboard
+              break;
+            case 1:
+              // Search functionality
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, '/enter-parking');
+              break;
+            case 3:
+              // Saved functionality
+              break;
+            case 4:
+              Navigator.pushReplacementNamed(context, '/profile');
+              break;
+          }
+        },
+        primaryColor: primaryColor,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.qr_code_scanner_outlined),
+            activeIcon: Icon(Icons.qr_code_scanner),
+            label: 'Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_outline),
+            activeIcon: Icon(Icons.bookmark),
+            label: 'Saved',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
