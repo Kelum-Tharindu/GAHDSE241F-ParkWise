@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node sever.js",
     "dev": "nodemon server.js"
+
   },
   "keywords": [],
   "author": "",
@@ -35,6 +37,7 @@
     "sharp": "^0.33.5",
     "zxing-wasm": "^2.1.0"
   },
+  "description": "",
   "devDependencies": {
     "nodemon": "^3.1.9"
   }
