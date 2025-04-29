@@ -7,10 +7,25 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const passport = require("passport");
 const session = require("express-session");
+const parkingRoutes = require('./routes/parkingRoutes');
+const billingRoutes = require("./routes/billingRoutes");
+
 const cors = require("cors");
 
 // Initialize express app
 const app = express();
+
+
+// Enable CORS
+app.use(cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173", // Make frontend URL configurable through .env
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization",
+    credentials: true, // Allow cookies and credentials
+
+}));
+
+app.use(express.json());  // Middleware to parse JSON request bodies
 
 // Load environment variables
 dotenv.config();
@@ -18,16 +33,7 @@ dotenv.config();
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(express.json()); // Parse JSON request bodies
 
-// Configure CORS
-app.use(
-  cors({
-    origin: "http://localhost:5173", // Allow requests from this origin
-    credentials: true, // Allow cookies and credentials
-  })
-);
 
 // Configure express-session
 app.use(
@@ -49,10 +55,12 @@ app.use(passport.session());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use('/parking', parkingRoutes);
+app.use("/billing", billingRoutes);
 
-// Health check endpoint
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "Server is running" });
+// Home route for testing
+app.get('/', (req, res) => {
+  res.send('MongoDB Connection Test Successful');
 });
 
 // Error handling middleware
@@ -61,6 +69,14 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Something went wrong!" });
 });
 
-// Start the server
+
+
+
+
+
+
+// Server start
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
