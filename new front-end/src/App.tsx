@@ -23,7 +23,10 @@ import AdminManagemet from "./pages/Tables/adminManagement";
 import LandownerManagement from "./pages/Tables/landownerManagement";
 import UserManagement from "./pages/Tables/userManagement";
 import BulkmanagerTables from "./pages/Tables/bulkManagerManagement"
-import AccountSettings from "./pages/accountSettings/AccountSettingsUI"
+import AccountSettings from "./pages/accountSettings/AccountSettingsUI";
+import Pricing from "./pages/pricing&plans/pricing";
+import Payments from "./pages/payments/payemnts";
+import Reports from "./pages/Reports/Reports";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
@@ -70,6 +73,14 @@ export default function App() {
           <Route path="/support" element={<FAQ />} />
 
           <Route path="/account-settings" element={<AccountSettings/>} />
+
+          <Route path="/pricing" element={<Pricing />} />
+
+          <Route path="/payments" element={<Payments />} />
+
+          <Route path="/reports" element={<Reports />} />
+
+          {/* 2FA */}
         </Route>
 
         {/* Auth Layout */}

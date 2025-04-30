@@ -691,3 +691,4 @@ export default function ParkingDetailsTable() {
     </div>
   );
 }
+
