@@ -102,7 +102,7 @@ export function LoginForm({
         localStorage.setItem("token", data.token)
         navigate("/dashboard")
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred.")
     }
   }
