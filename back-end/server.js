@@ -11,6 +11,7 @@ const parkingRoutes = require('./routes/parkingRoutes');
 const billingRoutes = require("./routes/billingRoutes");
 const qrRoutes = require('./routes/qrRoutes');
 const bookingRoutes = require('./routes/bookingRoute');
+const cors = require('cors');
 const os = require('os');
 
 // -------------------- GET LOCAL IP --------------------
@@ -96,8 +97,7 @@ app.get('/', (req, res) => {
   res.send('✅ MongoDB Connection Test Successful');
 });
 
-// -------------------- ROUTES --------------------
-const parkingRoutes = require('./routes/parkingRoutes');
+
 
 
 // Routes
