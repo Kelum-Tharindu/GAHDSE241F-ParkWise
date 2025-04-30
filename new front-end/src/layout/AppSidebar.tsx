@@ -52,9 +52,10 @@ const navItems: NavItem[] = [
     name: "User Management",
     icon: <ListIcon />,
     subItems: [
-      { name: "Customers Management", path: "/form-elements", pro: false },
-      { name: "Land Owners Managements", path: "/landownerManagement", pro: false },
-      { name: "Admins Management", path: "/adminManagement", pro: false },],
+      { name: "Customers Management", path: "/user-management", pro: false },
+      { name: "Land Owners Managements", path: "/landowner-management", pro: false },
+      { name: "Admins Management", path: "/admin-management", pro: false },
+      { name: "Parking Coordinator Management", path: "/bulkmanager-management", pro: false },],
   },
   {
     name: "Financial & Analytics",
