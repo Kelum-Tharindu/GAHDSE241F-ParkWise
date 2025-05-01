@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     subItems: [
       { name: 'Bookings', path: '/basic-tables', pro: false },
-      { name: 'Parking Slots', path: '/parking-tables', pro: true }, 
+      { name: 'Parking Slots', path: '/parking-tables', pro: false }, 
     ],
     
   },
@@ -65,6 +65,45 @@ const navItems: NavItem[] = [
       { name: "Reports", path: "/reports", pro: false },
     ],
   },
+  {
+    name: "My Lands",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "View Lands", path: "/view-lands", pro: false },
+      { name: "Add New Land", path: "/add-parking-area", pro: false },
+    ],
+  },
+  {
+    name: "Booking Overview",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "Current Bookings", path: "/landowner-bookings", pro: false },
+      { name: "Booking History", path: "/landowner-booking-history", pro: false },
+    ],
+  },
+  {
+    name: "Earnings",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "Transaction History", path: "/landowner-transaction-history", pro: false },
+      { name: "Payout Requests", path: "/landowner-payouts", pro: false },
+    ],
+  },
+  {
+    name: "Purchased Chunks",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "View Chunks", path: "/coordinator-purchased-chunks", pro: false },
+      { name: "Purchase New Chunk", path: "/purchase-parking-chunk", pro: false },
+    ],
+  },
+  {
+    name: "Payments",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "Chunk Payments", path: "/parking-chunk-payment", pro: false },
+    ],
+  },    
 ];
 
 const othersItems: NavItem[] = [

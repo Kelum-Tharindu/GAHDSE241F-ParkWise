@@ -7,85 +7,79 @@ import {
   FaFilter,
   FaUser,
   FaEnvelope,
-  FaPhone,
-  FaBuilding,
   FaMoon,
   FaSun,
   FaImage,
   FaIdCard,
   FaClipboardList,
   FaArrowLeft,
+  FaUserShield,
 } from "react-icons/fa";
 
-interface Landowner {
+interface Admin {
   id: number;
   avatar: string;
-  name: string;
-  mail: string;
-  role: string;
-  phone: string;
-  company: string;
-  notes: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  userType: string;
+  applicationAccess: string;
   status: "Active" | "Inactive";
-  updated_at: string;
+  dateAdded: string;
+  addedBy: string;
+  notes: string;
 }
 
-const initialLandowners: Landowner[] = [
+const initialAdmins: Admin[] = [
   {
     id: 1,
     avatar: "/images/user/user-1.jpg",
-    name: "John Doe",
-    mail: "john.doe@example.com",
-    role: "Primary Owner",
-    phone: "+1 555-123-4567",
-    company: "Acme Estates",
-    notes: "VIP client. Owns multiple properties.",
+    firstName: "Alice",
+    lastName: "Johnson",
+    email: "alice.johnson@company.com",
+    username: "alicej",
+    userType: "System Admin",
+    applicationAccess: "Dashboard, Reports",
     status: "Active",
-    updated_at: "2025-04-27",
+    dateAdded: "2025-04-27",
+    addedBy: "superadmin",
+    notes: "Main system administrator.",
   },
   {
     id: 2,
-    avatar: "/images/user/user-17.jpg",
-    name: "Jane Smith",
-    mail: "jane.smith@example.com",
-    role: "Co-Owner",
-    phone: "+1 555-987-6543",
-    company: "Smith Holdings",
-    notes: "",
+    avatar: "/images/user/user-2.jpg",
+    firstName: "Bob",
+    lastName: "Smith",
+    email: "bob.smith@company.com",
+    username: "bobsmith",
+    userType: "Department Admin",
+    applicationAccess: "Dashboard",
     status: "Active",
-    updated_at: "2025-04-27",
-  },
-  {
-    id: 3,
-    avatar: "/images/user/user-17.jpg",
-    name: "Carlos Martinez",
-    mail: "carlos.martinez@example.com",
-    role: "Heir",
-    phone: "+1 555-222-3333",
-    company: "Martinez Group",
-    notes: "Recently inherited.",
-    status: "Inactive",
-    updated_at: "2025-04-25",
+    dateAdded: "2025-04-28",
+    addedBy: "alicej",
+    notes: "",
   },
 ];
 
-export default function LandownerManagementTable() {
-  const [landowners, setLandowners] = useState<Landowner[]>(initialLandowners);
+export default function AdminManagementTable() {
+  const [admins, setAdmins] = useState<Admin[]>(initialAdmins);
   const [search, setSearch] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [viewLandowner, setViewLandowner] = useState<Landowner | null>(null);
+  const [viewAdmin, setViewAdmin] = useState<Admin | null>(null);
   const [darkMode, setDarkMode] = useState(false);
 
-  const [form, setForm] = useState<Omit<Landowner, "id" | "status" | "updated_at">>({
+  const [form, setForm] = useState<Omit<Admin, "id" | "status" | "dateAdded">>({
     avatar: "",
-    name: "",
-    mail: "",
-    role: "",
-    phone: "",
-    company: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    username: "",
+    userType: "",
+    applicationAccess: "",
+    addedBy: "",
     notes: "",
   });
-
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -106,12 +100,14 @@ export default function LandownerManagementTable() {
 
   const validate = () => {
     const errs: { [key: string]: string } = {};
-    if (!form.name.trim()) errs.name = "Name is required";
-    if (!form.mail.trim()) errs.mail = "Mail is required";
-    else if (!/\S+@\S+\.\S+/.test(form.mail)) errs.mail = "Invalid email address";
-    if (!form.role.trim()) errs.role = "Role is required";
-    if (!form.phone.trim()) errs.phone = "Phone is required";
-    if (!form.company.trim()) errs.company = "Company is required";
+    if (!form.firstName.trim()) errs.firstName = "First name is required";
+    if (!form.lastName.trim()) errs.lastName = "Last name is required";
+    if (!form.email.trim()) errs.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = "Invalid email address";
+    if (!form.username.trim()) errs.username = "Username is required";
+    if (!form.userType.trim()) errs.userType = "User type is required";
+    if (!form.applicationAccess.trim()) errs.applicationAccess = "Application access is required";
+    if (!form.addedBy.trim()) errs.addedBy = "Added By is required";
     return errs;
   };
 
@@ -130,47 +126,53 @@ export default function LandownerManagementTable() {
       setErrors(validationErrors);
       return;
     }
-    setLandowners((prev) => [
+    setAdmins((prev) => [
       ...prev,
       {
         id: prev.length ? Math.max(...prev.map((a) => a.id)) + 1 : 1,
         ...form,
         avatar: form.avatar || "/images/user/default.jpg",
         status: "Active",
-        updated_at: new Date().toISOString().slice(0, 10),
+        dateAdded: new Date().toISOString().slice(0, 10),
       },
     ]);
     setShowAddForm(false);
     setForm({
       avatar: "",
-      name: "",
-      mail: "",
-      role: "",
-      phone: "",
-      company: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      username: "",
+      userType: "",
+      applicationAccess: "",
+      addedBy: "",
       notes: "",
     });
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm("Are you sure you want to delete this landowner?")) {
-      setLandowners((prev) => prev.filter((a) => a.id !== id));
+    if (window.confirm("Are you sure you want to delete this admin?")) {
+      setAdmins((prev) => prev.filter((a) => a.id !== id));
     }
   };
 
-  // Only search by email
-  const filteredLandowners = useMemo(() => {
+  const filteredAdmins = useMemo(() => {
     const lower = search.trim().toLowerCase();
-    if (!lower) return landowners;
-    return landowners.filter((a) => a.mail.toLowerCase().includes(lower));
-  }, [landowners, search]);
+    if (!lower) return admins;
+    return admins.filter((a) =>
+      a.email.toLowerCase().includes(lower) ||
+      a.username.toLowerCase().includes(lower) ||
+      a.firstName.toLowerCase().includes(lower) ||
+      a.lastName.toLowerCase().includes(lower)
+    );
+  }, [admins, search]);
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen font-outfit">
       <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-theme-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Theme toggle button */}
         <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700">
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">Landowner Management</h1>
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white">Admin Management</h1>
           <button
             onClick={toggleTheme}
             className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
@@ -183,84 +185,84 @@ export default function LandownerManagementTable() {
             )}
           </button>
         </div>
-        
-        {viewLandowner ? (
+        {viewAdmin ? (
           <div className="p-8">
             <button
               className="mb-6 flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 text-xs font-medium"
-              onClick={() => setViewLandowner(null)}
+              onClick={() => setViewAdmin(null)}
             >
               <FaArrowLeft /> Back to Table
             </button>
-            
             <div className="flex flex-col md:flex-row gap-8">
               <div className="flex flex-col items-center">
                 <img
-                  src={viewLandowner.avatar}
-                  alt={viewLandowner.name}
+                  src={viewAdmin.avatar}
+                  alt={viewAdmin.firstName}
                   className="w-32 h-32 rounded-full object-cover border-4 border-blue-500 mb-4"
                 />
-                <h2 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">{viewLandowner.name}</h2>
+                <h2 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">
+                  {viewAdmin.firstName} {viewAdmin.lastName}
+                </h2>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold mb-4
-                  ${viewLandowner.status === "Active"
+                  ${viewAdmin.status === "Active"
                     ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
                     : "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400"}
-                `}>{viewLandowner.status}</span>
+                `}>{viewAdmin.status}</span>
               </div>
-              
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                 <div className="flex items-center gap-2">
                   <FaIdCard className="text-blue-500" />
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">ID</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewLandowner.id}</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.id}</p>
                   </div>
                 </div>
-                
                 <div className="flex items-center gap-2">
                   <FaEnvelope className="text-blue-500" />
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewLandowner.mail}</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.email}</p>
                   </div>
                 </div>
-                
                 <div className="flex items-center gap-2">
                   <FaUser className="text-blue-500" />
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Role</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewLandowner.role}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Username</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.username}</p>
                   </div>
                 </div>
-                
                 <div className="flex items-center gap-2">
-                  <FaPhone className="text-blue-500" />
+                  <FaUserShield className="text-blue-500" />
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewLandowner.phone}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">User Type</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.userType}</p>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <FaBuilding className="text-blue-500" />
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Company</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewLandowner.company}</p>
-                  </div>
-                </div>
-                
                 <div className="flex items-center gap-2">
                   <FaClipboardList className="text-blue-500" />
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Updated At</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewLandowner.updated_at}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Application Access</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.applicationAccess}</p>
                   </div>
                 </div>
-                
+                <div className="flex items-center gap-2">
+                  <FaClipboardList className="text-blue-500" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Date Added</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.dateAdded}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FaUserShield className="text-blue-500" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Added By</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.addedBy}</p>
+                  </div>
+                </div>
                 <div className="md:col-span-2 mt-4">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Notes</p>
                   <p className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 min-h-[80px]">
-                    {viewLandowner.notes || "No notes available."}
+                    {viewAdmin.notes || "No notes available."}
                   </p>
                 </div>
               </div>
@@ -270,7 +272,7 @@ export default function LandownerManagementTable() {
           <form onSubmit={handleFormSubmit} className="p-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
-                Add New Landowner
+                Add New Admin
               </h2>
               <button
                 type="button"
@@ -280,119 +282,156 @@ export default function LandownerManagementTable() {
                 <FaArrowLeft /> Back to Table
               </button>
             </div>
-            
             <div className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl mb-6">
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Left Column */}
                 <div className="flex-1 space-y-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      <FaUser className="inline mr-2" /> Name
+                      <FaUser className="inline mr-2" /> First Name
                     </label>
                     <input
-                      name="name"
-                      value={form.name}
+                      name="firstName"
+                      value={form.firstName}
                       onChange={handleFormChange}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.name
+                        errors.firstName
                           ? "border-red-500 dark:border-red-400"
                           : "border-gray-200 dark:border-gray-700"
                       } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
                     />
-                    {errors.name && (
+                    {errors.firstName && (
                       <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.name}
+                        {errors.firstName}
                       </p>
                     )}
                   </div>
-                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Last Name
+                    </label>
+                    <input
+                      name="lastName"
+                      value={form.lastName}
+                      onChange={handleFormChange}
+                      className={`w-full px-3 py-2 border rounded-lg ${
+                        errors.lastName
+                          ? "border-red-500 dark:border-red-400"
+                          : "border-gray-200 dark:border-gray-700"
+                      } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
+                    />
+                    {errors.lastName && (
+                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                        {errors.lastName}
+                      </p>
+                    )}
+                  </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       <FaEnvelope className="inline mr-2" /> Email
                     </label>
                     <input
-                      name="mail"
-                      value={form.mail}
+                      name="email"
+                      value={form.email}
                       onChange={handleFormChange}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.mail
+                        errors.email
                           ? "border-red-500 dark:border-red-400"
                           : "border-gray-200 dark:border-gray-700"
                       } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
                     />
-                    {errors.mail && (
+                    {errors.email && (
                       <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.mail}
+                        {errors.email}
                       </p>
                     )}
                   </div>
-                  
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Role
+                      Username
                     </label>
                     <input
-                      name="role"
-                      value={form.role}
+                      name="username"
+                      value={form.username}
                       onChange={handleFormChange}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.role
+                        errors.username
                           ? "border-red-500 dark:border-red-400"
                           : "border-gray-200 dark:border-gray-700"
                       } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
                     />
-                    {errors.role && (
+                    {errors.username && (
                       <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.role}
+                        {errors.username}
                       </p>
                     )}
                   </div>
                 </div>
-                
                 {/* Right Column */}
                 <div className="flex-1 space-y-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      <FaPhone className="inline mr-2" /> Phone
+                      User Type
                     </label>
                     <input
-                      name="phone"
-                      value={form.phone}
+                      name="userType"
+                      value={form.userType}
                       onChange={handleFormChange}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.phone
+                        errors.userType
                           ? "border-red-500 dark:border-red-400"
                           : "border-gray-200 dark:border-gray-700"
                       } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
+                      placeholder="System Admin, Department Admin, etc."
                     />
-                    {errors.phone && (
+                    {errors.userType && (
                       <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.phone}
+                        {errors.userType}
                       </p>
                     )}
                   </div>
-                  
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      <FaBuilding className="inline mr-2" /> Company/Organization
+                      Application Access
                     </label>
                     <input
-                      name="company"
-                      value={form.company}
+                      name="applicationAccess"
+                      value={form.applicationAccess}
                       onChange={handleFormChange}
                       className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.company
+                        errors.applicationAccess
                           ? "border-red-500 dark:border-red-400"
                           : "border-gray-200 dark:border-gray-700"
                       } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
+                      placeholder="Dashboard, Reports, etc."
                     />
-                    {errors.company && (
+                    {errors.applicationAccess && (
                       <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.company}
+                        {errors.applicationAccess}
                       </p>
                     )}
                   </div>
-                  
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      <FaUserShield className="inline mr-2" /> Added By (Admin Username)
+                    </label>
+                    <input
+                      name="addedBy"
+                      value={form.addedBy}
+                      onChange={handleFormChange}
+                      className={`w-full px-3 py-2 border rounded-lg ${
+                        errors.addedBy
+                          ? "border-red-500 dark:border-red-400"
+                          : "border-gray-200 dark:border-gray-700"
+                      } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
+                      placeholder="admin username"
+                    />
+                    {errors.addedBy && (
+                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                        {errors.addedBy}
+                      </p>
+                    )}
+                  </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       <FaImage className="inline mr-2" /> Avatar URL
@@ -407,7 +446,6 @@ export default function LandownerManagementTable() {
                   </div>
                 </div>
               </div>
-              
               {/* Full Width - Notes */}
               <div className="mt-6">
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -422,7 +460,6 @@ export default function LandownerManagementTable() {
                 />
               </div>
             </div>
-            
             <div className="flex justify-end gap-3">
               <button
                 type="button"
@@ -435,7 +472,7 @@ export default function LandownerManagementTable() {
                 type="submit"
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium dark:bg-blue-600 dark:hover:bg-blue-700"
               >
-                <FaPlus className="inline mr-2" /> Add Landowner
+                <FaPlus className="inline mr-2" /> Add Admin
               </button>
             </div>
           </form>
@@ -449,7 +486,7 @@ export default function LandownerManagementTable() {
                 </div>
                 <input
                   type="text"
-                  placeholder="Search by email"
+                  placeholder="Search by email, username, or name"
                   className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded outline-none text-xs text-gray-700 dark:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:focus:border-blue-600 dark:focus:ring-blue-600"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -465,11 +502,10 @@ export default function LandownerManagementTable() {
                   onClick={() => setShowAddForm(true)}
                   className="flex items-center gap-2 bg-blue-600 dark:bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-700 transition text-xs font-medium"
                 >
-                  <FaPlus /> Add Landowner
+                  <FaPlus /> Add Admin
                 </button>
               </div>
             </div>
-            
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
@@ -477,58 +513,64 @@ export default function LandownerManagementTable() {
                   <tr>
                     <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
                     <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Avatar</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">First Name</th>
+                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Name</th>
                     <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Username</th>
+                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User Type</th>
                     <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Updated At</th>
+                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date Added</th>
+                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Added By</th>
                     <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">View</th>
                     <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Delete</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-xs">
-                  {filteredLandowners.length === 0 ? (
+                  {filteredAdmins.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-8 text-center text-gray-400 dark:text-gray-500 text-xs">
-                        No landowners found.
+                      <td colSpan={12} className="py-8 text-center text-gray-400 dark:text-gray-500 text-xs">
+                        No admins found.
                       </td>
                     </tr>
                   ) : (
-                    filteredLandowners.map((landowner) => (
-                      <tr key={landowner.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">{landowner.id}</td>
+                    filteredAdmins.map((admin) => (
+                      <tr key={admin.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">{admin.id}</td>
                         <td className="px-2 py-2 whitespace-nowrap">
                           <img
-                            src={landowner.avatar || "/images/user/default.jpg"}
-                            alt={landowner.name}
+                            src={admin.avatar || "/images/user/default.jpg"}
+                            alt={admin.firstName}
                             className="w-6 h-6 rounded-full object-cover border border-gray-200 dark:border-gray-600"
                           />
                         </td>
-                        <td className="px-2 py-2 whitespace-nowrap font-medium text-gray-800 dark:text-white">{landowner.name}</td>
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{landowner.mail}</td>
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{landowner.role}</td>
+                        <td className="px-2 py-2 whitespace-nowrap font-medium text-gray-800 dark:text-white">{admin.firstName}</td>
+                        <td className="px-2 py-2 whitespace-nowrap font-medium text-gray-800 dark:text-white">{admin.lastName}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.email}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.username}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.userType}</td>
                         <td className="px-2 py-2 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                            ${landowner.status === "Active"
+                            ${admin.status === "Active"
                               ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
                               : "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400"}
-                          `}>{landowner.status}</span>
+                          `}>{admin.status}</span>
                         </td>
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{landowner.updated_at}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.dateAdded}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.addedBy}</td>
                         <td className="px-2 py-2 whitespace-nowrap text-center">
                           <button
-                            onClick={() => setViewLandowner(landowner)}
+                            onClick={() => setViewAdmin(admin)}
                             className="inline-flex items-center justify-center p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                            title="View landowner details"
+                            title="View admin details"
                           >
                             <FaEye size={14} />
                           </button>
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap text-center">
                           <button
-                            onClick={() => handleDelete(landowner.id)}
+                            onClick={() => handleDelete(admin.id)}
                             className="inline-flex items-center justify-center p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                            title="Delete landowner"
+                            title="Delete admin"
                           >
                             <FaTrash size={14} />
                           </button>
