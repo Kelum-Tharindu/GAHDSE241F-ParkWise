@@ -1,75 +1,123 @@
 import 'package:flutter/material.dart';
-import 'package:parking_app/widgets/gradient_button.dart';
+// ignore: unused_import
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart'; // Add this import for date parsing
 
 import 'package:parking_app/widgets/glassmorphic_app_bar.dart';
 import 'package:parking_app/widgets/glassmorphic_container.dart';
 import 'package:parking_app/widgets/section_header.dart';
 import 'package:parking_app/widgets/glassmorphic_bottom_nav_bar.dart';
+import 'package:parking_app/services/booking_service.dart';
 
-class BookingHistory extends StatelessWidget {
+class BookingHistory extends StatefulWidget {
   const BookingHistory({super.key});
 
   @override
+  State<BookingHistory> createState() => _BookingHistoryState();
+}
+
+class _BookingHistoryState extends State<BookingHistory> {
+  // Theme colors - matching the dashboard screen
+  final Color backgroundColor = Colors.black;
+  final Color primaryColor = const Color(0xFF013220);
+  final Color accentColor = const Color(0xFF025939);
+  final Color highlightColor = const Color(0xFF15A66E);
+  final Color textColor = Colors.white;
+
+  bool isLoading = true;
+  List<Map<String, dynamic>> bookingHistory = [];
+  Map<String, dynamic> summary = {
+    'month': 'N/A',
+    'totalSpent': '\$0.00',
+    'hoursParked': '0h 0m',
+    'bookingsCount': '0',
+  };
+  String selectedFilter = 'All';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchBookingHistory();
+  }
+
+  Future<void> fetchBookingHistory() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final bookingService = BookingService();
+      final data = await bookingService.fetchBookingData();
+
+      List<Map<String, dynamic>> allBookings = List<Map<String, dynamic>>.from(
+        data['bookings'] ?? [],
+      );
+
+      // Apply filter logic
+      List<Map<String, dynamic>> filteredBookings = allBookings;
+      if (selectedFilter == 'This Week') {
+        final now = DateTime.now();
+        final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+        filteredBookings =
+            allBookings.where((booking) {
+              final bookingDate = DateFormat(
+                'MMM d, yyyy',
+              ).parse(booking['date']);
+              return bookingDate.isAfter(startOfWeek) &&
+                  bookingDate.isBefore(now);
+            }).toList();
+        debugPrint('!!Filtered bookings for "This Week": $filteredBookings');
+      } else if (selectedFilter == 'Last Month') {
+        final now = DateTime.now();
+        final startOfLastMonth = DateTime(now.year, now.month - 1, 1);
+        final endOfLastMonth = DateTime(now.year, now.month, 0);
+        filteredBookings =
+            allBookings.where((booking) {
+              final bookingDate = DateFormat(
+                'MMM d, yyyy',
+              ).parse(booking['date']);
+              return bookingDate.isAfter(startOfLastMonth) &&
+                  bookingDate.isBefore(endOfLastMonth);
+            }).toList();
+        debugPrint('!!!Filtered bookings for "Last Month": $filteredBookings');
+      } else if (selectedFilter == 'This Year') {
+        final now = DateTime.now();
+        final startOfYear = DateTime(now.year, 1, 1);
+        filteredBookings =
+            allBookings.where((booking) {
+              final bookingDate = DateFormat(
+                'MMM d, yyyy',
+              ).parse(booking['date']);
+              return bookingDate.isAfter(startOfYear) &&
+                  bookingDate.isBefore(now);
+            }).toList();
+        debugPrint('!!Filtered bookings for "This Year": $filteredBookings');
+      } else {
+        debugPrint('!!All bookings: $allBookings');
+      }
+
+      setState(() {
+        bookingHistory = filteredBookings;
+        summary =
+            data['summary'] ??
+            {
+              'month': 'N/A',
+              'totalSpent': '\$0.00',
+              'hoursParked': '0h 0m',
+              'bookingsCount': '0',
+            };
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      debugPrint('Error fetching booking history: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Theme colors - matching the dashboard screen
-    final Color backgroundColor = Colors.black;
-    final Color primaryColor = const Color(0xFF013220);
-    final Color accentColor = const Color(0xFF025939);
-    final Color highlightColor = const Color(0xFF15A66E);
-    final Color textColor = Colors.white;
-
-    // Sample booking history data
-    final List<Map<String, dynamic>> bookingHistory = [
-      {
-        'location': 'Downtown Garage',
-        'date': 'Apr 15, 2025',
-        'duration': '2h 30m',
-        'cost': '\$15.50',
-        'status': 'Completed',
-        'color': highlightColor,
-      },
-      {
-        'location': 'Central Square Parking',
-        'date': 'Apr 12, 2025',
-        'duration': '3h 15m',
-        'cost': '\$18.75',
-        'status': 'Completed',
-        'color': primaryColor,
-      },
-      {
-        'location': 'Westfield Mall Parking',
-        'date': 'Apr 8, 2025',
-        'duration': '1h 45m',
-        'cost': '\$8.25',
-        'status': 'Completed',
-        'color': accentColor,
-      },
-      {
-        'location': 'Airport Terminal Parking',
-        'date': 'Apr 3, 2025',
-        'duration': '5h 00m',
-        'cost': '\$28.50',
-        'status': 'Completed',
-        'color': highlightColor,
-      },
-      {
-        'location': 'City Center Garage',
-        'date': 'Mar 29, 2025',
-        'duration': '2h 10m',
-        'cost': '\$12.00',
-        'status': 'Completed',
-        'color': primaryColor,
-      },
-      {
-        'location': 'Harbor View Parking',
-        'date': 'Mar 23, 2025',
-        'duration': '4h 30m',
-        'cost': '\$22.50',
-        'status': 'Completed',
-        'color': accentColor,
-      },
-    ];
-
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBodyBehindAppBar: true,
@@ -108,157 +156,168 @@ class BookingHistory extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              // Summary Section
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
-                  child: GlassmorphicContainer(
-                    height: 160, // Added required height parameter
-                    gradientColors: [
-                      primaryColor.withAlpha(160),
-                      accentColor.withAlpha(160),
-                    ],
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'This Month',
-                              style: TextStyle(
-                                color: textColor,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
+          child:
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : CustomScrollView(
+                    slivers: [
+                      // Summary Section
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 10),
+                          child: GlassmorphicContainer(
+                            height: 160, // Added required height parameter
+                            gradientColors: [
+                              primaryColor.withAlpha(160),
+                              accentColor.withAlpha(160),
+                            ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'This Month',
+                                      style: TextStyle(
+                                        color: textColor,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(
+                                      summary['month'] ?? 'N/A',
+                                      style: TextStyle(
+                                        color: textColor.withAlpha(180),
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _buildSummaryItem(
+                                      'Total Spent',
+                                      summary['totalSpent'] ?? '\$0.00',
+                                      Icons.attach_money,
+                                      highlightColor,
+                                    ),
+                                    _buildSummaryItem(
+                                      'Hours Parked',
+                                      summary['hoursParked'] ?? '0h 0m',
+                                      Icons.access_time,
+                                      accentColor,
+                                    ),
+                                    _buildSummaryItem(
+                                      'Bookings',
+                                      summary['bookingsCount'] ?? '0',
+                                      Icons.local_parking,
+                                      primaryColor,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            Text(
-                              'April 2025',
-                              style: TextStyle(
-                                color: textColor.withAlpha(180),
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildSummaryItem(
-                              'Total Spent',
-                              '\$85.50',
-                              Icons.attach_money,
-                              highlightColor,
-                            ),
-                            _buildSummaryItem(
-                              'Hours Parked',
-                              '16h 40m',
-                              Icons.access_time,
-                              accentColor,
-                            ),
-                            _buildSummaryItem(
-                              'Bookings',
-                              '6',
-                              Icons.local_parking,
-                              primaryColor,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // Filter buttons
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildFilterChip('All', true, primaryColor, textColor),
-                        _buildFilterChip(
-                          'This Week',
-                          false,
-                          primaryColor,
-                          textColor,
-                        ),
-                        _buildFilterChip(
-                          'Last Month',
-                          false,
-                          primaryColor,
-                          textColor,
-                        ),
-                        _buildFilterChip(
-                          'This Year',
-                          false,
-                          primaryColor,
-                          textColor,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // History section header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                  child: SectionHeader(
-                    title: 'Booking History',
-                    trailing: TextButton(
-                      onPressed: () {},
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(
-                          Colors.white.withAlpha(20),
-                        ),
-                        shape: WidgetStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            side: BorderSide(color: Colors.white.withAlpha(50)),
                           ),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Text('Export', style: TextStyle(color: Colors.white)),
-                          const SizedBox(width: 4),
-                          Icon(Icons.download, size: 16, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
 
-              // Booking history list
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    return _buildBookingHistoryItem(
-                      bookingHistory[index],
-                      textColor,
-                    );
-                  }, childCount: bookingHistory.length),
-                ),
-              ),
-            ],
-          ),
+                      // Filter buttons
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _buildFilterChip(
+                                  'All',
+                                  selectedFilter == 'All',
+                                  primaryColor,
+                                  textColor,
+                                ),
+                                _buildFilterChip(
+                                  'This Week',
+                                  selectedFilter == 'This Week',
+                                  primaryColor,
+                                  textColor,
+                                ),
+                                _buildFilterChip(
+                                  'Last Month',
+                                  selectedFilter == 'Last Month',
+                                  primaryColor,
+                                  textColor,
+                                ),
+                                _buildFilterChip(
+                                  'This Year',
+                                  selectedFilter == 'This Year',
+                                  primaryColor,
+                                  textColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // History section header
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                          child: SectionHeader(title: 'Booking History'),
+                        ),
+                      ),
+
+                      // Booking history list or empty state
+                      bookingHistory.isEmpty
+                          ? SliverToBoxAdapter(
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.history,
+                                      size: 80,
+                                      color: Color.fromRGBO(255, 255, 255, 0.5),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No booking history found',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+                          : SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                return _buildBookingHistoryItem(
+                                  bookingHistory[index],
+                                  textColor,
+                                );
+                              }, childCount: bookingHistory.length),
+                            ),
+                          ),
+                    ],
+                  ),
         ),
       ),
-      floatingActionButton: GradientButton(
-        text: 'Filter Results',
-        icon: Icons.filter_alt,
-        onPressed: () {},
-        gradientColors: [primaryColor, highlightColor],
-      ),
+
       bottomNavigationBar: GlassmorphicBottomNavBar(
         currentIndex: 0, // Set appropriate index based on navigation
         onTap: (index) {
@@ -369,7 +428,12 @@ class BookingHistory extends StatelessWidget {
           borderRadius: BorderRadius.circular(30),
           side: BorderSide(color: Colors.white.withAlpha(70), width: 1),
         ),
-        onSelected: (selected) {},
+        onSelected: (selected) {
+          setState(() {
+            selectedFilter = label;
+          });
+          fetchBookingHistory(); // Ensure the booking history is updated
+        },
       ),
     );
   }
@@ -378,13 +442,24 @@ class BookingHistory extends StatelessWidget {
     Map<String, dynamic> booking,
     Color textColor,
   ) {
+    // Convert JSON map to Color object
+    final Color bookingColor =
+        booking['color'] != null
+            ? Color.fromRGBO(
+              booking['color']['r'],
+              booking['color']['g'],
+              booking['color']['b'],
+              booking['color']['a'].toDouble(),
+            )
+            : primaryColor; // Default to primaryColor if null
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: GlassmorphicContainer(
         height: 180, // Added required height parameter
         gradientColors: [
-          booking['color'].withAlpha(100),
-          booking['color'].withAlpha(60),
+          bookingColor.withAlpha(100),
+          bookingColor.withAlpha(60),
         ],
         padding: const EdgeInsets.all(16),
         borderRadius: BorderRadius.circular(16),
@@ -404,7 +479,7 @@ class BookingHistory extends StatelessWidget {
                       ),
                       child: Icon(
                         Icons.local_parking,
-                        color: booking['color'],
+                        color: bookingColor,
                         size: 24,
                       ),
                     ),
