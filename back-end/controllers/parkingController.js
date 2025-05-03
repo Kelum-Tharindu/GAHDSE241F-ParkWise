@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Parking = require("../models/parkingModel");
-const { generateQRCode123 } = require("../utils/qrGenerator");
+const { generateQRCode123 } = require("../utils/qrGenertor");
 
 const addParking = async (req, res) => {
     let newParking;
