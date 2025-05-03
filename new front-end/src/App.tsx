@@ -36,6 +36,8 @@ import LandownerPayoutsTable from "./pages/Landowner/Earnings/PayoutRequests";
 import ParkingCoordinatorChunksTable from "./pages/EventCoordinator/PurchasedChunks/ViewChunks";
 import PurchaseParkingChunk from "./pages/EventCoordinator/PurchasedChunks/PurchaseNewChunk";
 import ParkingChunkPayment from "./pages/EventCoordinator/Payments/spotsChunkPayment";
+import LandownerHome from "./pages/Landowner/Home/Home";
+import ParkingCoordinatorHome from "./pages/EventCoordinator/Home/Home";
 
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
@@ -50,6 +52,12 @@ export default function App() {
         {/* Dashboard Layout */}
         <Route element={<AppLayout />}>
           <Route index path="/" element={<Home />} />
+
+          <Route path="/landownerhome" element={<LandownerHome />} />
+
+          <Route path="/parkingcoordinatorhome" element={<ParkingCoordinatorHome />} />
+
+          {/* Dashboard */}
 
           {/* Others Page */}
           <Route path="/profile" element={<UserProfiles />} />
