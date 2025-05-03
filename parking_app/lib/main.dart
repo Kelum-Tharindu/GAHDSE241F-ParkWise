@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:parking_app/pages/booking_history_page.dart';
 import 'package:parking_app/pages/booking_page.dart';
 import 'package:parking_app/pages/generate_page.dart';
+import 'package:parking_app/pages/login_page.dart';
 import 'package:parking_app/pages/nearest_parking_page.dart';
 import 'package:parking_app/pages/ongoing_booking_page.dart';
 import 'package:parking_app/pages/read_page.dart';
 // import 'package:parking_app/pages/home_page.dart';
 import 'package:parking_app/pages/dashboard_screen.dart';
 import 'package:parking_app/pages/profile_page.dart';
+import 'package:parking_app/pages/register_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,6 +39,9 @@ class MyApp extends StatelessWidget {
         '/booking-history': (context) => const BookingHistory(),
         '/ongoing': (context) => const Placeholder(),
         '/enter-parking': (context) => const ReadPage(),
+        '/login': (context) => const LoginPage(), // Added LoginPage route
+        '/register':
+            (context) => const RegisterPage(), // Added RegisterPage route
       },
     );
   }

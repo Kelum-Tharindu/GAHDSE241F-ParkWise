@@ -26,7 +26,7 @@ const registerUser = async (req, res) => {
     // Create a new user
     const newUser = new User({ username, password, email, role });
     await newUser.save();
-
+    console.log("User registered successfully:", newUser); // Log the new user object
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Error registering user:", error); // Log the full error
@@ -42,6 +42,9 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log("Login attempt with username:", username); // Log the username
+
+    console.log("Login attempt with password:", password);
 
     // Validate input fields
     if (!username || !username.trim() || !password || !password.trim()) {

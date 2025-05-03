@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+// ignore: unused_import
 import 'package:shared_preferences/shared_preferences.dart';
 // For jsonEncode and jsonDecode
 

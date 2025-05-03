@@ -37,7 +37,7 @@ const allowedOrigins = [
   'http://localhost:5173',  // React Dev
   'http://localhost:3000',  // Optional other dev port
   'http://localhost:5500',
-  'http://localhost:56646',  // Flutter Web dev
+  'http://localhost:61630',  // Flutter Web dev
   `http://${localIP}:3000`, // Flutter or React from another device
   process.env.FRONTEND_URL  // React Prod
 ];
