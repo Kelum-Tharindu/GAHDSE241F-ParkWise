@@ -202,22 +202,10 @@ class BookingService {
         print('===== Starting fetchBookingData method =====');
       }
 
-      final prefs = await SharedPreferences.getInstance();
-      if (kDebugMode) {
-        print('===== SharedPreferences instance obtained =====');
-      }
-
       // final userId = prefs.getString('userId');
       final userId = '662b3c9c12c85f01e8d5d679';
       if (kDebugMode) {
         print('===== Retrieved userId: $userId =====');
-      }
-
-      if (userId == null) {
-        if (kDebugMode) {
-          print('===== User not logged in =====');
-        }
-        throw Exception('===========User not logged in');
       }
 
       final url = '$baseUrl/booking-history/$userId';

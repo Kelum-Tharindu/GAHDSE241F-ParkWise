@@ -32,6 +32,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        if (!mounted) return;
         usernameController.text = data['username'];
         emailController.text = data['email'];
       } else {
@@ -76,22 +77,27 @@ class _ProfilePageState extends State<ProfilePage> {
       );
 
       if (response.statusCode == 200) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update profile: ${response.body}')),
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -134,12 +140,14 @@ class _ProfilePageState extends State<ProfilePage> {
             // Handle navigation based on index
             switch (index) {
               case 0:
+                if (!mounted) return;
                 Navigator.pushReplacementNamed(context, '/dashboard');
                 break;
               case 1:
                 // Search functionality
                 break;
               case 2:
+                if (!mounted) return;
                 Navigator.pushReplacementNamed(context, '/enter-parking');
                 break;
               case 3:
