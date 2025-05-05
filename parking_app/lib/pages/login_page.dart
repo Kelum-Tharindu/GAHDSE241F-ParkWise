@@ -255,7 +255,11 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  // Forgot password functionality
+                                  // Navigate to forgot password page
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/forgot_password',
+                                  );
                                 },
                                 child: Text(
                                   'Forgot Password?',

@@ -228,6 +228,8 @@ const forgotPassword = async (req, res) => {
       await user.save();
 
       const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+      console.log("base URL:", process.env.FRONTEND_URL); // Log the base URL for debugging
+      console.log("Reset URL:", resetUrl); // Log the reset URL for debugging
       const emailText = `Click to reset your password: ${resetUrl}\n\nLink expires in 1 hour.`;
 
       try {

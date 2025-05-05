@@ -11,6 +11,7 @@ import 'package:parking_app/pages/read_page.dart';
 import 'package:parking_app/pages/dashboard_screen.dart';
 import 'package:parking_app/pages/profile_page.dart';
 import 'package:parking_app/pages/register_page.dart';
+import 'package:parking_app/pages/forget_password_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(), // Added LoginPage route
         '/register':
             (context) => const RegisterPage(), // Added RegisterPage route
+        '/forgot_password': (context) => ForgotPasswordPage(),
       },
     );
   }
