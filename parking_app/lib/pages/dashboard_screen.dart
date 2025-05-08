@@ -35,7 +35,7 @@ class DashboardScreen extends StatelessWidget {
         'title': 'Ongoing',
         'subtitle': 'Track active parking sessions',
         'icon': Icons.directions_car,
-        'route': '/login',
+        'route': '/reset_password',
         'gradient': [const Color(0xFF025939), const Color(0xFF017455)],
       },
       {

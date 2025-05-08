@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -46,6 +47,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       isLoading = true;
     });
 
+    // Debug token value
+    if (kDebugMode) {
+      print('Token being used for reset: ${widget.token}');
+    }
+
     try {
       final response = await http.post(
         Uri.parse(
@@ -54,6 +60,13 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'password': passwordController.text}),
       );
+
+      if (kDebugMode) {
+        print('Reset password response status: ${response.statusCode}');
+      }
+      if (kDebugMode) {
+        print('Reset password response body: ${response.body}');
+      }
 
       if (response.statusCode == 200) {
         if (!mounted) return;
@@ -79,6 +92,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         });
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('Reset password error: $e');
+      }
       if (!mounted) return;
       _showErrorSnackBar('Connection error. Please try again later.');
       setState(() {

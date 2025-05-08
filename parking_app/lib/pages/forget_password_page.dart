@@ -42,7 +42,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       final response = await http.post(
         Uri.parse('http://localhost:5000/api/auth/forgot-password'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': emailController.text.trim()}),
+        body: jsonEncode({
+          'email': emailController.text.trim(),
+          'platform': 'mobile', // Add platform identifier
+        }),
       );
 
       if (response.statusCode == 200) {

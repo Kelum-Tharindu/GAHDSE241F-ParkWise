@@ -12,6 +12,7 @@ import 'package:parking_app/pages/dashboard_screen.dart';
 import 'package:parking_app/pages/profile_page.dart';
 import 'package:parking_app/pages/register_page.dart';
 import 'package:parking_app/pages/forget_password_page.dart';
+import 'package:parking_app/pages/rest_password_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -44,6 +45,16 @@ class MyApp extends StatelessWidget {
         '/register':
             (context) => const RegisterPage(), // Added RegisterPage route
         '/forgot_password': (context) => ForgotPasswordPage(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name?.startsWith('/reset_password/') ?? false) {
+          // Extract token from the route
+          final token = settings.name!.substring('/reset_password/'.length);
+          return MaterialPageRoute(
+            builder: (context) => ResetPasswordPage(token: token),
+          );
+        }
+        return null;
       },
     );
   }
