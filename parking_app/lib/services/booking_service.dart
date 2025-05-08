@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+// ignore: unused_import
+import 'package:shared_preferences/shared_preferences.dart';
 // For jsonEncode and jsonDecode
 
 class BookingService {
@@ -190,6 +192,59 @@ class BookingService {
       }
 
       throw Exception('================Error confirming booking: $e');
+    }
+  }
+
+  // Method to fetch booking data
+  Future<Map<String, dynamic>> fetchBookingData() async {
+    try {
+      if (kDebugMode) {
+        print('===== Starting fetchBookingData method =====');
+      }
+
+      // final userId = prefs.getString('userId');
+      final userId = '662b3c9c12c85f01e8d5d679';
+      if (kDebugMode) {
+        print('===== Retrieved userId: $userId =====');
+      }
+
+      final url = '$baseUrl/booking-history/$userId';
+      if (kDebugMode) {
+        print('===== Sending GET request to: $url =====');
+      }
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          // Add auth token if needed
+          // 'Authorization': 'Bearer ${prefs.getString('token')}',
+        },
+      );
+
+      if (kDebugMode) {
+        print(
+          '===== Response received with status code: ${response.statusCode} =====',
+        );
+      }
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (kDebugMode) {
+          print('===== Successfully fetched booking data: $responseData =====');
+        }
+        return responseData;
+      } else {
+        if (kDebugMode) {
+          print('===== Failed to fetch booking data: ${response.body} =====');
+        }
+        throw Exception('=========Failed to fetch booking data');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('===== Error fetching booking data: $e =====');
+      }
+      throw Exception('=====Error fetching booking data: $e');
     }
   }
 }

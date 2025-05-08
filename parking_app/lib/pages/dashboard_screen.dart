@@ -35,7 +35,7 @@ class DashboardScreen extends StatelessWidget {
         'title': 'Ongoing',
         'subtitle': 'Track active parking sessions',
         'icon': Icons.directions_car,
-        'route': '/ongoing',
+        'route': '/reset_password',
         'gradient': [const Color(0xFF025939), const Color(0xFF017455)],
       },
       {
@@ -65,7 +65,7 @@ class DashboardScreen extends StatelessWidget {
         'title': 'Nearest Parking',
         'subtitle': 'Find parking spots near you',
         'icon': Icons.map,
-        'route': '/nearest-parking',
+        'route': '/register',
         'gradient': [const Color(0xFF015740), highlightColor],
       },
     ];

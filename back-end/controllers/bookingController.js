@@ -1,5 +1,5 @@
 const Booking = require('../models/bookingmodel');
-const Parking = require('../models/parkingmodel');
+const Parking = require('../models/parkingModel');
 const crypto = require('crypto');
 const { generateQR } = require("../utils/qrGenertor");
 
@@ -96,8 +96,113 @@ const getParkingNames = async (req, res) => {
   }
 };
 
+// Get booking history by user ID
+const getBookingHistoryByUserId = async (req, res) => {
+  try {
+    let { userId } = req.params;
+
+    // Sanitize userId
+    userId = userId.trim();
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    const bookings = await Booking.find({ userId })
+      .sort({ bookingDate: -1 }) // Sort by booking date, newest first
+      .lean(); // Use lean for better performance since we're just reading data
+
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({ message: 'No booking history found for this user' });
+    }
+
+    // Transform data to match front-end structure
+    const formattedBookings = bookings.map(booking => {
+      // Get color based on booking status for UI display
+      let color;
+      if (booking.bookingState === 'completed') {
+        color = { r: 21, g: 166, b: 110, a: 1 }; // highlightColor
+      } else if (booking.bookingState === 'active') {
+        color = { r: 1, g: 50, b: 32, a: 1 }; // primaryColor
+      } else {
+        color = { r: 2, g: 89, b: 57, a: 1 }; // accentColor for cancelled or other states
+      }
+
+      // Format date to match front-end format (e.g., "Apr 15, 2025")
+      const dateObj = new Date(booking.bookingDate);
+      const dateFormatted = dateObj.toLocaleDateString('en-US', { 
+        month: 'short',
+        day: 'numeric', 
+        year: 'numeric'
+      });
+
+      const totalFee = booking.fee?.totalFee || 0;
+
+      return {
+        id: booking._id,
+        location: booking.parkingName,
+        date: dateFormatted,
+        duration: booking.totalDuration || 'N/A',
+        cost: `$${(totalFee / 100).toFixed(2)}`, // Convert cents to dollars with $ prefix
+        status: booking.bookingState.charAt(0).toUpperCase() + booking.bookingState.slice(1), // Capitalize first letter
+        color: color,
+        vehicleType: booking.vehicleType,
+        entryTime: booking.entryTime,
+        exitTime: booking.exitTime,
+        paymentStatus: booking.paymentStatus
+      };
+    });
+
+    // Calculate summary statistics for the current month
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const currentMonthBookings = bookings.filter(booking => {
+      const bookingDate = new Date(booking.bookingDate);
+      return bookingDate.getMonth() === currentMonth && 
+             bookingDate.getFullYear() === currentYear;
+    });
+    
+    const monthName = new Date().toLocaleString('default', { month: 'long' });
+    const totalSpent = currentMonthBookings.reduce((sum, booking) => {
+      return sum + (booking.fee?.totalFee || 0);
+    }, 0) / 100;
+    
+    // Calculate total parking duration in minutes
+    let totalMinutes = 0;
+    currentMonthBookings.forEach(booking => {
+      if (booking.entryTime && booking.exitTime) {
+        totalMinutes += calculateMinutes(booking.entryTime, booking.exitTime);
+      }
+    });
+    
+    const totalHours = Math.floor(totalMinutes / 60);
+    const remainingMinutes = totalMinutes % 60;
+    
+    const summary = {
+      month: `${monthName} ${currentYear}`,
+      totalSpent: `$${totalSpent.toFixed(2)}`,
+      hoursParked: `${totalHours}h ${remainingMinutes}m`,
+      bookingsCount: currentMonthBookings.length.toString()
+    };
+
+    res.status(200).json({
+      bookings: formattedBookings,
+      summary: summary
+    });
+  } catch (error) {
+    console.error('Error fetching booking history:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch booking history', 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   calculateFee,
   confirmBooking,
-  getParkingNames
+  getParkingNames,
+  getBookingHistoryByUserId
 };

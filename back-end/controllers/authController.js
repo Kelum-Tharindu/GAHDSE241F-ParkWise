@@ -969,8 +969,7 @@ const registerUser = async (req, res) => {
 
     const newUser = new User({ username, password, email, role });
     await newUser.save();
-
-    console.log(`[REGISTER][SUCCESS] User registered: "${username}", email: "${email}"`);
+    console.log("User registered successfully:", newUser); // Log the new user object
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error(`[REGISTER][ERROR] Error registering user:`, error);
@@ -986,7 +985,11 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log("Login attempt with username:", username); // Log the username
 
+    console.log("Login attempt with password:", password);
+
+    // Validate input fields
     if (!username || !username.trim() || !password || !password.trim()) {
       console.log(`[LOGIN][FAIL] Missing username or password`);
       return res.status(400).json({ message: "Username and password are required" });
@@ -1141,10 +1144,11 @@ const verifyOTP = async (req, res) => {
   }
 };
 
-// Forgot Password - Generate and send reset token
 const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, platform } = req.body;
+
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       console.log(`[FORGOT PASSWORD][FAIL] Invalid email: "${email}"`);
@@ -1152,6 +1156,8 @@ const forgotPassword = async (req, res) => {
     }
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    // Return same message whether user exists or not (security best practice)
     const responseMessage = "If this email exists in our system, you'll receive a reset link";
 
     if (user) {
@@ -1163,14 +1169,31 @@ const forgotPassword = async (req, res) => {
       user.resetPasswordExpire = Date.now() + 3600000;
       await user.save();
 
-      const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+      // Choose frontend base URL based on platform
+      let baseUrl;
+      let resetUrl; // Declare resetUrl outside if/else blocks
+      
+      if (platform === 'mobile') {
+        // For mobile, we need a deep link scheme that the app can handle
+        baseUrl = process.env.MOBILE_FRONTEND_URL || 'parkwise://app';
+        resetUrl = `${baseUrl}#/reset_password/${resetToken}`; // Added missing '/'
+        console.log("Mobile reset link generated");
+      } else {
+        baseUrl = process.env.WEB_FRONTEND_URL || 'http://localhost:5173';
+        resetUrl = `${baseUrl}/reset-password/${resetToken}`;
+        console.log("Web reset link generated");
+      }
+    
+      console.log("Base URL:", baseUrl);
+      console.log("Reset URL:", resetUrl);
+
       const emailText = `Click to reset your password: ${resetUrl}\n\nLink expires in 1 hour.`;
 
       try {
         await sendEmail(user.email, "Password Reset Request", emailText);
         console.log(`[FORGOT PASSWORD][SUCCESS] Reset email sent to: "${user.email}"`);
       } catch (emailError) {
-        console.error(`[FORGOT PASSWORD][ERROR] Email sending failed for: "${user.email}"`, emailError);
+        console.error("Email sending failed:", emailError);
       }
     } else {
       console.log(`[FORGOT PASSWORD][INFO] No user found for email: "${email}"`);
@@ -1190,52 +1213,76 @@ const forgotPassword = async (req, res) => {
 // Reset Password
 const resetPassword = async (req, res) => {
   try {
+    console.log("📝 RESET PASSWORD REQUEST RECEIVED");
     const { token } = req.params;
     const { password } = req.body;
-
+    console.log("Raw token received:", token);
+    
+    // Validate token format before attempting to verify
+    if (!token || typeof token !== 'string' || token.trim() === '') {
+      return res.status(400).json({
+        message: "Missing or invalid token format"
+      });
+    }
+    // 1. Validate new password
     if (!password || password.length < 8) {
-      console.log(`[RESET PASSWORD][FAIL] Password too short`);
-      return res.status(400).json({
-        message: "Password must be at least 8 characters"
+      console.log("❌ Password validation failed: insufficient length");
+      return res.status(400).json({ 
+        message: "Password must be at least 8 characters" 
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({
-      _id: decoded.id,
-      resetPasswordToken: token,
-      resetPasswordExpire: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      console.log(`[RESET PASSWORD][FAIL] Invalid or expired token`);
-      return res.status(400).json({
-        message: "Invalid or expired token"
+    // 2. Verify token and find user
+    console.log("🔍 Verifying token and finding user...");
+    
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("Token decoded successfully, user ID:", decoded.id);
+      
+      const user = await User.findOne({
+        _id: decoded.id,
+        resetPasswordToken: token,
+        resetPasswordExpire: { $gt: Date.now() }
       });
-    }
 
-    user.password = password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
-
-    if (user.email) {
-      const message = `Your password has been successfully updated.`;
-      try {
-        await sendEmail(
-          user.email,
-          "Password Updated Successfully",
-          message
-        );
-        console.log(`[RESET PASSWORD][SUCCESS] Password reset and confirmation email sent for userId=${user._id}`);
-      } catch (emailError) {
-        console.error(`[RESET PASSWORD][ERROR] Confirmation email failed for userId=${user._id}`, emailError);
+      if (!user) {
+        console.error("User not found with this token or token expired");
+        return res.status(400).json({ 
+          message: "Invalid or expired token" 
+        });
       }
-    }
 
-    res.status(200).json({
-      message: "Password reset successful"
-    });
+      // 3. Update password and clear reset fields
+      user.password = password;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+
+      // 4. Send confirmation email (with proper validation)
+      if (user.email) {  // Check email exists
+        const message = `Your password has been successfully updated.`;
+        try {
+          await sendEmail(
+            user.email,
+            "Password Updated Successfully",
+            message
+          );
+        } catch (emailError) {
+          console.error("Confirmation email failed:", emailError);
+          // Continue without failing the request
+        }
+      }
+
+      return res.status(200).json({ 
+        message: "Password reset successful" 
+      });
+      
+    } catch (jwtError) {
+      console.error("JWT verification error:", jwtError.message);
+      return res.status(400).json({ 
+        message: "Invalid token" 
+      });
+    }
 
   } catch (error) {
     console.error(`[RESET PASSWORD][ERROR] Error resetting password:`, error);
