@@ -1,5 +1,11 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:parking_scanner/qr_createpage.dart';
+import 'package:parking_scanner/qr_utils.dart';
+
+
 
 class Mainpage extends StatelessWidget {
   const Mainpage({super.key});
@@ -7,7 +13,7 @@ class Mainpage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
-      appBar: AppBar.new(
+      appBar: AppBar(
         title: Text('Parking Scanner'),
       )
       
@@ -64,4 +70,6 @@ class Mainpage extends StatelessWidget {
       ),
     );
   }
+}
+
 
