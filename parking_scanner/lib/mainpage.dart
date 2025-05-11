@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class Mainpage extends StatelessWidget {
@@ -8,10 +9,59 @@ class Mainpage extends StatelessWidget {
     return  Scaffold(
       appBar: AppBar.new(
         title: Text('Parking Scanner'),
-      ),
-      body: Center(
-        child: Text('Welcome to Parking Scanner!'),
+      )
+      
+     bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(
+              icon: Icon(Icons.qr_code),
+              text: 'Generate',
+            ),
+            Tab(
+              icon: Icon(Icons.qr_code_scanner),
+              text: 'Scan',
+            ),
+          ],
+        ),
+      
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // Generate Tab
+          const GeneratorTab(),
+          
+          // Scan Tab
+          Stack(
+            children: [
+              if (!_hasScanned)
+                MobileScanner(
+                  controller: _scannerController,
+                  onDetect: (capture) {
+                    final List<Barcode> barcodes = capture.barcodes;
+                    if (barcodes.isNotEmpty && barcodes[0].rawValue != null) {
+                      setState(() {
+                        _scannedCode = barcodes[0].rawValue!;
+                        _hasScanned = true;
+                      });
+                    }
+                  },
+                ),
+              if (_hasScanned)
+                ScanResultScreen(
+                  scannedCode: _scannedCode,
+                  onCopy: () => ClipboardUtils.copyToClipboard(context, _scannedCode),
+                  onScanAgain: () {
+                    setState(() {
+                      _hasScanned = false;
+                      _scannedCode = '';
+                    });
+                  },
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
-}
+
