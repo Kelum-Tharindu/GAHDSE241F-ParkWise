@@ -3,5 +3,6 @@
         "glassmorphic",
         "LTWH",
         "qrcode"
-    ]
+    ],
+    "cmake.sourceDirectory": "C:/Users/Tharindu/Desktop/nw/GAHDSE241F-ParkWise/parking_app/windows/flutter"
 }

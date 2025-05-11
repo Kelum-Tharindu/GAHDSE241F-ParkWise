@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 // import 'package:parking_app/pages/add_booking_page.dart';
 import 'package:parking_app/pages/booking_history_page.dart';
 import 'package:parking_app/pages/booking_page.dart';
@@ -13,8 +14,29 @@ import 'package:parking_app/pages/profile_page.dart';
 import 'package:parking_app/pages/register_page.dart';
 import 'package:parking_app/pages/forget_password_page.dart';
 import 'package:parking_app/pages/rest_password_page.dart';
+import 'package:parking_app/pages/map_page.dart';
 
 void main() {
+  // Ensure Flutter bindings are initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize logging configuration
+  if (kDebugMode) {
+    // Increase the log buffer size and optimize logging
+    debugPrint = (String? message, {int? wrapWidth}) {
+      if (message != null) {
+        if (kDebugMode) {
+          print(message);
+        }
+      }
+    };
+  }
+
+  // Enable performance overlay in debug mode
+  if (kDebugMode) {
+    debugPrintRebuildDirtyWidgets = true;
+  }
+
   runApp(const MyApp());
 }
 
@@ -41,14 +63,13 @@ class MyApp extends StatelessWidget {
         '/booking-history': (context) => const BookingHistory(),
         '/ongoing': (context) => const Placeholder(),
         '/enter-parking': (context) => const ReadPage(),
-        '/login': (context) => const LoginPage(), // Added LoginPage route
-        '/register':
-            (context) => const RegisterPage(), // Added RegisterPage route
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
         '/forgot_password': (context) => ForgotPasswordPage(),
+        '/map': (context) => const MapPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name?.startsWith('/reset_password/') ?? false) {
-          // Extract token from the route
           final token = settings.name!.substring('/reset_password/'.length);
           return MaterialPageRoute(
             builder: (context) => ResetPasswordPage(token: token),
@@ -67,7 +88,7 @@ class MainWrapper extends StatefulWidget {
   State<MainWrapper> createState() => _MainWrapperState();
 }
 
-class _MainWrapperState extends State<MainWrapper> {
+class _MainWrapperState extends State<MainWrapper> with WidgetsBindingObserver {
   final int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -80,10 +101,31 @@ class _MainWrapperState extends State<MainWrapper> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // Clean up resources when app goes to background
+      _cleanupResources();
+    }
+  }
+
+  void _cleanupResources() {
+    // Add cleanup logic here
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_currentIndex],
-      // Navigation bar has been removed
-    );
+    return Scaffold(body: _screens[_currentIndex]);
   }
 }

@@ -1,10 +1,22 @@
 # This is a generated file; do not edit or check into version control.
+flutter_plugin_android_lifecycle=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\flutter_plugin_android_lifecycle-2.0.28\\
+google_maps_flutter=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\google_maps_flutter-2.12.1\\
+google_maps_flutter_android=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\google_maps_flutter_android-2.16.1\\
+google_maps_flutter_ios=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\google_maps_flutter_ios-2.15.2\\
+google_maps_flutter_web=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\google_maps_flutter_web-0.5.12\\
+location=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\location-5.0.3\\
+location_web=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\location_web-4.2.0\\
 mobile_scanner=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\mobile_scanner-3.5.7\\
 path_provider=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\path_provider-2.1.5\\
 path_provider_android=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\path_provider_android-2.2.16\\
 path_provider_foundation=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\path_provider_foundation-2.4.1\\
 path_provider_linux=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\path_provider_linux-2.2.1\\
 path_provider_windows=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\path_provider_windows-2.3.0\\
+permission_handler=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\permission_handler-11.4.0\\
+permission_handler_android=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\permission_handler_android-12.1.0\\
+permission_handler_apple=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\permission_handler_apple-9.4.7\\
+permission_handler_html=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\permission_handler_html-0.1.3+5\\
+permission_handler_windows=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\permission_handler_windows-0.2.1\\
 share_plus=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\share_plus-7.2.2\\
 shared_preferences=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\shared_preferences-2.5.3\\
 shared_preferences_android=C:\\Users\\Tharindu\\AppData\\Local\\Pub\\Cache\\hosted\\pub.dev\\shared_preferences_android-2.4.9\\
