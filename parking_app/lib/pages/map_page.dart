@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:parking_app/models/parking_location.dart';
+import 'package:parking_app/services/dummy_data_service.dart';
 import 'package:parking_app/widgets/glassmorphic_bottom_nav_bar.dart';
+import 'package:parking_app/widgets/parking_info_card.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -13,36 +17,136 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   GoogleMapController? _mapController;
   final Location _location = Location();
-  LatLng _currentPosition = const LatLng(0, 0);
+  final Set<Marker> _markers = {};
+  final List<ParkingLocation> _parkingLocations = [];
+  ParkingLocation? _selectedParking;
+  LatLng _currentLocation = const LatLng(0, 0);
+  CameraPosition _initialCameraPosition = const CameraPosition(
+    target: LatLng(0, 0),
+    zoom: 15,
+  );
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _parkingLocations.addAll(DummyDataService.getDummyParkingLocations());
+    _initializeMap();
+  }
+
+  Future<void> _initializeMap() async {
+    await _getCurrentLocation();
   }
 
   Future<void> _getCurrentLocation() async {
     try {
-      LocationData locationData = await _location.getLocation();
-      if (locationData.latitude != null && locationData.longitude != null) {
-        setState(() {
-          _currentPosition = LatLng(
-            locationData.latitude!,
-            locationData.longitude!,
-          );
-          _isLoading = false;
-        });
+      final location = await _location.getLocation();
+      if (!mounted) return;
 
-        _mapController?.animateCamera(
-          CameraUpdate.newCameraPosition(
-            CameraPosition(target: _currentPosition, zoom: 15),
-          ),
+      setState(() {
+        _currentLocation = LatLng(location.latitude!, location.longitude!);
+        _initialCameraPosition = CameraPosition(
+          target: _currentLocation,
+          zoom: 15,
         );
-      }
+        _isLoading = false;
+      });
+      _updateMarkers();
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (kDebugMode) {
+        print('Error getting location: $e');
+      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  void _updateMarkers() {
+    if (!mounted) return;
+
+    final Set<Marker> newMarkers = {};
+
+    // Add current location marker
+    newMarkers.add(
+      Marker(
+        markerId: const MarkerId('current_location'),
+        position: _currentLocation,
+        infoWindow: const InfoWindow(title: 'Your Location'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+      ),
+    );
+
+    // Add parking location markers
+    for (var parking in _parkingLocations) {
+      newMarkers.add(
+        Marker(
+          markerId: MarkerId(parking.id),
+          position: LatLng(parking.latitude, parking.longitude),
+          infoWindow: InfoWindow(
+            title: parking.name,
+            snippet: '''
+${parking.address.street}, ${parking.address.city}
+Available Car Slots: ${parking.slotDetails.car.availableSlot}
+Price: Rs.${parking.slotDetails.car.perPrice30Min}/30min
+            ''',
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueGreen,
+          ),
+          onTap: () {
+            if (mounted) {
+              setState(() {
+                _selectedParking = parking;
+              });
+            }
+          },
+        ),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _markers.clear();
+        _markers.addAll(newMarkers);
+      });
+    }
+
+    // Update camera bounds to show all markers
+    if (_mapController != null && _markers.isNotEmpty) {
+      _updateCameraBounds();
+    }
+  }
+
+  void _updateCameraBounds() {
+    if (_markers.isEmpty) return;
+
+    double minLat = _markers.first.position.latitude;
+    double maxLat = _markers.first.position.latitude;
+    double minLng = _markers.first.position.longitude;
+    double maxLng = _markers.first.position.longitude;
+
+    for (var marker in _markers) {
+      if (marker.position.latitude < minLat) minLat = marker.position.latitude;
+      if (marker.position.latitude > maxLat) maxLat = marker.position.latitude;
+      if (marker.position.longitude < minLng) {
+        minLng = marker.position.longitude;
+      }
+      if (marker.position.longitude > maxLng) {
+        maxLng = marker.position.longitude;
+      }
+    }
+
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat, minLng),
+          northeast: LatLng(maxLat, maxLng),
+        ),
+        50,
+      ),
+    );
   }
 
   @override
@@ -53,23 +157,28 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Map
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: _currentPosition,
-                  zoom: 15,
-                ),
-                onMapCreated: (controller) => _mapController = controller,
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapType: MapType.normal,
-                mapToolbarEnabled: false,
-              ),
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator())
+          else
+            GoogleMap(
+              initialCameraPosition: _initialCameraPosition,
+              onMapCreated: (controller) {
+                _mapController = controller;
+                _updateCameraBounds();
+              },
+              myLocationEnabled: true,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              mapType: MapType.normal,
+              mapToolbarEnabled: false,
+              markers: _markers,
+              onTap: (_) {
+                if (_selectedParking != null) {
+                  setState(() => _selectedParking = null);
+                }
+              },
+            ),
 
-          // Custom App Bar
           Positioned(
             top: 0,
             left: 0,
@@ -86,8 +195,8 @@ class _MapPageState extends State<MapPage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    primaryColor.withAlpha(230),
-                    primaryColor.withAlpha(0),
+                    primaryColor.withValues(alpha: 230),
+                    primaryColor.withValues(alpha: 0),
                   ],
                 ),
               ),
@@ -95,7 +204,7 @@ class _MapPageState extends State<MapPage> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: backgroundColor.withAlpha(100),
+                      color: backgroundColor.withValues(alpha: 100),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
@@ -121,7 +230,6 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
-          // Map Controls
           Positioned(
             right: 16,
             bottom: 100,
@@ -149,81 +257,28 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
 
-          // Bottom Info Card
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(26),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withAlpha(26),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.local_parking,
-                      color: primaryColor,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Nearest Parking',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Tap to view parking details',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withAlpha(179),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.arrow_forward_ios, color: primaryColor),
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        '/nearest-parking',
-                      );
-                    },
-                  ),
-                ],
+          if (_selectedParking != null)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              child: ParkingInfoCard(
+                selectedParking: _selectedParking,
+                onClose: () => setState(() => _selectedParking = null),
+                onBookNow: (parking) {
+                  Navigator.pushNamed(
+                    context,
+                    '/booking-preview',
+                    arguments: parking,
+                  );
+                },
+                currentLocation: _currentLocation,
               ),
             ),
-          ),
         ],
       ),
       bottomNavigationBar: GlassmorphicBottomNavBar(
-        currentIndex: 1, // Search tab
+        currentIndex: 1,
         onTap: (index) {
           if (index != 1) {
             switch (index) {
@@ -234,7 +289,7 @@ class _MapPageState extends State<MapPage> {
                 Navigator.pushReplacementNamed(context, '/enter-parking');
                 break;
               case 3:
-                // Saved functionality
+                // Saved
                 break;
               case 4:
                 Navigator.pushReplacementNamed(context, '/profile');
@@ -287,7 +342,7 @@ class _MapPageState extends State<MapPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(26),
+            color: Colors.black.withValues(alpha: 26),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
