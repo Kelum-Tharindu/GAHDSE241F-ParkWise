@@ -8,10 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 class BookingService {
   // Updated URL with fallback options
   static const String baseUrl =
-      //     'http://192.168.8.145:5000/api/bookings'; // For Android emulator pointing to localhost
-      // Alternative URLs to try if the primary fails:
-      // 'http://192.168.8.145:5000/api/bookings'
-      'http://localhost:5000/api/bookings';
+      'http://192.168.8.145:5000/api/bookings'; // For Android emulator pointing to localhost
+  // Alternative URLs to try if the primary fails:
+  // 'http://192.168.8.145:5000/api/bookings'
+  // 'http://localhost:5000/api/bookings';
 
   // Method to fetch parking names from the backend
   static Future<List<String>> fetchParkingNames() async {
