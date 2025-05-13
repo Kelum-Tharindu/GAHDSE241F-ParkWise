@@ -37,7 +37,9 @@ class _LoginPageState extends State<LoginPage> {
         '=====Attempting to login with username: ${usernameController.text}',
       );
       final response = await http.post(
-        Uri.parse('http://localhost:5000/api/auth/login'),
+        // Uri.parse('http://localhost:5000/api/auth/login'),
+        Uri.parse('http://192.168.8.145:5000/api/auth/login'),
+
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': usernameController.text,

@@ -3,10 +3,7 @@ import 'package:flutter/foundation.dart';
 // import 'package:parking_app/pages/add_booking_page.dart';
 import 'package:parking_app/pages/booking_history_page.dart';
 import 'package:parking_app/pages/booking_page.dart';
-import 'package:parking_app/pages/generate_page.dart';
 import 'package:parking_app/pages/login_page.dart';
-import 'package:parking_app/pages/nearest_parking_page.dart';
-import 'package:parking_app/pages/ongoing_booking_page.dart';
 import 'package:parking_app/pages/read_page.dart';
 // import 'package:parking_app/pages/home_page.dart';
 import 'package:parking_app/pages/dashboard_screen.dart';
@@ -55,16 +52,16 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const MainWrapper(),
+      initialRoute: '/login',
       routes: {
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
         '/dashboard': (context) => const DashboardScreen(),
         '/profile': (context) => const ProfilePage(),
         '/bookingPage': (context) => const BookingPage(),
         '/booking-history': (context) => const BookingHistory(),
         '/ongoing': (context) => const Placeholder(),
         '/enter-parking': (context) => const ReadPage(),
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
         '/forgot_password': (context) => ForgotPasswordPage(),
         '/map': (context) => const MapPage(),
       },
@@ -78,54 +75,5 @@ class MyApp extends StatelessWidget {
         return null;
       },
     );
-  }
-}
-
-class MainWrapper extends StatefulWidget {
-  const MainWrapper({super.key});
-
-  @override
-  State<MainWrapper> createState() => _MainWrapperState();
-}
-
-class _MainWrapperState extends State<MainWrapper> with WidgetsBindingObserver {
-  final int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const ProfilePage(),
-    const ReadPage(),
-    const NearestParkingPage(),
-    const OngoingBookingPage(),
-    const GeneratePage(),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      // Clean up resources when app goes to background
-      _cleanupResources();
-    }
-  }
-
-  void _cleanupResources() {
-    // Add cleanup logic here
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: _screens[_currentIndex]);
   }
 }

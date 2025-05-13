@@ -21,7 +21,7 @@ const BookingSchema = new mongoose.Schema({
   exitTime: { type: Date },
   fee: { type: FeeSchema, required: true, default: () => ({ usageFee: 0, bookingFee: 0, totalFee: 0 }) },
   paymentStatus: { type: String, enum: ['pending', 'completed'], default: 'pending' },
-  bookingState: { type: String, enum: ['active', 'completed', 'cancelled'], default: 'active' },
+  bookingState: { type: String, enum: ['active', 'completed', 'cancelled', 'ongoing'], default: 'active' },
   exitedBookingTime: {
     type: ExitedBookingTimeSchema,
     default: null

@@ -50,7 +50,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:5000/api/auth/register'),
+        // Uri.parse('http://localhost:5000/api/auth/register'),
+        Uri.parse('http://192.168.8.145:5000/api/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': usernameController.text,
