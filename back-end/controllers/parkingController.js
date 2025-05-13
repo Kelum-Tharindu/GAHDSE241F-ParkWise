@@ -50,14 +50,52 @@ const addParking = async (req, res) => {
     }
 };
 
-
-
 // Get All Parking Details
 const getAllParking = async (req, res) => {
+    console.log("=== Request received for getAllParking ===");
     try {
+        // Validate request
+        if (!req.headers['content-type']?.includes('application/json')) {
+            console.log("=== Invalid content type in request ===");
+            return res.status(400).json({ message: "Invalid content type. Expected application/json" });
+        }
+
+        console.log("=== Fetching parking data from database ===");
         const parkingList = await Parking.find();
-        res.status(200).json(parkingList);
+        
+        if (!parkingList || parkingList.length === 0) {
+            console.log("=== No parking data found in database ===");
+            return res.status(404).json({ message: "No parking locations found" });
+        }
+
+        console.log("=== Raw parking data from database ===");
+        console.log(JSON.stringify(parkingList, null, 2));
+
+        console.log("=== Transforming parking data ===");
+        const transformedParkingList = parkingList.map(parking => {
+            // Validate required fields
+            if (!parking._id || !parking.name || !parking.location) {
+                console.log(`=== Invalid parking data found for ID: ${parking._id} ===`);
+                return null;
+            }
+
+            return {
+                id: parking._id,
+                name: parking.name,
+                latitude: parking.location.latitude,
+                longitude: parking.location.longitude,
+                address: parking.location.address,
+                slotDetails: parking.slotDetails
+            };
+        }).filter(parking => parking !== null); // Remove any invalid entries
+
+        console.log("=== Transformed parking data ===");
+        console.log(JSON.stringify(transformedParkingList, null, 2));
+
+        console.log(`=== Successfully transformed ${transformedParkingList.length} parking locations ===`);
+        res.status(200).json(transformedParkingList);
     } catch (error) {
+        console.log("=== Error in getAllParking:", error.message, "===");
         res.status(500).json({ message: "Error retrieving parking list.", error: error.message });
     }
 };
