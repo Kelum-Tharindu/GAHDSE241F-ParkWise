@@ -195,8 +195,8 @@ Price: Rs.${parking.slotDetails.car.perPrice30Min}/30min
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    primaryColor.withValues(alpha: 230),
-                    primaryColor.withValues(alpha: 0),
+                    const Color(0xFF013220).withAlpha(200),
+                    const Color(0xFF013220).withAlpha(160),
                   ],
                 ),
               ),
@@ -204,7 +204,7 @@ Price: Rs.${parking.slotDetails.car.perPrice30Min}/30min
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: backgroundColor.withValues(alpha: 100),
+                      color: Colors.white.withAlpha(50),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
@@ -217,10 +217,10 @@ Price: Rs.${parking.slotDetails.car.perPrice30Min}/30min
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
+                  const Text(
                     'Parking Map',
                     style: TextStyle(
-                      color: backgroundColor,
+                      color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -266,11 +266,7 @@ Price: Rs.${parking.slotDetails.car.perPrice30Min}/30min
                 selectedParking: _selectedParking,
                 onClose: () => setState(() => _selectedParking = null),
                 onBookNow: (parking) {
-                  Navigator.pushNamed(
-                    context,
-                    '/booking-preview',
-                    arguments: parking,
-                  );
+                  Navigator.pushNamed(context, '/bookingPage');
                 },
                 currentLocation: _currentLocation,
               ),
@@ -333,20 +329,11 @@ Price: Rs.${parking.slotDetails.car.perPrice30Min}/30min
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final backgroundColor = Theme.of(context).colorScheme.surface;
-
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: const Color(0xFF013220).withAlpha(200),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 26),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        border: Border.all(color: Colors.white.withAlpha(50), width: 1),
       ),
       child: Material(
         color: Colors.transparent,
@@ -355,7 +342,7 @@ Price: Rs.${parking.slotDetails.car.perPrice30Min}/30min
           onTap: onPressed,
           child: Container(
             padding: const EdgeInsets.all(12),
-            child: Icon(icon, color: primaryColor),
+            child: Icon(icon, color: Colors.white),
           ),
         ),
       ),
