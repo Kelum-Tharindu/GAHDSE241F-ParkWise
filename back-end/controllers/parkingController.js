@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Parking = require("../models/parkingModel");
+const Parking = require("../models/parkingmodel");
 const { generateQRCode123 } = require("../utils/qrGenertor");
 
 const addParking = async (req, res) => {
@@ -52,50 +52,43 @@ const addParking = async (req, res) => {
 
 // Get All Parking Details
 const getAllParking = async (req, res) => {
-    console.log("=== Request received for getAllParking ===");
     try {
-        // Validate request
-        if (!req.headers['content-type']?.includes('application/json')) {
-            console.log("=== Invalid content type in request ===");
-            return res.status(400).json({ message: "Invalid content type. Expected application/json" });
-        }
-
-        console.log("=== Fetching parking data from database ===");
         const parkingList = await Parking.find();
         
         if (!parkingList || parkingList.length === 0) {
-            console.log("=== No parking data found in database ===");
             return res.status(404).json({ message: "No parking locations found" });
         }
 
-        console.log("=== Raw parking data from database ===");
-        console.log(JSON.stringify(parkingList, null, 2));
-
-        console.log("=== Transforming parking data ===");
-        const transformedParkingList = parkingList.map(parking => {
-            // Validate required fields
-            if (!parking._id || !parking.name || !parking.location) {
-                console.log(`=== Invalid parking data found for ID: ${parking._id} ===`);
-                return null;
+        const transformedParkingList = parkingList.map(parking => ({
+            id: parking._id.toString(),
+            name: parking.name,
+            latitude: parking.location.latitude,
+            longitude: parking.location.longitude,
+            address: {
+                street: parking.location.address.street,
+                city: parking.location.address.city
+            },
+            slotDetails: {
+                car: {
+                    availableSlot: parking.slotDetails.car.availableSlot,
+                    perPrice30Min: parking.slotDetails.car.perPrice30Min,
+                    perDayPrice: parking.slotDetails.car.perDayPrice
+                },
+                bicycle: {
+                    availableSlot: parking.slotDetails.bicycle.availableSlot,
+                    perPrice30Min: parking.slotDetails.bicycle.perPrice30Min,
+                    perDayPrice: parking.slotDetails.bicycle.perDayPrice
+                },
+                truck: {
+                    availableSlot: parking.slotDetails.truck.availableSlot,
+                    perPrice30Min: parking.slotDetails.truck.perPrice30Min,
+                    perDayPrice: parking.slotDetails.truck.perDayPrice
+                }
             }
+        }));
 
-            return {
-                id: parking._id,
-                name: parking.name,
-                latitude: parking.location.latitude,
-                longitude: parking.location.longitude,
-                address: parking.location.address,
-                slotDetails: parking.slotDetails
-            };
-        }).filter(parking => parking !== null); // Remove any invalid entries
-
-        console.log("=== Transformed parking data ===");
-        console.log(JSON.stringify(transformedParkingList, null, 2));
-
-        console.log(`=== Successfully transformed ${transformedParkingList.length} parking locations ===`);
         res.status(200).json(transformedParkingList);
     } catch (error) {
-        console.log("=== Error in getAllParking:", error.message, "===");
         res.status(500).json({ message: "Error retrieving parking list.", error: error.message });
     }
 };

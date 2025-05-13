@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:parking_app/models/parking_location.dart';
-import 'package:parking_app/services/dummy_data_service.dart';
+import 'package:parking_app/services/parking_service.dart';
 import 'package:parking_app/widgets/glassmorphic_bottom_nav_bar.dart';
 import 'package:parking_app/widgets/parking_info_card.dart';
 
@@ -19,6 +19,7 @@ class _MapPageState extends State<MapPage> {
   final Location _location = Location();
   final Set<Marker> _markers = {};
   final List<ParkingLocation> _parkingLocations = [];
+  final ParkingService _parkingService = ParkingService();
   ParkingLocation? _selectedParking;
   LatLng _currentLocation = const LatLng(0, 0);
   CameraPosition _initialCameraPosition = const CameraPosition(
@@ -30,12 +31,30 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
-    _parkingLocations.addAll(DummyDataService.getDummyParkingLocations());
     _initializeMap();
   }
 
   Future<void> _initializeMap() async {
-    await _getCurrentLocation();
+    await Future.wait([_getCurrentLocation(), _loadParkingLocations()]);
+  }
+
+  Future<void> _loadParkingLocations() async {
+    try {
+      final locations = await _parkingService.getAllParkingLocations();
+      if (!mounted) return;
+
+      setState(() {
+        _parkingLocations.clear();
+        _parkingLocations.addAll(
+          locations.map((data) => ParkingLocation.fromJson(data)).toList(),
+        );
+        _updateMarkers();
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading parking locations: $e');
+      }
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -152,7 +171,6 @@ Price: Rs.${parking.slotDetails.car.perPrice30Min}/30min
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).colorScheme.primary;
-    final backgroundColor = Theme.of(context).colorScheme.surface;
 
     return Scaffold(
       body: Stack(
