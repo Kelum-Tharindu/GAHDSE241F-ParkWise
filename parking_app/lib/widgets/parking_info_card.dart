@@ -221,63 +221,81 @@ class ParkingInfoCard extends StatelessWidget {
     required IconData icon,
     required VehicleSlots slots,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(
-            context,
-          ).colorScheme.outline.withValues(alpha: 0.2 * 255),
+    // Determine vehicle type from title
+    String vehicleType =
+        title.toLowerCase().contains('car')
+            ? 'car'
+            : title.toLowerCase().contains('bicycle')
+            ? 'bicycle'
+            : 'truck';
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          '/bookingPage',
+          arguments: {
+            'parkingName': selectedParking!.name,
+            'vehicleType': vehicleType,
+          },
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withAlpha(51),
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildInfoItem(
-                context,
-                icon: Icons.event_seat,
-                label: 'Available',
-                value: '${slots.availableSlot}',
-              ),
-              _buildInfoItem(
-                context,
-                icon: Icons.attach_money,
-                label: '30 min',
-                value: 'Rs. ${slots.perPrice30Min}',
-              ),
-              _buildInfoItem(
-                context,
-                icon: Icons.calendar_today,
-                label: 'Daily',
-                value: 'Rs. ${slots.perDayPrice}',
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildInfoItem(
+                  context,
+                  icon: Icons.event_seat,
+                  label: 'Available',
+                  value: '${slots.availableSlot}',
+                ),
+                _buildInfoItem(
+                  context,
+                  icon: Icons.attach_money,
+                  label: '30 min',
+                  value: 'Rs. ${slots.perPrice30Min}',
+                ),
+                _buildInfoItem(
+                  context,
+                  icon: Icons.calendar_today,
+                  label: 'Daily',
+                  value: 'Rs. ${slots.perDayPrice}',
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -48,7 +48,8 @@ class _BookingPageState extends State<BookingPage> {
   @override
   void initState() {
     super.initState();
-    _fetchParkingNames(); // Fetch parking names on initialization
+    _fetchParkingNames();
+    _initializeFromArguments();
 
     // Adding listeners to log updates to input fields
     parkingNameController.addListener(() {
@@ -65,6 +66,23 @@ class _BookingPageState extends State<BookingPage> {
     exitTimeController.addListener(() {
       exitTime = DateFormat('yyyy-MM-dd HH:mm').parse(exitTimeController.text);
       debugPrint('======Exit Time updated: $exitTime');
+    });
+  }
+
+  void _initializeFromArguments() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        setState(() {
+          if (args['parkingName'] != null) {
+            parkingNameController.text = args['parkingName'];
+          }
+          if (args['vehicleType'] != null) {
+            vehicleType = args['vehicleType'];
+          }
+        });
+      }
     });
   }
 
