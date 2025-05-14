@@ -61,7 +61,7 @@ class StatusCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Active Parking',
+                      'Ongoing Booking',
                       style: TextStyle(
                         color: Colors.white.withAlpha(180),
                         fontSize: 14,

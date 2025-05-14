@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -49,8 +50,24 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        if (kDebugMode) {
+          print('=====Login Response: $data');
+        }
         final prefs = await SharedPreferences.getInstance();
+
+        // Store all user data
         await prefs.setString('token', data['token']);
+        await prefs.setString('role', data['role'] ?? '');
+        await prefs.setString('userId', data['userId']?.toString() ?? '');
+        await prefs.setString('userName', data['username'] ?? '');
+
+        if (kDebugMode) {
+          print('=====Stored User Data:');
+          print('=====Token: ${data['token']}');
+          print('=====Role: ${data['role']}');
+          print('=====User ID: ${data['userId']}');
+          print('=====Username: ${data['username']}');
+        }
 
         // Save username if remember me is checked
         if (rememberMe) {
