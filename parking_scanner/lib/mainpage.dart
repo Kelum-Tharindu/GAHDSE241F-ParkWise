@@ -51,7 +51,7 @@ class _MainpageState extends State<Mainpage> with SingleTickerProviderStateMixin
       body: TabBarView(
         controller: _tabController,
         children: [
-          const qrcreatepage(),
+          const QrCreatePage(),
           Stack(
             children: [
               if (!_hasScanned)

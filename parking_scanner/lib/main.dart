@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       home: const Mainpage(),
       debugShowCheckedModeBanner: false,
