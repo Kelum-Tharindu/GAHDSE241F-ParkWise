@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:parking_scanner/mainutils.dart'; // If needed
 import 'package:parking_scanner/qr_utils.dart';
-import 'package:parking_scanner/url_utils.dart';
+
 
 class QrCreatePage extends StatefulWidget {
   const QrCreatePage({super.key});
