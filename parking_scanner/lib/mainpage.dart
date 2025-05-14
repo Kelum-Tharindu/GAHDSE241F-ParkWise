@@ -4,40 +4,54 @@ import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:parking_scanner/qr_createpage.dart';
 import 'package:parking_scanner/qr_utils.dart';
+import 'package:parking_scanner/result_screen.dart';
 
 
 
-class Mainpage extends StatelessWidget {
+class Mainpage extends StatefulWidget {
   const Mainpage({super.key});
 
   @override
+  State<Mainpage> createState() => _MainpageState();
+}
+
+class _MainpageState extends State<Mainpage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  late MobileScannerController _scannerController;
+  bool _hasScanned = false;
+  String _scannedCode = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this); // See next fix
+    _scannerController = MobileScannerController();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _scannerController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       appBar: AppBar(
-        title: Text('Parking Scanner'),
-      )
-      
-     bottom: TabBar(
+        title: const Text('Parking Scanner'),
+        bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(
-              icon: Icon(Icons.qr_code),
-              text: 'Generate',
-            ),
-            Tab(
-              icon: Icon(Icons.qr_code_scanner),
-              text: 'Scan',
-            ),
+            Tab(icon: Icon(Icons.qr_code), text: 'Generate'),
+            Tab(icon: Icon(Icons.qr_code_scanner), text: 'Scan'),
           ],
         ),
-      
+      ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Generate Tab
-          const GeneratorTab(),
-          
-          // Scan Tab
+          const qrcreatepage(),
           Stack(
             children: [
               if (!_hasScanned)
@@ -54,7 +68,7 @@ class Mainpage extends StatelessWidget {
                   },
                 ),
               if (_hasScanned)
-                ScanResultScreen(
+                ResultScreen(
                   scannedCode: _scannedCode,
                   onCopy: () => ClipboardUtils.copyToClipboard(context, _scannedCode),
                   onScanAgain: () {
@@ -71,5 +85,8 @@ class Mainpage extends StatelessWidget {
     );
   }
 }
+
+  
+
 
 

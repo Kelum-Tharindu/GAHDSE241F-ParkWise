@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:parking_scanner/mainpage.dart';
+import 'package:parking_scanner/qr_createpage.dart';
+import 'package:parking_scanner/qr_utils.dart';
+import 'package:parking_scanner/url_utils.dart';
+
 
 void main() {
   runApp(const MyApp());
