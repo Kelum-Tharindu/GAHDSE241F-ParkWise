@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // Define interfaces for the data types
 export interface UserProfile {
-  id: number;
+  _id: string;  // Changed from id: number to match backend
+  username: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -29,7 +30,26 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile> => 
     console.log('Fetching user profile for ID:', userId);
     const response = await axios.get(`${API_BASE_URL}/users/${userId}/profile`);
     console.log('User profile data received:', response.data);
-    return response.data;
+    
+    // Transform the data to ensure all required fields are present
+    const userData = {
+      ...response.data,
+      socialLinks: response.data.socialLinks || {
+        facebook: '',
+        twitter: '',
+        linkedin: '',
+        instagram: ''
+      },
+      firstName: response.data.firstName || '',
+      lastName: response.data.lastName || '',
+      phone: response.data.phone || '',
+      country: response.data.country || '',
+      city: response.data.city || '',
+      postalCode: response.data.postalCode || '',
+      taxId: response.data.taxId || ''
+    };
+    
+    return userData;
   } catch (error) {
     console.error('Error fetching user profile:', error);
     throw error;

@@ -10,7 +10,7 @@ import { fetchUserProfile } from "../services/userProfileService";
 import type { UserProfile } from "../services/userProfileService";
 
 // Temporary user ID - replace with actual user ID from authentication
-const TEMP_USER_ID = '68024e53364dd39684b86473';
+const TEMP_USER_ID = '682aca093ebd378083ca5685';
 
 export default function UserProfiles() {
   const [userData, setUserData] = useState<UserProfile | null>(null);
