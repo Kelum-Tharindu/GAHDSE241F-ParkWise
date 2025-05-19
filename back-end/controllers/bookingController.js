@@ -1,5 +1,5 @@
 const Booking = require('../models/bookingmodel');
-const Parking = require('../models/parkingModel');
+const Parking = require('../models/parkingmodel');
 const crypto = require('crypto');
 const { generateQR } = require("../utils/qrGenertor");
 

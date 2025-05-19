@@ -11,6 +11,7 @@ const parkingRoutes = require('./routes/parkingRoutes');
 const billingRoutes = require("./routes/billingRoutes");
 const qrRoutes = require('./routes/qrRoutes');
 const bookingRoutes = require('./routes/bookingRoute');
+const userProfileRoutes = require('./routes/userProfileRoutes');
 const cors = require('cors');
 const os = require('os');
 
@@ -108,6 +109,7 @@ app.use('/parking', parkingRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/users', userProfileRoutes);
 
 // -------------------- ERROR HANDLERS --------------------
 

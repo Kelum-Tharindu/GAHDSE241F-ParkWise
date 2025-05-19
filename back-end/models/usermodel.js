@@ -10,6 +10,14 @@ const UserSchema = new mongoose.Schema({
     minlength: [3, 'Username must be at least 3 characters'],
     maxlength: [30, 'Username cannot exceed 30 characters']
   },
+  firstName: {
+    type: String,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    trim: true
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -21,6 +29,10 @@ const UserSchema = new mongoose.Schema({
       'Please enter a valid email'
     ]
   },
+  phone: {
+    type: String,
+    trim: true
+  },
   password: {
     type: String,
     minlength: [6, 'Password must be at least 6 characters']
@@ -30,6 +42,28 @@ const UserSchema = new mongoose.Schema({
     enum: ['user', 'landowner', 'admin'],
     default: 'user',
     required: true
+  },
+  country: {
+    type: String,
+    trim: true
+  },
+  city: {
+    type: String,
+    trim: true
+  },
+  postalCode: {
+    type: String,
+    trim: true
+  },
+  taxId: {
+    type: String,
+    trim: true
+  },
+  socialLinks: {
+    facebook: String,
+    twitter: String,
+    linkedin: String,
+    instagram: String
   },
   is2FAEnabled: {
     type: Boolean,
