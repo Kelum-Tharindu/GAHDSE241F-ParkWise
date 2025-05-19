@@ -3,8 +3,13 @@ import { Modal } from "../uiMy/modal";
 import Button from "../uiMy/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { UserProfile } from "../../services/userProfileService";
 
-export default function UserAddressCard() {
+interface UserAddressCardProps {
+  userData: UserProfile;
+}
+
+export default function UserAddressCard({ userData }: UserAddressCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
   const handleSave = () => {
     // Handle save logic here
@@ -20,13 +25,13 @@ export default function UserAddressCard() {
               Address
             </h4>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
+            <div className="space-y-4">
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                   Country
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Sri Lanka
+                  {userData.country}
                 </p>
               </div>
 
@@ -35,7 +40,7 @@ export default function UserAddressCard() {
                   City/State
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Galle
+                  {userData.city}
                 </p>
               </div>
 
@@ -44,7 +49,7 @@ export default function UserAddressCard() {
                   Postal Code
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  80120
+                  {userData.postalCode}
                 </p>
               </div>
 
@@ -53,7 +58,7 @@ export default function UserAddressCard() {
                   TAX ID
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  `AS4568384`
+                  {userData.taxId}
                 </p>
               </div>
             </div>
@@ -97,22 +102,22 @@ export default function UserAddressCard() {
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
                   <Label>Country</Label>
-                  <Input type="text" value="United States" />
+                  <Input type="text" value={userData.country} />
                 </div>
 
                 <div>
                   <Label>City/State</Label>
-                  <Input type="text" value="Arizona, United States." />
+                  <Input type="text" value={userData.city} />
                 </div>
 
                 <div>
                   <Label>Postal Code</Label>
-                  <Input type="text" value="ERT 2489" />
+                  <Input type="text" value={userData.postalCode} />
                 </div>
 
                 <div>
                   <Label>TAX ID</Label>
-                  <Input type="text" value="AS4568384" />
+                  <Input type="text" value={userData.taxId} />
                 </div>
               </div>
             </div>

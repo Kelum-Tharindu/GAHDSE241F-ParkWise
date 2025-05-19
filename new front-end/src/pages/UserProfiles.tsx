@@ -1,10 +1,64 @@
+import { useEffect, useState } from "react";
 import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import UserAddressCard from "../components/UserProfile/UserAddressCard";
 import PageMeta from "../components/common/PageMeta";
+import { fetchUserProfile } from "../services/userProfileService";
+
+// Import the UserProfile type from the service
+import type { UserProfile } from "../services/userProfileService";
+
+// Temporary user ID - replace with actual user ID from authentication
+const TEMP_USER_ID = '68024e53364dd39684b86473';
 
 export default function UserProfiles() {
+  const [userData, setUserData] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        console.log('Loading user profile...');
+        const data = await fetchUserProfile(TEMP_USER_ID);
+        console.log('User profile loaded:', data);
+        setUserData(data);
+      } catch (err) {
+        console.error('Error loading user profile:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading profile data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
+
+  if (!userData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-500">No user data available</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <PageMeta
@@ -17,9 +71,9 @@ export default function UserProfiles() {
           Profile
         </h3>
         <div className="space-y-6">
-          <UserMetaCard />
-          <UserInfoCard />
-          <UserAddressCard />
+          <UserMetaCard userData={userData} />
+          <UserInfoCard userData={userData} />
+          <UserAddressCard userData={userData} />
         </div>
       </div>
     </>
