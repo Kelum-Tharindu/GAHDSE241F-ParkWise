@@ -49,13 +49,6 @@ export default function UserMetaCard({ userData, onUpdate }: UserMetaCardProps) 
   const handleSave = async () => {
     try {
       // Update personal information
-      const updatedProfile = await updateUserProfile(userData._id, {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        role: formData.role
-      });
 
       // Update social links
       const updatedWithSocial = await updateUserSocialLinks(userData._id, formData.socialLinks);
