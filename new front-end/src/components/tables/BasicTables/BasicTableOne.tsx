@@ -36,6 +36,7 @@ interface Booking {
 }
 
 interface Summary {
+  month: string;
   totalBookings: number;
   activeBookings: number;
   completedBookings: number;
@@ -78,18 +79,37 @@ export default function BookingListTable() {
   return (
     <div className="space-y-4">
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
-            <h3 className="text-lg font-semibold mb-2">Total Bookings</h3>
-            <p className="text-2xl">{summary.totalBookings}</p>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Summary for {summary.month}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
+              <h3 className="text-lg font-semibold mb-2">Total Bookings</h3>
+              <p className="text-2xl">{summary.totalBookings}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
+              <h3 className="text-lg font-semibold mb-2">Total Revenue</h3>
+              <p className="text-2xl">${summary.totalRevenue}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
+              <h3 className="text-lg font-semibold mb-2">Active Bookings</h3>
+              <p className="text-2xl">{summary.activeBookings}</p>
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
-            <h3 className="text-lg font-semibold mb-2">Total Revenue</h3>
-            <p className="text-2xl">${summary.totalRevenue}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
-            <h3 className="text-lg font-semibold mb-2">Active Bookings</h3>
-            <p className="text-2xl">{summary.activeBookings}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
+              <h3 className="text-lg font-semibold mb-2">Completed</h3>
+              <p className="text-2xl">{summary.completedBookings}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
+              <h3 className="text-lg font-semibold mb-2">Ongoing</h3>
+              <p className="text-2xl">{summary.ongoingBookings}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow dark:bg-white/[0.03]">
+              <h3 className="text-lg font-semibold mb-2">Cancelled</h3>
+              <p className="text-2xl">{summary.cancelledBookings}</p>
+            </div>
           </div>
         </div>
       )}

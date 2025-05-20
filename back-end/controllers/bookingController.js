@@ -211,6 +211,19 @@ const getAllBookings = async (req, res) => {
       return res.status(404).json({ message: 'No bookings found' });
     }
 
+    // Get current month's start and end dates
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
+    // Filter bookings for current month
+    const currentMonthBookings = bookings.filter(booking => {
+      const bookingDate = new Date(booking.bookingDate);
+      return bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth;
+    });
+
     // Transform data to match front-end structure
     const formattedBookings = bookings.map(booking => {
       // Get color based on booking status
@@ -274,16 +287,18 @@ const getAllBookings = async (req, res) => {
       };
     });
 
-    // Calculate summary statistics
+    // Calculate summary statistics for current month only
+    const monthName = new Date().toLocaleString('default', { month: 'long' });
     const summary = {
-      totalBookings: formattedBookings.length,
-      activeBookings: formattedBookings.filter(b => b.status === 'Active').length,
-      completedBookings: formattedBookings.filter(b => b.status === 'Completed').length,
-      cancelledBookings: formattedBookings.filter(b => b.status === 'Cancelled').length,
-      ongoingBookings: formattedBookings.filter(b => b.status === 'Ongoing').length,
-      totalRevenue: formattedBookings.reduce((sum, booking) => {
-        return sum + (parseFloat(booking.cost.replace('$', '')) || 0);
-      }, 0).toFixed(2)
+      month: `${monthName} ${currentYear}`,
+      totalBookings: currentMonthBookings.length,
+      activeBookings: currentMonthBookings.filter(b => b.bookingState === 'active').length,
+      completedBookings: currentMonthBookings.filter(b => b.bookingState === 'completed').length,
+      cancelledBookings: currentMonthBookings.filter(b => b.bookingState === 'cancelled').length,
+      ongoingBookings: currentMonthBookings.filter(b => b.bookingState === 'ongoing').length,
+      totalRevenue: (currentMonthBookings.reduce((sum, booking) => {
+        return sum + (booking.fee?.totalFee || 0);
+      }, 0) / 100).toFixed(2)
     };
 
     res.status(200).json({
