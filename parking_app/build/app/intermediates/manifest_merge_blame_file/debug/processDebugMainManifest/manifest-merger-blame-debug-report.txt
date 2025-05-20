@@ -1,0 +1,377 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.parking_app"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="35" />
+10    <!--
+11         The INTERNET permission is required for development. Specifically,
+12         the Flutter tool needs it to communicate with the running application
+13         to allow setting breakpoints, to provide hot reload, etc.
+14    -->
+15    <uses-permission android:name="android.permission.INTERNET" />
+15-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:8:5-67
+15-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:8:22-64
+16    <!-- Permissions -->
+17    <uses-permission android:name="android.permission.CAMERA" />
+17-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:4:5-65
+17-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:4:22-62
+18    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+18-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:5:5-79
+18-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:5:22-76
+19    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+19-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:6:5-81
+19-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:6:22-78
+20    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- Text processing intent (required by Flutter engine) -->
+20-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:7:5-85
+20-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:7:22-82
+21    <queries>
+21-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:47:5-61:15
+22        <intent>
+22-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:48:9-51:18
+23            <action android:name="android.intent.action.PROCESS_TEXT" />
+23-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:49:13-73
+23-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:49:21-70
+24
+25            <data android:mimeType="text/plain" />
+25-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:50:13-51
+25-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:50:19-48
+26        </intent>
+27        <!-- URL Launcher -->
+28        <intent>
+28-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:53:9-56:18
+29            <action android:name="android.intent.action.VIEW" />
+29-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:54:13-65
+29-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:54:21-62
+30
+31            <data android:scheme="https" />
+31-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:50:13-51
+32        </intent>
+33        <intent>
+33-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:57:9-60:18
+34            <action android:name="android.intent.action.VIEW" />
+34-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:54:13-65
+34-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:54:21-62
+35
+36            <data android:scheme="http" />
+36-->C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\android\app\src\main\AndroidManifest.xml:50:13-51
+37        </intent>
+38        <!-- Needs to be explicitly declared on Android R+ -->
+39        <package android:name="com.google.android.apps.maps" />
+39-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:33:9-64
+39-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:33:18-61
+40    </queries>
+41
+42    <uses-feature
+42-->[:mobile_scanner] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\mobile_scanner\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:9:5-11:36
+43        android:name="android.hardware.camera"
+43-->[:mobile_scanner] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\mobile_scanner\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:10:9-47
+44        android:required="false" /> <!-- Include required permissions for Google Maps API to run. -->
+44-->[:mobile_scanner] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\mobile_scanner\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:11:9-33
+45    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+45-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:23:5-79
+45-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:23:22-76
+46
+47    <uses-feature
+47-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:26:5-28:35
+48        android:glEsVersion="0x00020000"
+48-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:27:9-41
+49        android:required="true" />
+49-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:28:9-32
+50
+51    <permission
+51-->[androidx.core:core:1.13.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\8cf478dec41eed746328fa8046755ba2\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
+52        android:name="com.example.parking_app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+52-->[androidx.core:core:1.13.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\8cf478dec41eed746328fa8046755ba2\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
+53        android:protectionLevel="signature" />
+53-->[androidx.core:core:1.13.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\8cf478dec41eed746328fa8046755ba2\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
+54
+55    <uses-permission android:name="com.example.parking_app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+55-->[androidx.core:core:1.13.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\8cf478dec41eed746328fa8046755ba2\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
+55-->[androidx.core:core:1.13.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\8cf478dec41eed746328fa8046755ba2\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
+56
+57    <application
+58        android:name="android.app.Application"
+59        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+59-->[androidx.core:core:1.13.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\8cf478dec41eed746328fa8046755ba2\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
+60        android:debuggable="true"
+61        android:extractNativeLibs="true"
+62        android:icon="@mipmap/ic_launcher"
+63        android:label="parking_app" >
+64
+65        <!-- ✅ Maps API Key (correct location) -->
+66        <meta-data
+67            android:name="com.google.android.geo.API_KEY"
+68            android:value="AIzaSyAGuUoCFZ3EA2tFIGVrLTQ-hf99CFrjFZw" />
+69
+70        <activity
+71            android:name="com.example.parking_app.MainActivity"
+72            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+73            android:exported="true"
+74            android:hardwareAccelerated="true"
+75            android:launchMode="singleTop"
+76            android:taskAffinity=""
+77            android:theme="@style/LaunchTheme"
+78            android:windowSoftInputMode="adjustResize" >
+79            <meta-data
+80                android:name="io.flutter.embedding.android.NormalTheme"
+81                android:resource="@style/NormalTheme" />
+82
+83            <intent-filter>
+84                <action android:name="android.intent.action.MAIN" />
+85
+86                <category android:name="android.intent.category.LAUNCHER" />
+87            </intent-filter>
+88        </activity>
+89
+90        <!-- Flutter plugin metadata -->
+91        <meta-data
+92            android:name="flutterEmbedding"
+93            android:value="2" />
+94
+95        <service
+95-->[:location] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\location\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:11:9-15:56
+96            android:name="com.lyokone.location.FlutterLocationService"
+96-->[:location] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\location\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:12:13-71
+97            android:enabled="true"
+97-->[:location] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\location\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:13:13-35
+98            android:exported="false"
+98-->[:location] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\location\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:14:13-37
+99            android:foregroundServiceType="location" />
+99-->[:location] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\location\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:15:13-53
+100        <!--
+101           Declares a provider which allows us to store files to share in
+102           '.../caches/share_plus' and grant the receiving action access
+103        -->
+104        <provider
+104-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:13:9-21:20
+105            android:name="dev.fluttercommunity.plus.share.ShareFileProvider"
+105-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:14:13-77
+106            android:authorities="com.example.parking_app.flutter.share_provider"
+106-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:15:13-74
+107            android:exported="false"
+107-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:16:13-37
+108            android:grantUriPermissions="true" >
+108-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:17:13-47
+109            <meta-data
+109-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:18:13-20:68
+110                android:name="android.support.FILE_PROVIDER_PATHS"
+110-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:19:17-67
+111                android:resource="@xml/flutter_share_file_paths" />
+111-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:20:17-65
+112        </provider>
+113        <!--
+114           This manifest declared broadcast receiver allows us to use an explicit
+115           Intent when creating a PendingItent to be informed of the user's choice
+116        -->
+117        <receiver
+117-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:26:9-32:20
+118            android:name="dev.fluttercommunity.plus.share.SharePlusPendingIntent"
+118-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:27:13-82
+119            android:exported="false" >
+119-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:28:13-37
+120            <intent-filter>
+120-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:29:13-31:29
+121                <action android:name="EXTRA_CHOSEN_COMPONENT" />
+121-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:30:17-65
+121-->[:share_plus] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\share_plus\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:30:25-62
+122            </intent-filter>
+123        </receiver>
+124
+125        <activity
+125-->[:url_launcher_android] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\url_launcher_android\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:8:9-11:74
+126            android:name="io.flutter.plugins.urllauncher.WebViewActivity"
+126-->[:url_launcher_android] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\url_launcher_android\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:9:13-74
+127            android:exported="false"
+127-->[:url_launcher_android] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\url_launcher_android\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:10:13-37
+128            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+128-->[:url_launcher_android] C:\Users\Tharindu\Desktop\nw\GAHDSE241F-ParkWise\parking_app\build\url_launcher_android\intermediates\merged_manifest\debug\processDebugManifest\AndroidManifest.xml:11:13-71
+129        <!--
+130        Service for holding metadata. Cannot be instantiated.
+131        Metadata will be merged from other manifests.
+132        -->
+133        <service
+133-->[androidx.camera:camera-core:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\15ffd9a7ca617c85cc12267461976e4a\transformed\jetified-camera-core-1.3.1\AndroidManifest.xml:29:9-33:78
+134            android:name="androidx.camera.core.impl.MetadataHolderService"
+134-->[androidx.camera:camera-core:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\15ffd9a7ca617c85cc12267461976e4a\transformed\jetified-camera-core-1.3.1\AndroidManifest.xml:30:13-75
+135            android:enabled="false"
+135-->[androidx.camera:camera-core:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\15ffd9a7ca617c85cc12267461976e4a\transformed\jetified-camera-core-1.3.1\AndroidManifest.xml:31:13-36
+136            android:exported="false" >
+136-->[androidx.camera:camera-core:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\15ffd9a7ca617c85cc12267461976e4a\transformed\jetified-camera-core-1.3.1\AndroidManifest.xml:32:13-37
+137            <meta-data
+137-->[androidx.camera:camera-camera2:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c091dce789e802e9021e6fe2a76e431a\transformed\jetified-camera-camera2-1.3.1\AndroidManifest.xml:30:13-32:89
+138                android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER"
+138-->[androidx.camera:camera-camera2:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c091dce789e802e9021e6fe2a76e431a\transformed\jetified-camera-camera2-1.3.1\AndroidManifest.xml:31:17-103
+139                android:value="androidx.camera.camera2.Camera2Config$DefaultProvider" />
+139-->[androidx.camera:camera-camera2:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c091dce789e802e9021e6fe2a76e431a\transformed\jetified-camera-camera2-1.3.1\AndroidManifest.xml:32:17-86
+140        </service>
+141
+142        <uses-library
+142-->[androidx.window:window:1.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5093ab42d2307deb2d7ac0b7f5718c38\transformed\jetified-window-1.2.0\AndroidManifest.xml:23:9-25:40
+143            android:name="androidx.window.extensions"
+143-->[androidx.window:window:1.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5093ab42d2307deb2d7ac0b7f5718c38\transformed\jetified-window-1.2.0\AndroidManifest.xml:24:13-54
+144            android:required="false" />
+144-->[androidx.window:window:1.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5093ab42d2307deb2d7ac0b7f5718c38\transformed\jetified-window-1.2.0\AndroidManifest.xml:25:13-37
+145        <uses-library
+145-->[androidx.window:window:1.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5093ab42d2307deb2d7ac0b7f5718c38\transformed\jetified-window-1.2.0\AndroidManifest.xml:26:9-28:40
+146            android:name="androidx.window.sidecar"
+146-->[androidx.window:window:1.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5093ab42d2307deb2d7ac0b7f5718c38\transformed\jetified-window-1.2.0\AndroidManifest.xml:27:13-51
+147            android:required="false" /> <!-- Needs to be explicitly declared on P+ -->
+147-->[androidx.window:window:1.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5093ab42d2307deb2d7ac0b7f5718c38\transformed\jetified-window-1.2.0\AndroidManifest.xml:28:13-37
+148        <uses-library
+148-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:39:9-41:40
+149            android:name="org.apache.http.legacy"
+149-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:40:13-50
+150            android:required="false" />
+150-->[com.google.android.gms:play-services-maps:18.2.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\223e4c2782dceb65140338abe6972c59\transformed\jetified-play-services-maps-18.2.0\AndroidManifest.xml:41:13-37
+151
+152        <service
+152-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c8053840a0f71738f3bb6c037ecba2f9\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:9:9-15:19
+153            android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService"
+153-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c8053840a0f71738f3bb6c037ecba2f9\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:10:13-91
+154            android:directBootAware="true"
+154-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:17:13-43
+155            android:exported="false" >
+155-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c8053840a0f71738f3bb6c037ecba2f9\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:11:13-37
+156            <meta-data
+156-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c8053840a0f71738f3bb6c037ecba2f9\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:12:13-14:85
+157                android:name="com.google.firebase.components:com.google.mlkit.vision.barcode.internal.BarcodeRegistrar"
+157-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c8053840a0f71738f3bb6c037ecba2f9\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:13:17-120
+158                android:value="com.google.firebase.components.ComponentRegistrar" />
+158-->[com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\c8053840a0f71738f3bb6c037ecba2f9\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:14:17-82
+159            <meta-data
+159-->[com.google.mlkit:vision-common:17.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\a05b5895d4441831cef9203768ec4801\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:12:13-14:85
+160                android:name="com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar"
+160-->[com.google.mlkit:vision-common:17.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\a05b5895d4441831cef9203768ec4801\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:13:17-124
+161                android:value="com.google.firebase.components.ComponentRegistrar" />
+161-->[com.google.mlkit:vision-common:17.3.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\a05b5895d4441831cef9203768ec4801\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:14:17-82
+162            <meta-data
+162-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:20:13-22:85
+163                android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar"
+163-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:21:17-120
+164                android:value="com.google.firebase.components.ComponentRegistrar" />
+164-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:22:17-82
+165        </service>
+166
+167        <provider
+167-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:9:9-13:38
+168            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+168-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:10:13-78
+169            android:authorities="com.example.parking_app.mlkitinitprovider"
+169-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:11:13-69
+170            android:exported="false"
+170-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:12:13-37
+171            android:initOrder="99" />
+171-->[com.google.mlkit:common:18.9.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\fc5d6015c2437c3ed3888a4f1189a14d\transformed\jetified-common-18.9.0\AndroidManifest.xml:13:13-35
+172
+173        <activity
+173-->[com.google.android.gms:play-services-base:18.1.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\80d381bf084c21e18706da6716588126\transformed\jetified-play-services-base-18.1.0\AndroidManifest.xml:20:9-22:45
+174            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+174-->[com.google.android.gms:play-services-base:18.1.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\80d381bf084c21e18706da6716588126\transformed\jetified-play-services-base-18.1.0\AndroidManifest.xml:20:19-85
+175            android:exported="false"
+175-->[com.google.android.gms:play-services-base:18.1.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\80d381bf084c21e18706da6716588126\transformed\jetified-play-services-base-18.1.0\AndroidManifest.xml:22:19-43
+176            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+176-->[com.google.android.gms:play-services-base:18.1.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\80d381bf084c21e18706da6716588126\transformed\jetified-play-services-base-18.1.0\AndroidManifest.xml:21:19-78
+177
+178        <meta-data
+178-->[com.google.android.gms:play-services-basement:18.1.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\7d9977a1c54ea44a3347b382d148518d\transformed\jetified-play-services-basement-18.1.0\AndroidManifest.xml:21:9-23:69
+179            android:name="com.google.android.gms.version"
+179-->[com.google.android.gms:play-services-basement:18.1.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\7d9977a1c54ea44a3347b382d148518d\transformed\jetified-play-services-basement-18.1.0\AndroidManifest.xml:22:13-58
+180            android:value="@integer/google_play_services_version" />
+180-->[com.google.android.gms:play-services-basement:18.1.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\7d9977a1c54ea44a3347b382d148518d\transformed\jetified-play-services-basement-18.1.0\AndroidManifest.xml:23:13-66
+181
+182        <provider
+182-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\e80aa748ff6540407d8dba61c0d945fe\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:24:9-32:20
+183            android:name="androidx.startup.InitializationProvider"
+183-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\e80aa748ff6540407d8dba61c0d945fe\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:25:13-67
+184            android:authorities="com.example.parking_app.androidx-startup"
+184-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\e80aa748ff6540407d8dba61c0d945fe\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:26:13-68
+185            android:exported="false" >
+185-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\e80aa748ff6540407d8dba61c0d945fe\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:27:13-37
+186            <meta-data
+186-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\e80aa748ff6540407d8dba61c0d945fe\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:29:13-31:52
+187                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+187-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\e80aa748ff6540407d8dba61c0d945fe\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:30:17-78
+188                android:value="androidx.startup" />
+188-->[androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\e80aa748ff6540407d8dba61c0d945fe\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:31:17-49
+189            <meta-data
+189-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+190                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+190-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+191                android:value="androidx.startup" />
+191-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+192        </provider>
+193
+194        <receiver
+194-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+195            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+195-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+196            android:directBootAware="false"
+196-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+197            android:enabled="true"
+197-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+198            android:exported="true"
+198-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+199            android:permission="android.permission.DUMP" >
+199-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+200            <intent-filter>
+200-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+201                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+201-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+201-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+202            </intent-filter>
+203            <intent-filter>
+203-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+204                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+204-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+204-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+205            </intent-filter>
+206            <intent-filter>
+206-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+207                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+207-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+207-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+208            </intent-filter>
+209            <intent-filter>
+209-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+210                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+210-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+210-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\5f7dcf6815bacc3ae7f099ba801348de\transformed\jetified-profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+211            </intent-filter>
+212        </receiver>
+213
+214        <service
+214-->[com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\3fe589753a4aba9a36c72c795b877407\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:29:9-35:19
+215            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+215-->[com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\3fe589753a4aba9a36c72c795b877407\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:30:13-103
+216            android:exported="false" >
+216-->[com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\3fe589753a4aba9a36c72c795b877407\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:31:13-37
+217            <meta-data
+217-->[com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\3fe589753a4aba9a36c72c795b877407\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:32:13-34:39
+218                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+218-->[com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\3fe589753a4aba9a36c72c795b877407\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:33:17-94
+219                android:value="cct" />
+219-->[com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\3fe589753a4aba9a36c72c795b877407\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:34:17-36
+220        </service>
+221        <service
+221-->[com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\9fb76887d9728a5f4c19fa6f805116ec\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:26:9-30:19
+222            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+222-->[com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\9fb76887d9728a5f4c19fa6f805116ec\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:27:13-117
+223            android:exported="false"
+223-->[com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\9fb76887d9728a5f4c19fa6f805116ec\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:28:13-37
+224            android:permission="android.permission.BIND_JOB_SERVICE" >
+224-->[com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\9fb76887d9728a5f4c19fa6f805116ec\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:29:13-69
+225        </service>
+226
+227        <receiver
+227-->[com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\9fb76887d9728a5f4c19fa6f805116ec\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:32:9-34:40
+228            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+228-->[com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\9fb76887d9728a5f4c19fa6f805116ec\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:33:13-132
+229            android:exported="false" />
+229-->[com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\Tharindu\.gradle\caches\8.10.2\transforms\9fb76887d9728a5f4c19fa6f805116ec\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:34:13-37
+230    </application>
+231
+232</manifest>

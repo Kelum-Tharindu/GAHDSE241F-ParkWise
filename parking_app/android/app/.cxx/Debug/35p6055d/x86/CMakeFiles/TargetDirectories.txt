@@ -1,0 +1,2 @@
+C:/Users/Tharindu/Desktop/nw/GAHDSE241F-ParkWise/parking_app/android/app/.cxx/Debug/35p6055d/x86/CMakeFiles/edit_cache.dir
+C:/Users/Tharindu/Desktop/nw/GAHDSE241F-ParkWise/parking_app/android/app/.cxx/Debug/35p6055d/x86/CMakeFiles/rebuild_cache.dir
