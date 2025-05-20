@@ -295,11 +295,11 @@ export default function ParkingTable() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per 30 min</p>
-                      <p className="text-gray-800 dark:text-white">Rs. {selectedParking.slotDetails?.car?.perPrice30Min || 0}</p>
+                      <p className="text-gray-800 dark:text-white">$. {selectedParking.slotDetails?.car?.perPrice30Min || 0}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per Day</p>
-                      <p className="text-gray-800 dark:text-white">Rs. {selectedParking.slotDetails?.car?.perDayPrice || 0}</p>
+                      <p className="text-gray-800 dark:text-white">$. {selectedParking.slotDetails?.car?.perDayPrice || 0}</p>
                     </div>
                   </div>
                 </div>
@@ -322,11 +322,11 @@ export default function ParkingTable() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per 30 min</p>
-                      <p className="text-gray-800 dark:text-white">Rs. {selectedParking.slotDetails?.bicycle?.perPrice30Min || 0}</p>
+                      <p className="text-gray-800 dark:text-white">$. {selectedParking.slotDetails?.bicycle?.perPrice30Min || 0}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per Day</p>
-                      <p className="text-gray-800 dark:text-white">Rs. {selectedParking.slotDetails?.bicycle?.perDayPrice || 0}</p>
+                      <p className="text-gray-800 dark:text-white">$. {selectedParking.slotDetails?.bicycle?.perDayPrice || 0}</p>
                     </div>
                   </div>
                 </div>
@@ -349,11 +349,11 @@ export default function ParkingTable() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per 30 min</p>
-                      <p className="text-gray-800 dark:text-white">Rs. {selectedParking.slotDetails?.truck?.perPrice30Min || 0}</p>
+                      <p className="text-gray-800 dark:text-white">$. {selectedParking.slotDetails?.truck?.perPrice30Min || 0}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per Day</p>
-                      <p className="text-gray-800 dark:text-white">Rs. {selectedParking.slotDetails?.truck?.perDayPrice || 0}</p>
+                      <p className="text-gray-800 dark:text-white">$. {selectedParking.slotDetails?.truck?.perDayPrice || 0}</p>
                     </div>
                   </div>
                 </div>
