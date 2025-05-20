@@ -3,19 +3,72 @@ import { Modal } from "../uiMy/modal";
 import Button from "../uiMy/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
-import { UserProfile } from "../../services/userProfileService";
+import { UserProfile, updateUserProfile, updateUserSocialLinks } from "../../services/userProfileService";
+import { useState } from "react";
 
 interface UserMetaCardProps {
   userData: UserProfile;
+  onUpdate: (updatedData: UserProfile) => void;
 }
 
-export default function UserMetaCard({ userData }: UserMetaCardProps) {
+export default function UserMetaCard({ userData, onUpdate }: UserMetaCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
-    closeModal();
+  const [formData, setFormData] = useState({
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    email: userData.email,
+    phone: userData.phone,
+    role: userData.role,
+    socialLinks: {
+      facebook: userData.socialLinks.facebook,
+      twitter: userData.socialLinks.twitter,
+      linkedin: userData.socialLinks.linkedin,
+      instagram: userData.socialLinks.instagram,
+    }
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name.startsWith('social.')) {
+      const socialPlatform = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        socialLinks: {
+          ...prev.socialLinks,
+          [socialPlatform]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
+
+  const handleSave = async () => {
+    try {
+      // Update personal information
+      const updatedProfile = await updateUserProfile(userData._id, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        role: formData.role
+      });
+
+      // Update social links
+      const updatedWithSocial = await updateUserSocialLinks(userData._id, formData.socialLinks);
+
+      // Call the onUpdate callback with the updated data
+      onUpdate(updatedWithSocial);
+      closeModal();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      // You might want to show an error message to the user here
+    }
+  };
+
   return (
     <>
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -169,26 +222,40 @@ export default function UserMetaCard({ userData }: UserMetaCardProps) {
                     <Label>Facebook</Label>
                     <Input
                       type="text"
-                      value={userData.socialLinks.facebook}
+                      name="social.facebook"
+                      value={formData.socialLinks.facebook}
+                      onChange={handleInputChange}
                     />
                   </div>
 
                   <div>
                     <Label>X.com</Label>
-                    <Input type="text" value={userData.socialLinks.twitter} />
+                    <Input 
+                      type="text" 
+                      name="social.twitter"
+                      value={formData.socialLinks.twitter}
+                      onChange={handleInputChange}
+                    />
                   </div>
 
                   <div>
                     <Label>Linkedin</Label>
                     <Input
                       type="text"
-                      value={userData.socialLinks.linkedin}
+                      name="social.linkedin"
+                      value={formData.socialLinks.linkedin}
+                      onChange={handleInputChange}
                     />
                   </div>
 
                   <div>
                     <Label>Instagram</Label>
-                    <Input type="text" value={userData.socialLinks.instagram} />
+                    <Input 
+                      type="text" 
+                      name="social.instagram"
+                      value={formData.socialLinks.instagram}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
               </div>
@@ -201,27 +268,52 @@ export default function UserMetaCard({ userData }: UserMetaCardProps) {
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
                     <Label>First Name</Label>
-                    <Input type="text" value={userData.firstName} />
+                    <Input 
+                      type="text" 
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Last Name</Label>
-                    <Input type="text" value={userData.lastName} />
+                    <Input 
+                      type="text" 
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Email Address</Label>
-                    <Input type="text" value={userData.email} />
+                    <Input 
+                      type="text" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Phone</Label>
-                    <Input type="text" value={userData.phone} />
+                    <Input 
+                      type="text" 
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
                   </div>
 
                   <div className="col-span-2">
                     <Label>Role</Label>
-                    <Input type="text" value={userData.role} />
+                    <Input 
+                      type="text" 
+                      name="role"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
               </div>

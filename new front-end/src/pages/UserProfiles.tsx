@@ -17,23 +17,27 @@ export default function UserProfiles() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        console.log('Loading user profile...');
-        const data = await fetchUserProfile(TEMP_USER_ID);
-        console.log('User profile loaded:', data);
-        setUserData(data);
-      } catch (err) {
-        console.error('Error loading user profile:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadUserProfile = async () => {
+    try {
+      console.log('Loading user profile...');
+      const data = await fetchUserProfile(TEMP_USER_ID);
+      console.log('User profile loaded:', data);
+      setUserData(data);
+    } catch (err) {
+      console.error('Error loading user profile:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadUserProfile();
   }, []);
+
+  const handleProfileUpdate = (updatedData: UserProfile) => {
+    setUserData(updatedData);
+  };
 
   if (loading) {
     return (
@@ -71,9 +75,9 @@ export default function UserProfiles() {
           Profile
         </h3>
         <div className="space-y-6">
-          <UserMetaCard userData={userData} />
-          <UserInfoCard userData={userData} />
-          <UserAddressCard userData={userData} />
+          <UserMetaCard userData={userData} onUpdate={handleProfileUpdate} />
+          <UserInfoCard userData={userData} onUpdate={handleProfileUpdate} />
+          <UserAddressCard userData={userData} onUpdate={handleProfileUpdate} />
         </div>
       </div>
     </>

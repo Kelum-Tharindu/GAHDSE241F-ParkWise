@@ -3,19 +3,42 @@ import { Modal } from "../uiMy/modal";
 import Button from "../uiMy/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
-import { UserProfile } from "../../services/userProfileService";
+import { UserProfile, updateUserAddress } from "../../services/userProfileService";
+import { useState } from "react";
 
 interface UserAddressCardProps {
   userData: UserProfile;
+  onUpdate: (updatedData: UserProfile) => void;
 }
 
-export default function UserAddressCard({ userData }: UserAddressCardProps) {
+export default function UserAddressCard({ userData, onUpdate }: UserAddressCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
-    closeModal();
+  const [formData, setFormData] = useState({
+    country: userData.country,
+    city: userData.city,
+    postalCode: userData.postalCode,
+    taxId: userData.taxId
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
+
+  const handleSave = async () => {
+    try {
+      const updatedProfile = await updateUserAddress(userData._id, formData);
+      onUpdate(updatedProfile);
+      closeModal();
+    } catch (error) {
+      console.error('Error updating address:', error);
+      // You might want to show an error message to the user here
+    }
+  };
+
   return (
     <>
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
@@ -102,22 +125,42 @@ export default function UserAddressCard({ userData }: UserAddressCardProps) {
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
                   <Label>Country</Label>
-                  <Input type="text" value={userData.country} />
+                  <Input 
+                    type="text" 
+                    name="country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                  />
                 </div>
 
                 <div>
                   <Label>City/State</Label>
-                  <Input type="text" value={userData.city} />
+                  <Input 
+                    type="text" 
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                  />
                 </div>
 
                 <div>
                   <Label>Postal Code</Label>
-                  <Input type="text" value={userData.postalCode} />
+                  <Input 
+                    type="text" 
+                    name="postalCode"
+                    value={formData.postalCode}
+                    onChange={handleInputChange}
+                  />
                 </div>
 
                 <div>
                   <Label>TAX ID</Label>
-                  <Input type="text" value={userData.taxId} />
+                  <Input 
+                    type="text" 
+                    name="taxId"
+                    value={formData.taxId}
+                    onChange={handleInputChange}
+                  />
                 </div>
               </div>
             </div>
