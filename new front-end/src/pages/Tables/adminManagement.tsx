@@ -1,7 +1,7 @@
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
-import Support from "../../components/supportPage/support";
+import Admin from "../../components/tables/userManagement/adminManagement";
 
 export default function SupportPage() {
   return (
@@ -13,7 +13,7 @@ export default function SupportPage() {
       <PageBreadcrumb pageTitle="Support Center" />
       <div className="space-y-6">
         <ComponentCard title="Support">
-          <Support />
+          <Admin />
         </ComponentCard>
       </div>
     </>

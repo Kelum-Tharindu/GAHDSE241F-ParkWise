@@ -1,118 +1,228 @@
-import React, { useState } from "react";
-import { FaFilePdf, FaDownload, FaCalendarAlt, FaCar, FaMoneyBillWave, FaParking } from "react-icons/fa";
-import { PDFDownloadLink, Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import React, { useState, useEffect } from "react";
+import { 
+  FaFilePdf, FaDownload, FaCalendarAlt, FaCar, FaMoneyBillWave, 
+  FaParking, FaChartBar, FaFilter, FaSearch, FaMapMarkerAlt, FaUserAlt
+} from "react-icons/fa";
+import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
+import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Pie, Bar } from 'react-chartjs-2';
+
+// Register ChartJS components
+ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // --- Example Data ---
 const bookingsData = [
-  { id: 1, user: "Kasun Perera", spot: "Lot A - 12", amount: 400, date: "2025-04-27", status: "Completed" },
-  { id: 2, user: "Nimal Silva", spot: "Lot B - 3", amount: 600, date: "2025-04-28", status: "Cancelled" },
-  { id: 3, user: "Saman Fernando", spot: "Lot C - 7", amount: 900, date: "2025-04-29", status: "Completed" },
+  { id: 1, user: "Kasun Perera", spot: "Lot A - 12", amount: 400, date: "2025-04-27", status: "Completed", duration: 2, vehicle: "Car" },
+  { id: 2, user: "Nimal Silva", spot: "Lot B - 3", amount: 600, date: "2025-04-28", status: "Cancelled", duration: 4, vehicle: "Van" },
+  { id: 3, user: "Saman Fernando", spot: "Lot C - 7", amount: 900, date: "2025-04-29", status: "Completed", duration: 6, vehicle: "Car" },
+  { id: 4, user: "Priya Mendis", spot: "Lot A - 5", amount: 300, date: "2025-04-30", status: "Pending", duration: 1.5, vehicle: "Motorcycle" },
+  { id: 5, user: "Lakmal Perera", spot: "Lot D - 2", amount: 750, date: "2025-05-01", status: "Completed", duration: 5, vehicle: "Car" },
+  { id: 6, user: "Chamari Silva", spot: "Lot B - 9", amount: 450, date: "2025-05-02", status: "Completed", duration: 3, vehicle: "Car" },
 ];
 
 const paymentsData = [
-  { id: 1, user: "Kasun Perera", type: "Booking", amount: 400, date: "2025-04-27" },
-  { id: 2, user: "Nimal Silva", type: "Payout", amount: 1500, date: "2025-04-28" },
-  { id: 3, user: "Saman Fernando", type: "Booking", amount: 900, date: "2025-04-29" },
+  { id: 1, user: "Kasun Perera", type: "Booking", amount: 400, date: "2025-04-27", method: "Credit Card" },
+  { id: 2, user: "Nimal Silva", type: "Payout", amount: 1500, date: "2025-04-28", method: "Bank Transfer" },
+  { id: 3, user: "Saman Fernando", type: "Booking", amount: 900, date: "2025-04-29", method: "PayPal" },
+  { id: 4, user: "Priya Mendis", type: "Booking", amount: 300, date: "2025-04-30", method: "Credit Card" },
+  { id: 5, user: "Lakmal Perera", type: "Booking", amount: 750, date: "2025-05-01", method: "Mobile Payment" },
+  { id: 6, user: "Chamari Silva", type: "Payout", amount: 2000, date: "2025-05-02", method: "Bank Transfer" },
 ];
 
 const spotsData = [
-  { id: 1, location: "Colombo City Center", total: 50, available: 12, occupied: 38 },
-  { id: 2, location: "Kandy Mall", total: 30, available: 6, occupied: 24 },
-  { id: 3, location: "Galle Fort", total: 20, available: 2, occupied: 18 },
+  { id: 1, location: "Colombo City Center", total: 50, available: 12, occupied: 38, hourlyRate: 200, coordinates: "6.9271° N, 79.8612° E" },
+  { id: 2, location: "Kandy Mall", total: 30, available: 6, occupied: 24, hourlyRate: 150, coordinates: "7.2906° N, 80.6337° E" },
+  { id: 3, location: "Galle Fort", total: 20, available: 2, occupied: 18, hourlyRate: 180, coordinates: "6.0328° N, 80.2170° E" },
+  { id: 4, location: "Negombo Beach", total: 25, available: 15, occupied: 10, hourlyRate: 120, coordinates: "7.2095° N, 79.8417° E" },
+  { id: 5, location: "Ella Town Center", total: 15, available: 3, occupied: 12, hourlyRate: 100, coordinates: "6.8667° N, 81.0466° E" },
 ];
 
 // --- PDF Styles ---
 const styles = StyleSheet.create({
-  page: { padding: 30, fontSize: 12 },
-  title: { fontSize: 18, marginBottom: 20, fontWeight: "bold" },
-  table: { display: "flex", flexDirection: "column", width: "auto", marginBottom: 10 },
-  row: { flexDirection: "row" },
-  cellHeader: { fontWeight: "bold", padding: 4, backgroundColor: "#2563eb", color: "#fff", width: 100 },
-  cell: { padding: 4, borderBottom: "1px solid #eee", width: 100 },
+  page: { padding: 30, fontSize: 12, fontFamily: 'Helvetica' },
+  title: { fontSize: 24, marginBottom: 10, fontWeight: "bold", color: "#2563eb", textAlign: 'center' },
+  subtitle: { fontSize: 14, marginBottom: 20, color: "#64748b", textAlign: 'center' },
+  section: { marginBottom: 20 },
+  sectionTitle: { fontSize: 16, marginBottom: 10, fontWeight: "bold", color: "#334155", borderBottom: '1px solid #e2e8f0', paddingBottom: 5 },
+  table: { display: "flex", flexDirection: "column", width: "auto", marginBottom: 20, borderRadius: 5 },
+  row: { flexDirection: "row", borderBottom: "1px solid #e2e8f0" },
+  cellHeader: { fontWeight: "bold", padding: 8, backgroundColor: "#2563eb", color: "#fff", flex: 1, textAlign: 'center' },
+  cell: { padding: 8, flex: 1, textAlign: 'center' },
+  footer: { position: 'absolute', bottom: 30, left: 30, right: 30, textAlign: 'center', color: '#94a3b8', fontSize: 10, borderTop: '1px solid #e2e8f0', paddingTop: 10 },
+  summary: { marginBottom: 20, padding: 10, backgroundColor: '#f1f5f9', borderRadius: 5 },
+  summaryRow: { flexDirection: 'row', marginBottom: 5 },
+  summaryLabel: { flex: 1, fontWeight: 'bold', color: '#334155' },
+  summaryValue: { flex: 1, color: '#334155' },
+  logo: { width: 50, height: 50, marginBottom: 10, alignSelf: 'center' },
 });
 
 // --- PDF Components ---
-function BookingsPDF({ data, from, to }: { data: typeof bookingsData; from: string; to: string }) {
+function BookingsPDF({ data, from, to, summary }: { data: typeof bookingsData; from: string; to: string; summary: { total: number; completed: number; cancelled: number; revenue: number; } }) {
   return (
     <Document>
       <Page style={styles.page}>
-        <Text style={styles.title}>Bookings Report ({from} to {to})</Text>
-        <View style={styles.table}>
-          <View style={styles.row}>
-            <Text style={styles.cellHeader}>ID</Text>
-            <Text style={styles.cellHeader}>User</Text>
-            <Text style={styles.cellHeader}>Spot</Text>
-            <Text style={styles.cellHeader}>Amount</Text>
-            <Text style={styles.cellHeader}>Date</Text>
-            <Text style={styles.cellHeader}>Status</Text>
+        <Text style={styles.title}>Bookings Report</Text>
+        <Text style={styles.subtitle}>Period: {from} to {to}</Text>
+        
+        <View style={styles.summary}>
+          <Text style={styles.sectionTitle}>Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Bookings:</Text>
+            <Text style={styles.summaryValue}>{summary.total}</Text>
           </View>
-          {data.map((row) => (
-            <View style={styles.row} key={row.id}>
-              <Text style={styles.cell}>{row.id}</Text>
-              <Text style={styles.cell}>{row.user}</Text>
-              <Text style={styles.cell}>{row.spot}</Text>
-              <Text style={styles.cell}>{row.amount}</Text>
-              <Text style={styles.cell}>{row.date}</Text>
-              <Text style={styles.cell}>{row.status}</Text>
-            </View>
-          ))}
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Completed Bookings:</Text>
+            <Text style={styles.summaryValue}>{summary.completed}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Cancelled Bookings:</Text>
+            <Text style={styles.summaryValue}>{summary.cancelled}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Revenue:</Text>
+            <Text style={styles.summaryValue}>LKR {summary.revenue}</Text>
+          </View>
         </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Detailed Bookings</Text>
+          <View style={styles.table}>
+            <View style={styles.row}>
+              <Text style={styles.cellHeader}>ID</Text>
+              <Text style={styles.cellHeader}>User</Text>
+              <Text style={styles.cellHeader}>Spot</Text>
+              <Text style={styles.cellHeader}>Amount</Text>
+              <Text style={styles.cellHeader}>Date</Text>
+              <Text style={styles.cellHeader}>Status</Text>
+            </View>
+            {data.map((row) => (
+              <View style={styles.row} key={row.id}>
+                <Text style={styles.cell}>{row.id}</Text>
+                <Text style={styles.cell}>{row.user}</Text>
+                <Text style={styles.cell}>{row.spot}</Text>
+                <Text style={styles.cell}>{row.amount}</Text>
+                <Text style={styles.cell}>{row.date}</Text>
+                <Text style={styles.cell}>{row.status}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+        
+        <Text style={styles.footer}>Generated on {new Date().toLocaleDateString()} by ParkEasy Admin Dashboard</Text>
       </Page>
     </Document>
   );
 }
 
-function PaymentsPDF({ data, from, to }: { data: typeof paymentsData; from: string; to: string }) {
+function PaymentsPDF({ data, from, to, summary }: { data: typeof paymentsData; from: string; to: string; summary: { total: number; income: number; payouts: number; net: number; } }) {
   return (
     <Document>
       <Page style={styles.page}>
-        <Text style={styles.title}>Payments Report ({from} to {to})</Text>
-        <View style={styles.table}>
-          <View style={styles.row}>
-            <Text style={styles.cellHeader}>ID</Text>
-            <Text style={styles.cellHeader}>User</Text>
-            <Text style={styles.cellHeader}>Type</Text>
-            <Text style={styles.cellHeader}>Amount</Text>
-            <Text style={styles.cellHeader}>Date</Text>
+        <Text style={styles.title}>Payments Report</Text>
+        <Text style={styles.subtitle}>Period: {from} to {to}</Text>
+        
+        <View style={styles.summary}>
+          <Text style={styles.sectionTitle}>Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Transactions:</Text>
+            <Text style={styles.summaryValue}>{summary.total}</Text>
           </View>
-          {data.map((row) => (
-            <View style={styles.row} key={row.id}>
-              <Text style={styles.cell}>{row.id}</Text>
-              <Text style={styles.cell}>{row.user}</Text>
-              <Text style={styles.cell}>{row.type}</Text>
-              <Text style={styles.cell}>{row.amount}</Text>
-              <Text style={styles.cell}>{row.date}</Text>
-            </View>
-          ))}
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Income:</Text>
+            <Text style={styles.summaryValue}>LKR {summary.income}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Payouts:</Text>
+            <Text style={styles.summaryValue}>LKR {summary.payouts}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Net Balance:</Text>
+            <Text style={styles.summaryValue}>LKR {summary.net}</Text>
+          </View>
         </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Transaction Details</Text>
+          <View style={styles.table}>
+            <View style={styles.row}>
+              <Text style={styles.cellHeader}>ID</Text>
+              <Text style={styles.cellHeader}>User</Text>
+              <Text style={styles.cellHeader}>Type</Text>
+              <Text style={styles.cellHeader}>Method</Text>
+              <Text style={styles.cellHeader}>Amount</Text>
+              <Text style={styles.cellHeader}>Date</Text>
+            </View>
+            {data.map((row) => (
+              <View style={styles.row} key={row.id}>
+                <Text style={styles.cell}>{row.id}</Text>
+                <Text style={styles.cell}>{row.user}</Text>
+                <Text style={styles.cell}>{row.type}</Text>
+                <Text style={styles.cell}>{row.method}</Text>
+                <Text style={styles.cell}>{row.amount}</Text>
+                <Text style={styles.cell}>{row.date}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+        
+        <Text style={styles.footer}>Generated on {new Date().toLocaleDateString()} by ParkEasy Admin Dashboard</Text>
       </Page>
     </Document>
   );
 }
 
-function SpotsPDF({ data }: { data: typeof spotsData }) {
+function SpotsPDF({ data, summary }: { data: typeof spotsData; summary: { locations: number; totalSpots: number; availableSpots: number; occupancyRate: number; } }) {
   return (
     <Document>
       <Page style={styles.page}>
         <Text style={styles.title}>Parking Spots Report</Text>
-        <View style={styles.table}>
-          <View style={styles.row}>
-            <Text style={styles.cellHeader}>ID</Text>
-            <Text style={styles.cellHeader}>Location</Text>
-            <Text style={styles.cellHeader}>Total</Text>
-            <Text style={styles.cellHeader}>Available</Text>
-            <Text style={styles.cellHeader}>Occupied</Text>
+        <Text style={styles.subtitle}>Current Status Overview</Text>
+        
+        <View style={styles.summary}>
+          <Text style={styles.sectionTitle}>Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Locations:</Text>
+            <Text style={styles.summaryValue}>{summary.locations}</Text>
           </View>
-          {data.map((row) => (
-            <View style={styles.row} key={row.id}>
-              <Text style={styles.cell}>{row.id}</Text>
-              <Text style={styles.cell}>{row.location}</Text>
-              <Text style={styles.cell}>{row.total}</Text>
-              <Text style={styles.cell}>{row.available}</Text>
-              <Text style={styles.cell}>{row.occupied}</Text>
-            </View>
-          ))}
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Spots:</Text>
+            <Text style={styles.summaryValue}>{summary.totalSpots}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Available Spots:</Text>
+            <Text style={styles.summaryValue}>{summary.availableSpots}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Occupancy Rate:</Text>
+            <Text style={styles.summaryValue}>{summary.occupancyRate}%</Text>
+          </View>
         </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Location Details</Text>
+          <View style={styles.table}>
+            <View style={styles.row}>
+              <Text style={styles.cellHeader}>ID</Text>
+              <Text style={styles.cellHeader}>Location</Text>
+              <Text style={styles.cellHeader}>Total</Text>
+              <Text style={styles.cellHeader}>Available</Text>
+              <Text style={styles.cellHeader}>Occupied</Text>
+              <Text style={styles.cellHeader}>Rate/hr</Text>
+            </View>
+            {data.map((row) => (
+              <View style={styles.row} key={row.id}>
+                <Text style={styles.cell}>{row.id}</Text>
+                <Text style={styles.cell}>{row.location}</Text>
+                <Text style={styles.cell}>{row.total}</Text>
+                <Text style={styles.cell}>{row.available}</Text>
+                <Text style={styles.cell}>{row.occupied}</Text>
+                <Text style={styles.cell}>{row.hourlyRate}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+        
+        <Text style={styles.footer}>Generated on {new Date().toLocaleDateString()} by ParkEasy Admin Dashboard</Text>
       </Page>
     </Document>
   );
@@ -124,22 +234,170 @@ type ReportType = "bookings" | "payments" | "spots";
 export default function AdminReportsDashboard() {
   const [report, setReport] = useState<ReportType>("bookings");
   const [from, setFrom] = useState("2025-04-27");
-  const [to, setTo] = useState("2025-04-29");
+  const [to, setTo] = useState("2025-05-02");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [vehicleFilter, setVehicleFilter] = useState("all");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
+  const [showCharts, setShowCharts] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Filter by date for bookings and payments
-  const bookingsFiltered = bookingsData.filter((r) => r.date >= from && r.date <= to);
-  const paymentsFiltered = paymentsData.filter((r) => r.date >= from && r.date <= to);
+  // Simulate loading data
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setIsLoading(false);
+    };
+    
+    loadData();
+  }, [report, from, to]);
+
+  // Filter data based on search and filters
+  const filteredBookings = bookingsData.filter(booking => 
+    (booking.date >= from && booking.date <= to) &&
+    (searchTerm === "" || 
+      booking.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.spot.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (statusFilter === "all" || booking.status === statusFilter) &&
+    (vehicleFilter === "all" || booking.vehicle === vehicleFilter)
+  );
+
+  const filteredPayments = paymentsData.filter(payment => 
+    (payment.date >= from && payment.date <= to) &&
+    (searchTerm === "" || 
+      payment.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.type.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (paymentMethodFilter === "all" || payment.method === paymentMethodFilter)
+  );
+
+  const filteredSpots = spotsData.filter(spot =>
+    searchTerm === "" || 
+    spot.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Calculate summaries for PDF reports
+  const bookingsSummary = {
+    total: filteredBookings.length,
+    completed: filteredBookings.filter(b => b.status === "Completed").length,
+    cancelled: filteredBookings.filter(b => b.status === "Cancelled").length,
+    revenue: filteredBookings.reduce((sum, b) => b.status !== "Cancelled" ? sum + b.amount : sum, 0)
+  };
+
+  const paymentsSummary = {
+    total: filteredPayments.length,
+    income: filteredPayments.filter(p => p.type === "Booking").reduce((sum, p) => sum + p.amount, 0),
+    payouts: filteredPayments.filter(p => p.type === "Payout").reduce((sum, p) => sum + p.amount, 0),
+    net: filteredPayments.reduce((sum, p) => p.type === "Booking" ? sum + p.amount : sum - p.amount, 0)
+  };
+
+  const spotsSummary = {
+    locations: filteredSpots.length,
+    totalSpots: filteredSpots.reduce((sum, s) => sum + s.total, 0),
+    availableSpots: filteredSpots.reduce((sum, s) => sum + s.available, 0),
+    occupancyRate: Math.round(filteredSpots.reduce((sum, s) => sum + s.occupied, 0) / 
+      filteredSpots.reduce((sum, s) => sum + s.total, 0) * 100)
+  };
+
+  // Chart data
+  const bookingsChartData = {
+    labels: ['Completed', 'Cancelled', 'Pending'],
+    datasets: [
+      {
+        label: 'Bookings by Status',
+        data: [
+          filteredBookings.filter(b => b.status === "Completed").length,
+          filteredBookings.filter(b => b.status === "Cancelled").length,
+          filteredBookings.filter(b => b.status === "Pending").length
+        ],
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(255, 206, 86, 0.6)'
+        ],
+        borderColor: [
+          'rgba(75, 192, 192, 1)',
+          'rgba(255, 99, 132, 1)',
+          'rgba(255, 206, 86, 1)'
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const paymentsChartData = {
+    labels: ['Bookings', 'Payouts'],
+    datasets: [
+      {
+        label: 'Transaction Amounts',
+        data: [
+          filteredPayments.filter(p => p.type === "Booking").reduce((sum, p) => sum + p.amount, 0),
+          filteredPayments.filter(p => p.type === "Payout").reduce((sum, p) => sum + p.amount, 0)
+        ],
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.6)',
+          'rgba(255, 159, 64, 0.6)'
+        ],
+        borderColor: [
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 159, 64, 1)'
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const spotsChartData = {
+    labels: filteredSpots.map(spot => spot.location),
+    datasets: [
+      {
+        label: 'Available',
+        data: filteredSpots.map(spot => spot.available),
+        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+      },
+      {
+        label: 'Occupied',
+        data: filteredSpots.map(spot => spot.occupied),
+        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1,
+      }
+    ],
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-[#181f2a] flex flex-col items-center py-10 px-2">
-      <div className="w-full max-w-4xl rounded-2xl shadow-xl bg-white dark:bg-[#232b39] border border-gray-200 dark:border-[#222b3a] p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-50 dark:from-[#181f2a] dark:to-[#0f172a] flex flex-col items-center py-10 px-2">
+      <div className="w-full max-w-6xl rounded-2xl shadow-xl bg-white dark:bg-[#232b39] border border-gray-200 dark:border-[#222b3a] p-8 transition-all">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+              ParkEasy Admin Reports
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              Generate detailed reports and analytics for your parking business
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowCharts(!showCharts)}
+              className="px-3 py-2 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium hover:bg-indigo-200 dark:hover:bg-indigo-800 transition"
+            >
+              <FaChartBar className="inline mr-1" /> {showCharts ? 'Hide Charts' : 'Show Charts'}
+            </button>
+          </div>
+        </div>
+        
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           <button
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${
               report === "bookings"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 dark:bg-[#202736] text-gray-700 dark:text-gray-200"
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-gray-200 dark:bg-[#202736] text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-[#2a3548]"
             }`}
             onClick={() => setReport("bookings")}
           >
@@ -148,8 +406,8 @@ export default function AdminReportsDashboard() {
           <button
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${
               report === "payments"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 dark:bg-[#202736] text-gray-700 dark:text-gray-200"
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-gray-200 dark:bg-[#202736] text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-[#2a3548]"
             }`}
             onClick={() => setReport("payments")}
           >
@@ -158,14 +416,298 @@ export default function AdminReportsDashboard() {
           <button
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition ${
               report === "spots"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 dark:bg-[#202736] text-gray-700 dark:text-gray-200"
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-gray-200 dark:bg-[#202736] text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-[#2a3548]"
             }`}
             onClick={() => setReport("spots")}
           >
             <FaParking /> Parking Spots
           </button>
         </div>
+
+        {/* Search and Filters */}
+        <div className="bg-gray-50 dark:bg-[#1b2230] rounded-xl p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            <div className="relative flex-grow">
+              <FaSearch className="absolute left-3 top-3 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+                className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-[#181f2a] dark:text-white"
+              />
+            </div>
+            
+            {(report === "bookings" || report === "payments") && (
+              <div className="flex flex-wrap gap-2 items-center">
+                <label className="flex items-center gap-1 text-gray-700 dark:text-gray-200 text-sm whitespace-nowrap">
+                  <FaCalendarAlt /> From:
+                  <input
+                    type="date"
+                    value={from}
+                    onChange={e => setFrom(e.target.value)}
+                    className="rounded px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-[#181f2a] dark:text-white text-sm"
+                  />
+                </label>
+                <label className="flex items-center gap-1 text-gray-700 dark:text-gray-200 text-sm whitespace-nowrap">
+                  <FaCalendarAlt /> To:
+                  <input
+                    type="date"
+                    value={to}
+                    onChange={e => setTo(e.target.value)}
+                    className="rounded px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-[#181f2a] dark:text-white text-sm"
+                  />
+                </label>
+              </div>
+            )}
+            
+            <div className="flex flex-wrap gap-2 items-center">
+              <FaFilter className="text-gray-500 dark:text-gray-400" />
+              
+              {report === "bookings" && (
+                <>
+                  <select 
+                    value={statusFilter} 
+                    onChange={e => setStatusFilter(e.target.value)}
+                    className="rounded px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-[#181f2a] dark:text-white text-sm"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Pending">Pending</option>
+                  </select>
+                  
+                  <select 
+                    value={vehicleFilter} 
+                    onChange={e => setVehicleFilter(e.target.value)}
+                    className="rounded px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-[#181f2a] dark:text-white text-sm"
+                  >
+                    <option value="all">All Vehicles</option>
+                    <option value="Car">Car</option>
+                    <option value="Van">Van</option>
+                    <option value="Motorcycle">Motorcycle</option>
+                  </select>
+                </>
+              )}
+              
+              {report === "payments" && (
+                <select 
+                  value={paymentMethodFilter} 
+                  onChange={e => setPaymentMethodFilter(e.target.value)}
+                  className="rounded px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-[#181f2a] dark:text-white text-sm"
+                >
+                  <option value="all">All Payment Methods</option>
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="PayPal">PayPal</option>
+                  <option value="Mobile Payment">Mobile Payment</option>
+                </select>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {report === "bookings" && (
+            <>
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Bookings</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">{bookingsSummary.total}</p>
+                  </div>
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <FaCar className="text-blue-600 dark:text-blue-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  {bookingsSummary.completed} completed, {bookingsSummary.cancelled} cancelled
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">LKR {bookingsSummary.revenue}</p>
+                  </div>
+                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <FaMoneyBillWave className="text-green-600 dark:text-green-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  From {bookingsSummary.completed} completed bookings
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Average Booking</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">
+                      LKR {bookingsSummary.completed > 0 ? Math.round(bookingsSummary.revenue / bookingsSummary.completed) : 0}
+                    </p>
+                  </div>
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                    <FaUserAlt className="text-purple-600 dark:text-purple-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Per completed booking
+                </div>
+              </div>
+            </>
+          )}
+          
+          {report === "payments" && (
+            <>
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Income</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">LKR {paymentsSummary.income}</p>
+                  </div>
+                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <FaMoneyBillWave className="text-green-600 dark:text-green-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  From booking payments
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Payouts</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">LKR {paymentsSummary.payouts}</p>
+                  </div>
+                  <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                    <FaMoneyBillWave className="text-red-600 dark:text-red-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Outgoing payments
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Net Balance</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">LKR {paymentsSummary.net}</p>
+                  </div>
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <FaMoneyBillWave className="text-blue-600 dark:text-blue-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Income minus payouts
+                </div>
+              </div>
+            </>
+          )}
+          
+          {report === "spots" && (
+            <>
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Spots</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">{spotsSummary.totalSpots}</p>
+                  </div>
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <FaParking className="text-blue-600 dark:text-blue-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Across {spotsSummary.locations} locations
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Available Spots</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">{spotsSummary.availableSpots}</p>
+                  </div>
+                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <FaParking className="text-green-600 dark:text-green-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Ready for booking
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Occupancy Rate</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">{spotsSummary.occupancyRate}%</p>
+                  </div>
+                  <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                    <FaMapMarkerAlt className="text-yellow-600 dark:text-yellow-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Current utilization
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Charts */}
+        {showCharts && (
+          <div className="mb-6">
+            <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                {report === "bookings" ? "Bookings by Status" : 
+                 report === "payments" ? "Transaction Overview" : 
+                 "Parking Spots Availability"}
+              </h3>
+              
+              <div className="h-64">
+                {report === "bookings" && (
+                  <div className="flex justify-center">
+                    <div className="w-64 h-64">
+                      <Pie data={bookingsChartData} options={{ maintainAspectRatio: false }} />
+                    </div>
+                  </div>
+                )}
+                
+                {report === "payments" && (
+                  <div className="flex justify-center">
+                    <div className="w-64 h-64">
+                      <Pie data={paymentsChartData} options={{ maintainAspectRatio: false }} />
+                    </div>
+                  </div>
+                )}
+                
+                {report === "spots" && (
+                  <Bar 
+                    data={spotsChartData} 
+                    options={{ 
+                      maintainAspectRatio: false,
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          stacked: false
+                        },
+                        x: {
+                          stacked: false
+                        }
+                      }
+                    }} 
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Controls */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
@@ -180,44 +722,31 @@ export default function AdminReportsDashboard() {
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-300">
               {report === "bookings" &&
-                "All bookings made in the selected period."}
+                `Showing ${filteredBookings.length} bookings from ${from} to ${to}`}
               {report === "payments" &&
-                "All payment transactions in the selected period."}
+                `Showing ${filteredPayments.length} transactions from ${from} to ${to}`}
               {report === "spots" &&
-                "Current status of all parking spots."}
+                `Showing ${filteredSpots.length} parking locations`}
             </p>
           </div>
-          <div className="flex gap-2 items-center">
-            {(report === "bookings" || report === "payments") && (
-              <>
-                <label className="flex items-center gap-1 text-gray-700 dark:text-gray-200 text-sm">
-                  <FaCalendarAlt /> From:
-                  <input
-                    type="date"
-                    value={from}
-                    onChange={e => setFrom(e.target.value)}
-                    className="rounded px-2 py-1 border border-gray-300 dark:bg-[#181f2a] dark:text-white text-sm"
-                  />
-                </label>
-                <label className="flex items-center gap-1 text-gray-700 dark:text-gray-200 text-sm">
-                  <FaCalendarAlt /> To:
-                  <input
-                    type="date"
-                    value={to}
-                    onChange={e => setTo(e.target.value)}
-                    className="rounded px-2 py-1 border border-gray-300 dark:bg-[#181f2a] dark:text-white text-sm"
-                  />
-                </label>
-              </>
-            )}
+          
+          <div>
             {report === "bookings" && (
               <PDFDownloadLink
-                document={<BookingsPDF data={bookingsFiltered} from={from} to={to} />}
+                document={<BookingsPDF data={filteredBookings} from={from} to={to} summary={bookingsSummary} />}
                 fileName={`bookings-report-${from}-to-${to}.pdf`}
-                className="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition shadow-md"
               >
                 {({ loading }) =>
-                  loading ? "Preparing..." : (
+                  loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Preparing...
+                    </>
+                  ) : (
                     <>
                       <FaDownload /> Download PDF
                     </>
@@ -225,14 +754,23 @@ export default function AdminReportsDashboard() {
                 }
               </PDFDownloadLink>
             )}
+            
             {report === "payments" && (
               <PDFDownloadLink
-                document={<PaymentsPDF data={paymentsFiltered} from={from} to={to} />}
+                document={<PaymentsPDF data={filteredPayments} from={from} to={to} summary={paymentsSummary} />}
                 fileName={`payments-report-${from}-to-${to}.pdf`}
-                className="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition shadow-md"
               >
                 {({ loading }) =>
-                  loading ? "Preparing..." : (
+                  loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Preparing...
+                    </>
+                  ) : (
                     <>
                       <FaDownload /> Download PDF
                     </>
@@ -240,14 +778,23 @@ export default function AdminReportsDashboard() {
                 }
               </PDFDownloadLink>
             )}
+            
             {report === "spots" && (
               <PDFDownloadLink
-                document={<SpotsPDF data={spotsData} />}
+                document={<SpotsPDF data={filteredSpots} summary={spotsSummary} />}
                 fileName={`parking-spots-report.pdf`}
-                className="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 text-sm font-semibold transition shadow-md"
               >
                 {({ loading }) =>
-                  loading ? "Preparing..." : (
+                  loading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Preparing...
+                    </>
+                  ) : (
                     <>
                       <FaDownload /> Download PDF
                     </>
@@ -258,130 +805,189 @@ export default function AdminReportsDashboard() {
           </div>
         </div>
 
-        {/* Tables */}
-        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-[#222b3a] bg-white dark:bg-[#1b2230]">
-          {report === "bookings" && (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100 dark:bg-[#222b3a] text-gray-700 dark:text-gray-200 uppercase">
-                  <th className="px-4 py-2 text-left">ID</th>
-                  <th className="px-4 py-2 text-left">User</th>
-                  <th className="px-4 py-2 text-left">Spot</th>
-                  <th className="px-4 py-2 text-left">Amount (LKR)</th>
-                  <th className="px-4 py-2 text-left">Date</th>
-                  <th className="px-4 py-2 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bookingsFiltered.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                      No bookings for selected period.
-                    </td>
-                  </tr>
-                ) : (
-                  bookingsFiltered.map((row, idx) => (
-                    <tr
-                      key={row.id}
-                      className={`border-b border-gray-100 dark:border-[#222b3a] transition-all ${
-                        idx % 2 === 0 ? "bg-gray-50 dark:bg-[#232b39]" : ""
-                      }`}
-                    >
-                      <td className="px-4 py-2 font-mono">{row.id}</td>
-                      <td className="px-4 py-2">{row.user}</td>
-                      <td className="px-4 py-2">{row.spot}</td>
-                      <td className="px-4 py-2">{row.amount}</td>
-                      <td className="px-4 py-2">{row.date}</td>
-                      <td className="px-4 py-2">{row.status}</td>
+        {/* Tables with loading state */}
+        <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-[#222b3a] bg-white dark:bg-[#1b2230] relative">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="flex flex-col items-center">
+                <svg className="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">Loading data...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {report === "bookings" && (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-100 dark:bg-[#222b3a] text-gray-700 dark:text-gray-200 uppercase">
+                      <th className="px-4 py-3 text-left">ID</th>
+                      <th className="px-4 py-3 text-left">User</th>
+                      <th className="px-4 py-3 text-left">Spot</th>
+                      <th className="px-4 py-3 text-left">Vehicle</th>
+                      <th className="px-4 py-3 text-left">Duration (hrs)</th>
+                      <th className="px-4 py-3 text-left">Amount (LKR)</th>
+                      <th className="px-4 py-3 text-left">Date</th>
+                      <th className="px-4 py-3 text-left">Status</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
-          {report === "payments" && (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100 dark:bg-[#222b3a] text-gray-700 dark:text-gray-200 uppercase">
-                  <th className="px-4 py-2 text-left">ID</th>
-                  <th className="px-4 py-2 text-left">User</th>
-                  <th className="px-4 py-2 text-left">Type</th>
-                  <th className="px-4 py-2 text-left">Amount (LKR)</th>
-                  <th className="px-4 py-2 text-left">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paymentsFiltered.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
-                      No payments for selected period.
-                    </td>
-                  </tr>
-                ) : (
-                  paymentsFiltered.map((row, idx) => (
-                    <tr
-                      key={row.id}
-                      className={`border-b border-gray-100 dark:border-[#222b3a] transition-all ${
-                        idx % 2 === 0 ? "bg-gray-50 dark:bg-[#232b39]" : ""
-                      }`}
-                    >
-                      <td className="px-4 py-2 font-mono">{row.id}</td>
-                      <td className="px-4 py-2">{row.user}</td>
-                      <td className="px-4 py-2">{row.type}</td>
-                      <td className="px-4 py-2">{row.amount}</td>
-                      <td className="px-4 py-2">{row.date}</td>
+                  </thead>
+                  <tbody>
+                    {filteredBookings.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                          No bookings for selected period or filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredBookings.map((row, idx) => (
+                        <tr
+                          key={row.id}
+                          className={`border-b border-gray-100 dark:border-[#222b3a] transition-all hover:bg-blue-50 dark:hover:bg-[#1e2a3d] ${
+                            idx % 2 === 0 ? "bg-gray-50 dark:bg-[#232b39]" : ""
+                          }`}
+                        >
+                          <td className="px-4 py-3 font-mono">{row.id}</td>
+                          <td className="px-4 py-3">{row.user}</td>
+                          <td className="px-4 py-3">{row.spot}</td>
+                          <td className="px-4 py-3">{row.vehicle}</td>
+                          <td className="px-4 py-3">{row.duration}</td>
+                          <td className="px-4 py-3">{row.amount}</td>
+                          <td className="px-4 py-3">{row.date}</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              row.status === "Completed" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                              row.status === "Cancelled" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" :
+                              "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                            }`}>
+                              {row.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+              
+              {report === "payments" && (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-100 dark:bg-[#222b3a] text-gray-700 dark:text-gray-200 uppercase">
+                      <th className="px-4 py-3 text-left">ID</th>
+                      <th className="px-4 py-3 text-left">User</th>
+                      <th className="px-4 py-3 text-left">Type</th>
+                      <th className="px-4 py-3 text-left">Method</th>
+                      <th className="px-4 py-3 text-left">Amount (LKR)</th>
+                      <th className="px-4 py-3 text-left">Date</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
-          {report === "spots" && (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-100 dark:bg-[#222b3a] text-gray-700 dark:text-gray-200 uppercase">
-                  <th className="px-4 py-2 text-left">ID</th>
-                  <th className="px-4 py-2 text-left">Location</th>
-                  <th className="px-4 py-2 text-left">Total</th>
-                  <th className="px-4 py-2 text-left">Available</th>
-                  <th className="px-4 py-2 text-left">Occupied</th>
-                </tr>
-              </thead>
-              <tbody>
-                {spotsData.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
-                      No parking spots found.
-                    </td>
-                  </tr>
-                ) : (
-                  spotsData.map((row, idx) => (
-                    <tr
-                      key={row.id}
-                      className={`border-b border-gray-100 dark:border-[#222b3a] transition-all ${
-                        idx % 2 === 0 ? "bg-gray-50 dark:bg-[#232b39]" : ""
-                      }`}
-                    >
-                      <td className="px-4 py-2 font-mono">{row.id}</td>
-                      <td className="px-4 py-2">{row.location}</td>
-                      <td className="px-4 py-2">{row.total}</td>
-                      <td className="px-4 py-2">{row.available}</td>
-                      <td className="px-4 py-2">{row.occupied}</td>
+                  </thead>
+                  <tbody>
+                    {filteredPayments.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                          No payments for selected period or filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredPayments.map((row, idx) => (
+                        <tr
+                          key={row.id}
+                          className={`border-b border-gray-100 dark:border-[#222b3a] transition-all hover:bg-blue-50 dark:hover:bg-[#1e2a3d] ${
+                            idx % 2 === 0 ? "bg-gray-50 dark:bg-[#232b39]" : ""
+                          }`}
+                        >
+                          <td className="px-4 py-3 font-mono">{row.id}</td>
+                          <td className="px-4 py-3">{row.user}</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              row.type === "Booking" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
+                              "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+                            }`}>
+                              {row.type}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">{row.method}</td>
+                          <td className="px-4 py-3">{row.amount}</td>
+                          <td className="px-4 py-3">{row.date}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+              
+              {report === "spots" && (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-100 dark:bg-[#222b3a] text-gray-700 dark:text-gray-200 uppercase">
+                      <th className="px-4 py-3 text-left">ID</th>
+                      <th className="px-4 py-3 text-left">Location</th>
+                      <th className="px-4 py-3 text-left">Coordinates</th>
+                      <th className="px-4 py-3 text-left">Total</th>
+                      <th className="px-4 py-3 text-left">Available</th>
+                      <th className="px-4 py-3 text-left">Occupied</th>
+                      <th className="px-4 py-3 text-left">Rate/hr (LKR)</th>
+                      <th className="px-4 py-3 text-left">Occupancy</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {filteredSpots.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                          No parking spots found matching your search.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredSpots.map((row, idx) => (
+                        <tr
+                          key={row.id}
+                          className={`border-b border-gray-100 dark:border-[#222b3a] transition-all hover:bg-blue-50 dark:hover:bg-[#1e2a3d] ${
+                            idx % 2 === 0 ? "bg-gray-50 dark:bg-[#232b39]" : ""
+                          }`}
+                        >
+                          <td className="px-4 py-3 font-mono">{row.id}</td>
+                          <td className="px-4 py-3">{row.location}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{row.coordinates}</td>
+                          <td className="px-4 py-3">{row.total}</td>
+                          <td className="px-4 py-3">{row.available}</td>
+                          <td className="px-4 py-3">{row.occupied}</td>
+                          <td className="px-4 py-3">{row.hourlyRate}</td>
+                          <td className="px-4 py-3">
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                              <div 
+                                className={`h-2.5 rounded-full ${
+                                  (row.occupied / row.total) > 0.8 ? "bg-red-600" : 
+                                  (row.occupied / row.total) > 0.5 ? "bg-yellow-500" : 
+                                  "bg-green-500"
+                                }`} 
+                                style={{ width: `${(row.occupied / row.total) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-gray-500 mt-1">
+                              {Math.round((row.occupied / row.total) * 100)}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </>
           )}
         </div>
-        <div className="flex justify-end mt-2">
-          <span className="text-xs text-gray-500">
+        
+        <div className="flex justify-between items-center mt-4 text-xs text-gray-500 dark:text-gray-400">
+          <span>
             {report === "bookings"
-              ? `Showing ${bookingsFiltered.length} of ${bookingsData.length} bookings`
+              ? `Showing ${filteredBookings.length} of ${bookingsData.length} bookings`
               : report === "payments"
-              ? `Showing ${paymentsFiltered.length} of ${paymentsData.length} payments`
-              : `Showing ${spotsData.length} parking locations`}
+              ? `Showing ${filteredPayments.length} of ${paymentsData.length} payments`
+              : `Showing ${filteredSpots.length} of ${spotsData.length} parking locations`}
           </span>
+          <span>Last updated: {new Date().toLocaleString()}</span>
         </div>
       </div>
     </div>

@@ -62,53 +62,84 @@
 //   )
 // }
 
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+type UserRole = "user" | "admin" | "landowner" | "parking coordinator";
+
+const roleDashboardMap: Record<UserRole, string> = {
+  user: "/dashboard/user",
+  admin: "/dashboard/admin",
+  landowner: "/dashboard/landowner",
+  "parking coordinator": "/dashboard/parking-coordinator",
+};
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const navigate = useNavigate()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Login failed")
-        return
+        setError(data.message || "Login failed");
+        setLoading(false);
+        return;
       }
 
+      // If 2FA is required
       if (data.message === "Enter OTP") {
-        navigate(`/otp?userId=${data.userId}`)
+        navigate(`/otp?userId=${data.userId}`);
+        setLoading(false);
+        return;
+      }
+
+      // Save token and role for later use (e.g. in AuthContext)
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+
+      // Role-based redirection
+      const role = data.role as UserRole;
+      if (role && roleDashboardMap[role]) {
+        navigate(roleDashboardMap[role]);
       } else {
-        localStorage.setItem("token", data.token)
-        navigate("/dashboard")
+        // fallback if role is missing or unknown
+        navigate("/dashboard");
       }
     } catch (err) {
-      setError("An unexpected error occurred.")
+      setError("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
+    <form
+      onSubmit={handleSubmit}
+      className={cn("flex flex-col gap-6", className)}
+      {...props}
+    >
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Login to your account</h1>
         <p className="text-balance text-sm text-muted-foreground">
@@ -128,12 +159,17 @@ export function LoginForm({
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+            disabled={loading}
           />
         </div>
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
-            <a href="#" className="ml-auto text-sm underline-offset-4 hover:underline">
+            <a
+              href="#"
+              className="ml-auto text-sm underline-offset-4 hover:underline"
+            >
               Forgot your password?
             </a>
           </div>
@@ -143,9 +179,13 @@ export function LoginForm({
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            disabled={loading}
           />
         </div>
-        <Button type="submit" className="w-full">Login</Button>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </Button>
       </div>
 
       <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
@@ -154,7 +194,7 @@ export function LoginForm({
         </span>
       </div>
 
-      <Button variant="outline" className="w-full">
+      <Button variant="outline" className="w-full" type="button" disabled={loading}>
         Login with Google
       </Button>
 
@@ -165,5 +205,6 @@ export function LoginForm({
         </a>
       </div>
     </form>
-  )
+  );
 }
+

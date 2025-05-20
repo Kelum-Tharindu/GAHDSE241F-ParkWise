@@ -27,6 +27,18 @@ import AccountSettings from "./pages/accountSettings/AccountSettingsUI";
 import Pricing from "./pages/pricing&plans/pricing";
 import Payments from "./pages/payments/payemnts";
 import Reports from "./pages/Reports/Reports";
+import LandownerParkingRentalsTable from "./pages/Landowner/ViewLand/ViewLand";
+import ParkingAreaAddForm from "./pages/Landowner/AddLand/AddNewLandForm";
+import LandownerCurrentBookingsTable  from "./pages/Landowner/Booking/CurrentBooking";
+import LandownerBookingHistoryTable from "./pages/Landowner/Booking/BookingHistory";
+import LandownerTransactionHistory from "./pages/Landowner/Earnings/TransactionHistory";
+import LandownerPayoutsTable from "./pages/Landowner/Earnings/PayoutRequests";
+import ParkingCoordinatorChunksTable from "./pages/EventCoordinator/PurchasedChunks/ViewChunks";
+import PurchaseParkingChunk from "./pages/EventCoordinator/PurchasedChunks/PurchaseNewChunk";
+import ParkingChunkPayment from "./pages/EventCoordinator/Payments/spotsChunkPayment";
+import LandownerHome from "./pages/Landowner/Home/Home";
+import ParkingCoordinatorHome from "./pages/EventCoordinator/Home/Home";
+
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
@@ -40,6 +52,12 @@ export default function App() {
         {/* Dashboard Layout */}
         <Route element={<AppLayout />}>
           <Route index path="/" element={<Home />} />
+
+          <Route path="/landownerhome" element={<LandownerHome />} />
+
+          <Route path="/parkingcoordinatorhome" element={<ParkingCoordinatorHome />} />
+
+          {/* Dashboard */}
 
           {/* Others Page */}
           <Route path="/profile" element={<UserProfiles />} />
@@ -79,6 +97,24 @@ export default function App() {
           <Route path="/payments" element={<Payments />} />
 
           <Route path="/reports" element={<Reports />} />
+
+          <Route path="/view-lands" element={<LandownerParkingRentalsTable />} />
+
+          <Route path="/add-parking-area" element={<ParkingAreaAddForm />} />
+
+          <Route path="/landowner-bookings" element={<LandownerCurrentBookingsTable  />} />
+
+          <Route path="/landowner-booking-history" element={<LandownerBookingHistoryTable />} />
+
+          <Route path="/landowner-transaction-history" element={<LandownerTransactionHistory />} />
+
+          <Route path="/landowner-payouts" element={<LandownerPayoutsTable />} />
+
+          <Route path="/coordinator-purchased-chunks" element={<ParkingCoordinatorChunksTable />} />
+
+          <Route path="/purchase-parking-chunk" element={<PurchaseParkingChunk />} />
+
+          <Route path="/parking-chunk-payment" element={<ParkingChunkPayment />} />
 
           {/* 2FA */}
         </Route>
