@@ -200,9 +200,109 @@ const getBookingHistoryByUserId = async (req, res) => {
   }
 };
 
+// Get all bookings
+const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .sort({ bookingDate: -1 }) // Sort by booking date, newest first
+      .lean();
+
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({ message: 'No bookings found' });
+    }
+
+    // Transform data to match front-end structure
+    const formattedBookings = bookings.map(booking => {
+      // Get color based on booking status
+      let color;
+      switch (booking.bookingState) {
+        case 'completed':
+          color = { r: 21, g: 166, b: 110, a: 1 };
+          break;
+        case 'active':
+          color = { r: 1, g: 50, b: 32, a: 1 };
+          break;
+        case 'ongoing':
+          color = { r: 255, g: 165, b: 0, a: 1 }; // Orange for ongoing
+          break;
+        case 'cancelled':
+          color = { r: 255, g: 0, b: 0, a: 1 }; // Red for cancelled
+          break;
+        default:
+          color = { r: 2, g: 89, b: 57, a: 1 };
+      }
+
+      const dateObj = new Date(booking.bookingDate);
+      const dateFormatted = dateObj.toLocaleDateString('en-US', { 
+        month: 'short',
+        day: 'numeric', 
+        year: 'numeric'
+      });
+
+      // Format entry and exit times
+      const entryTimeFormatted = booking.entryTime ? new Date(booking.entryTime).toLocaleTimeString() : 'N/A';
+      const exitTimeFormatted = booking.exitTime ? new Date(booking.exitTime).toLocaleTimeString() : 'N/A';
+
+      // Calculate extra time fee if exists
+      const extraTimeFee = booking.exitedBookingTime?.extraTimeFee || 0;
+      const extraTime = booking.exitedBookingTime?.extraTime || 'N/A';
+
+      return {
+        id: booking._id,
+        location: booking.parkingName,
+        date: dateFormatted,
+        duration: booking.totalDuration || 'N/A',
+        cost: `$${((booking.fee?.totalFee || 0) / 100).toFixed(2)}`,
+        status: booking.bookingState.charAt(0).toUpperCase() + booking.bookingState.slice(1),
+        color: color,
+        vehicleType: booking.vehicleType,
+        entryTime: entryTimeFormatted,
+        exitTime: exitTimeFormatted,
+        paymentStatus: booking.paymentStatus,
+        userId: booking.userId,
+        billingHash: booking.billingHash,
+        qrImage: booking.qrImage,
+        feeDetails: {
+          usageFee: `$${((booking.fee?.usageFee || 0) / 100).toFixed(2)}`,
+          bookingFee: `$${((booking.fee?.bookingFee || 0) / 100).toFixed(2)}`,
+          totalFee: `$${((booking.fee?.totalFee || 0) / 100).toFixed(2)}`,
+          extraTimeFee: `$${(extraTimeFee / 100).toFixed(2)}`
+        },
+        extraTime: extraTime,
+        createdAt: new Date(booking.createdAt).toLocaleString(),
+        updatedAt: new Date(booking.updatedAt).toLocaleString()
+      };
+    });
+
+    // Calculate summary statistics
+    const summary = {
+      totalBookings: formattedBookings.length,
+      activeBookings: formattedBookings.filter(b => b.status === 'Active').length,
+      completedBookings: formattedBookings.filter(b => b.status === 'Completed').length,
+      cancelledBookings: formattedBookings.filter(b => b.status === 'Cancelled').length,
+      ongoingBookings: formattedBookings.filter(b => b.status === 'Ongoing').length,
+      totalRevenue: formattedBookings.reduce((sum, booking) => {
+        return sum + (parseFloat(booking.cost.replace('$', '')) || 0);
+      }, 0).toFixed(2)
+    };
+
+    res.status(200).json({
+      bookings: formattedBookings,
+      summary: summary
+    });
+  } catch (error) {
+    console.error('Error fetching all bookings:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch bookings', 
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   calculateFee,
   confirmBooking,
   getParkingNames,
-  getBookingHistoryByUserId
+  getBookingHistoryByUserId,
+  getAllBookings
 };

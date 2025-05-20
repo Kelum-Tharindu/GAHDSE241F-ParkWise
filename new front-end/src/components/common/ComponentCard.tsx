@@ -10,6 +10,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   children,
   className = "",
   desc = "",
+
 }) => {
   return (
     <div

@@ -7,5 +7,6 @@ router.post('/calculate-fee', bookingController.calculateFee);
 router.post('/confirm-booking', bookingController.confirmBooking);
 router.get('/parking-names', getParkingNames);
 router.get('/booking-history/:userId', bookingController.getBookingHistoryByUserId);
+router.get('/all-bookings', bookingController.getAllBookings);
 
 module.exports = router;
