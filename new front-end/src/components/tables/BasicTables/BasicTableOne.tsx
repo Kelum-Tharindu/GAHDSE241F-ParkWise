@@ -114,50 +114,61 @@ export default function BookingListTable() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <div className="p-4 border-b border-gray-100 dark:border-white/[0.05] flex justify-between items-center">
+          <h3 className="font-semibold text-lg text-gray-800 dark:text-white">Booking Details</h3>
+          <div className="flex space-x-2">
+            <div className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium dark:bg-blue-900/30 dark:text-blue-300">
+              All Bookings
+            </div>
+            <div className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:bg-gray-200 dark:bg-white/[0.05] dark:text-gray-300 dark:hover:bg-white/[0.08]">
+              Export
+            </div>
+          </div>
+        </div>
         <div className="max-w-full overflow-x-auto">
           <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+            <TableHeader className="bg-gray-50 dark:bg-white/[0.02]">
               <TableRow>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-xs uppercase tracking-wider dark:text-gray-300"
                 >
                   Location
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-xs uppercase tracking-wider dark:text-gray-300"
                 >
                   Vehicle Type
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-xs uppercase tracking-wider dark:text-gray-300"
                 >
                   Time Slot
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-xs uppercase tracking-wider dark:text-gray-300"
                 >
                   Duration
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-xs uppercase tracking-wider dark:text-gray-300"
                 >
                   Status
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-xs uppercase tracking-wider dark:text-gray-300"
                 >
                   Payment
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-xs uppercase tracking-wider dark:text-gray-300"
                 >
                   Total Fee
                 </TableCell>
@@ -165,10 +176,16 @@ export default function BookingListTable() {
             </TableHeader>
 
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {bookings.map((booking) => (
-                <TableRow key={booking.id}>
+              {bookings.map((booking, index) => (
+                <TableRow 
+                  key={booking.id}
+                  className={`hover:bg-gray-50 transition-colors duration-150 ease-in-out dark:hover:bg-white/[0.02] ${index % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50/50 dark:bg-white/[0.01]'}`}
+                >
                   <TableCell className="px-5 py-4 sm:px-6 text-start">
                     <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium dark:bg-blue-900/30 dark:text-blue-300">
+                        {booking.location.charAt(0)}
+                      </div>
                       <div>
                         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
                           {booking.location}
@@ -179,16 +196,26 @@ export default function BookingListTable() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  <TableCell className="px-4 py-3 text-gray-700 font-medium text-start text-theme-sm dark:text-gray-300">
                     {booking.vehicleType}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {`${booking.entryTime} - ${booking.exitTime}`}
+                  <TableCell className="px-4 py-3 text-gray-700 text-start text-theme-sm dark:text-gray-300">
+                    <div className="flex items-center">
+                      <svg className="w-4 h-4 text-gray-400 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {`${booking.entryTime} - ${booking.exitTime}`}
+                    </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {booking.duration}
+                  <TableCell className="px-4 py-3 text-gray-700 text-start text-theme-sm dark:text-gray-300">
+                    <div className="flex items-center">
+                      <svg className="w-4 h-4 text-gray-400 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {booking.duration}
+                    </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  <TableCell className="px-4 py-3 text-start">
                     <Badge
                       size="sm"
                       color={
@@ -204,7 +231,7 @@ export default function BookingListTable() {
                       {booking.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  <TableCell className="px-4 py-3 text-start">
                     <Badge
                       size="sm"
                       color={booking.paymentStatus === "completed" ? "success" : "warning"}
@@ -212,13 +239,31 @@ export default function BookingListTable() {
                       {booking.paymentStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                  <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-white/90">
                     {booking.cost}
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
+              ))}            </TableBody>
           </Table>
+        </div>
+        <div className="px-5 py-3 border-t border-gray-100 dark:border-white/[0.05] flex justify-between items-center">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Showing {bookings.length} entries
+          </span>
+          <div className="inline-flex rounded-md shadow-sm">
+            <button className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 dark:bg-white/[0.03] dark:border-white/[0.1] dark:text-gray-300 dark:hover:bg-white/[0.05]">
+              Previous
+            </button>
+            <button className="px-3 py-1 text-sm font-medium text-white bg-blue-600 border border-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:border-blue-600 dark:hover:bg-blue-700">
+              1
+            </button>
+            <button className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-white/[0.03] dark:border-white/[0.1] dark:text-gray-300 dark:hover:bg-white/[0.05]">
+              2
+            </button>
+            <button className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 dark:bg-white/[0.03] dark:border-white/[0.1] dark:text-gray-300 dark:hover:bg-white/[0.05]">
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>
