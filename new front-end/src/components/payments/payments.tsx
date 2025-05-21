@@ -12,6 +12,24 @@ import {
   FaClock,
 } from "react-icons/fa";
 
+// Define types for payments
+interface BasePayment {
+  id: string;
+  date: string;
+  amount: number;
+  method: string;
+  location: string;
+  status: string;
+}
+
+interface CustomerPayment extends BasePayment {
+  spot: string;
+}
+
+interface LandownerPayment extends BasePayment {
+  spaces: number;
+}
+
 // Example data
 const customerPayments = [
   {
@@ -78,13 +96,13 @@ function formatLKR(amount: number) {
 }
 
 function StatusChip({ status }: { status: string }) {
-  let color =
+  const color =
     status === "Completed" || status === "Paid"
       ? "bg-green-100 text-green-700"
       : status === "Pending"
       ? "bg-yellow-100 text-yellow-700"
       : "bg-red-100 text-red-700";
-  let icon =
+  const icon =
     status === "Completed" || status === "Paid" ? (
       <FaCheckCircle className="mr-1" />
     ) : status === "Pending" ? (
@@ -248,8 +266,8 @@ export default function PaymentTables() {
                     <td className="px-2 py-2">{payment.location}</td>
                     <td className="px-2 py-2">
                       {showCustomers
-                        ? (payment as any).spot
-                        : (payment as any).spaces}
+                        ? (payment as CustomerPayment).spot
+                        : (payment as LandownerPayment).spaces}
                     </td>
                     <td className="px-2 py-2">
                       <StatusChip status={payment.status} />

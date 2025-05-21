@@ -16,8 +16,7 @@ const cors = require('cors');
 const os = require('os');
 const landownerRoutes = require('./routes/landownerRoutes');
 const userRoutes = require('./routes/userRoutes');
-
-
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // -------------------- GET LOCAL IP --------------------
 const getLocalIP = () => {
@@ -101,6 +100,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userProfileRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/landowners', landownerRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // -------------------- TEST ROUTE --------------------
 app.get('/', (req, res) => {

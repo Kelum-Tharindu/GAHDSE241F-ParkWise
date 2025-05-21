@@ -2,6 +2,7 @@ const Booking = require('../models/bookingmodel');
 const Parking = require('../models/parkingmodel');
 const crypto = require('crypto');
 const { generateQR } = require("../utils/qrGenertor");
+const paymentController = require('./paymentController');
 
 // Helper: calculate duration in minutes
 function calculateMinutes(entry, exit) {
@@ -50,7 +51,8 @@ const confirmBooking = async (req, res) => {
       fee,
       paymentStatus,
       bookingState,
-      vehicleType
+      vehicleType,
+      paymentMethod
     } = req.body;
 
     // Generate unique billingHash and qrImage
@@ -77,6 +79,18 @@ const confirmBooking = async (req, res) => {
     });
 
     const savedBooking = await newBooking.save();
+    
+    // Create a payment record if the payment status is completed
+    if (paymentStatus === 'completed') {
+      try {
+        await paymentController.processBookingPayment(savedBooking._id, paymentMethod || 'Credit Card');
+      } catch (paymentError) {
+        console.error('Payment processing error:', paymentError);
+        // Continue with the booking even if payment processing fails
+        // We can handle failed payments separately
+      }
+    }
+    
     res.status(201).json(savedBooking);
   } catch (error) {
     console.error('Error confirming booking:', error);
@@ -313,8 +327,6 @@ const getAllBookings = async (req, res) => {
     });
   }
 };
-
-
 
 module.exports = {
   calculateFee,
