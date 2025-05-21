@@ -94,9 +94,13 @@ app.use(passport.session());
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use('/parking', parkingRoutes);
-app.use("/billing", billingRoutes);
-app.use('/landowner', landownerRoutes);
+app.use('/api/parking', parkingRoutes);
+app.use('/api/billing', billingRoutes);
+app.use('/api/qr', qrRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/users', userProfileRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/landowners', landownerRoutes);
 
 // -------------------- TEST ROUTE --------------------
 app.get('/', (req, res) => {
