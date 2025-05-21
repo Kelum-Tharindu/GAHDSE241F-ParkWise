@@ -3,7 +3,6 @@ import {
   FaSearch,
   FaEye,
   FaTrash,
-  FaPlus,
   FaFilter,
   FaUser,
   FaEnvelope,
@@ -24,6 +23,8 @@ import {
   FaTruck,
   FaMoneyBillWave,
   FaCalendarAlt,
+  FaExclamationTriangle,
+  FaCheck,
 } from "react-icons/fa";
 import axios from 'axios';
 
@@ -102,6 +103,8 @@ export default function LandownerManagementTable() {
   const [darkMode, setDarkMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<{id: string, message: string} | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState<{id: string, message: string} | null>(null);
 
   useEffect(() => {
     fetchLandowners();
@@ -138,15 +141,60 @@ export default function LandownerManagementTable() {
     localStorage.theme = newDark ? "dark" : "light";
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this landowner?")) {
-      try {
-        await axios.delete(`http://localhost:5000/api/landowners/${id}`);
-        setLandowners(prev => prev.filter(landowner => landowner._id !== id));
-      } catch (err) {
-        console.error('Error deleting landowner:', err);
-        alert('Failed to delete landowner');
+  const handleDelete = async (id: string, landownerName: string) => {
+    try {
+      // Clear any previous error/success messages
+      setDeleteError(null);
+      setDeleteSuccess(null);
+      
+      // Find the landowner to check for parking
+      const landowner = landowners.find(l => l._id === id);
+      
+      // Check if landowner has parking locations
+      if (landowner && Array.isArray(landowner.parkingDetails) && landowner.parkingDetails.length > 0) {
+        setDeleteError({
+          id,
+          message: `Cannot delete ${landownerName}. Please remove all associated parking locations first.`
+        });
+        
+        // Auto-dismiss the error after 5 seconds
+        setTimeout(() => {
+          setDeleteError(null);
+        }, 5000);
+        
+        return;
       }
+      
+      // If no parking locations, confirm deletion
+      if (window.confirm(`Are you sure you want to delete ${landownerName}? This will also delete their user account.`)) {
+        // Delete from both collections - call our backend endpoint
+        await axios.delete(`http://localhost:5000/api/landowners/${id}`);
+        
+        // Update UI state
+        setLandowners(prev => prev.filter(landowner => landowner._id !== id));
+        
+        // Show success message
+        setDeleteSuccess({
+          id,
+          message: `${landownerName} has been successfully deleted.`
+        });
+        
+        // Auto-dismiss the success message after 3 seconds
+        setTimeout(() => {
+          setDeleteSuccess(null);
+        }, 3000);
+      }
+    } catch (err) {
+      console.error('Error deleting landowner:', err);
+      setDeleteError({
+        id,
+        message: `Failed to delete ${landownerName}. Please try again.`
+      });
+      
+      // Auto-dismiss the error after 5 seconds
+      setTimeout(() => {
+        setDeleteError(null);
+      }, 5000);
     }
   };
 
@@ -194,6 +242,19 @@ export default function LandownerManagementTable() {
             )}
           </button>
         </div>
+        
+        {/* Error/Success Messages */}
+        {deleteError && (
+          <div className="mx-4 mt-4 p-3 bg-red-100 text-red-700 rounded-lg flex items-center dark:bg-red-900/30 dark:text-red-400">
+            <FaExclamationTriangle className="mr-2" /> {deleteError.message}
+          </div>
+        )}
+        
+        {deleteSuccess && (
+          <div className="mx-4 mt-4 p-3 bg-green-100 text-green-700 rounded-lg flex items-center dark:bg-green-900/30 dark:text-green-400">
+            <FaCheck className="mr-2" /> {deleteSuccess.message}
+          </div>
+        )}
         
         {viewLandowner ? (
           <div className="p-8">
@@ -295,14 +356,21 @@ export default function LandownerManagementTable() {
                           </div>
                         </div>
                         {parking.qrCode && (
-                          <div className="mt-3 md:mt-0">
+                          <div className="mt-3 md:mt-0 flex flex-col items-center">
+                            <div className="bg-white p-2 rounded-lg shadow-sm mb-2">
+                              <img 
+                                src={parking.qrCode} 
+                                alt={`QR Code for ${parking.name}`} 
+                                className="w-24 h-24 object-contain"
+                              />
+                            </div>
                             <a 
                               href={parking.qrCode} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="text-blue-600 dark:text-blue-400 text-xs flex items-center"
                             >
-                              View QR Code <FaExternalLinkAlt className="ml-1" size={10} />
+                              View Full Size <FaExternalLinkAlt className="ml-1" size={10} />
                             </a>
                           </div>
                         )}
@@ -512,11 +580,6 @@ export default function LandownerManagementTable() {
                 >
                   <FaFilter /> Filters
                 </button>
-                <button
-                  className="flex items-center gap-2 bg-blue-600 dark:bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-700 transition text-xs font-medium"
-                >
-                  <FaPlus /> Add Landowner
-                </button>
               </div>
             </div>
             
@@ -557,6 +620,9 @@ export default function LandownerManagementTable() {
                       // Get username from the appropriate location
                       const username = landowner.username || landowner.userDetails?.username || 'N/A';
                       
+                      // Check if landowner has parking locations
+                      const hasParkingLocations = Array.isArray(landowner.parkingDetails) && landowner.parkingDetails.length > 0;
+                      
                       return (
                         <tr key={landowner._id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
                           <td className="px-2 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">{landowner._id}</td>
@@ -584,11 +650,22 @@ export default function LandownerManagementTable() {
                           </td>
                           <td className="px-2 py-2 whitespace-nowrap text-center">
                             <button
-                              onClick={() => handleDelete(landowner._id)}
-                              className="inline-flex items-center justify-center p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                              title="Delete landowner"
+                              onClick={() => handleDelete(landowner._id, fullName)}
+                              className={`inline-flex items-center justify-center p-2 rounded-full ${
+                                hasParkingLocations 
+                                  ? "hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 relative" 
+                                  : "hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                              }`}
+                              title={hasParkingLocations 
+                                ? "Cannot delete: Has parking locations" 
+                                : "Delete landowner"}
                             >
                               <FaTrash size={14} />
+                              {hasParkingLocations && (
+                                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                </span>
+                              )}
                             </button>
                           </td>
                         </tr>
