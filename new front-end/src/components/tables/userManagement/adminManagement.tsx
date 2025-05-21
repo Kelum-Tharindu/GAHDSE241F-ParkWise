@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import {
   FaSearch,
   FaEye,
@@ -14,73 +15,98 @@ import {
   FaClipboardList,
   FaArrowLeft,
   FaUserShield,
+  FaExclamationTriangle,
+  FaCheck,
+  FaEdit,
 } from "react-icons/fa";
 
-interface Admin {
-  id: number;
-  avatar: string;
+interface User {
+  _id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  postalCode?: string;
+  taxId?: string;
+  socialLinks?: {
+    facebook?: string;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+}
+
+interface AdminFormData {
   firstName: string;
   lastName: string;
   email: string;
   username: string;
-  userType: string;
-  applicationAccess: string;
-  status: "Active" | "Inactive";
-  dateAdded: string;
+  password: string;
+  role: string;
+  phone: string;
+  country: string;
+  city: string;
+  postalCode: string;
   addedBy: string;
   notes: string;
 }
 
-const initialAdmins: Admin[] = [
-  {
-    id: 1,
-    avatar: "/images/user/user-1.jpg",
-    firstName: "Alice",
-    lastName: "Johnson",
-    email: "alice.johnson@company.com",
-    username: "alicej",
-    userType: "System Admin",
-    applicationAccess: "Dashboard, Reports",
-    status: "Active",
-    dateAdded: "2025-04-27",
-    addedBy: "superadmin",
-    notes: "Main system administrator.",
-  },
-  {
-    id: 2,
-    avatar: "/images/user/user-2.jpg",
-    firstName: "Bob",
-    lastName: "Smith",
-    email: "bob.smith@company.com",
-    username: "bobsmith",
-    userType: "Department Admin",
-    applicationAccess: "Dashboard",
-    status: "Active",
-    dateAdded: "2025-04-28",
-    addedBy: "alicej",
-    notes: "",
-  },
-];
-
 export default function AdminManagementTable() {
-  const [admins, setAdmins] = useState<Admin[]>(initialAdmins);
+  const [admins, setAdmins] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [viewAdmin, setViewAdmin] = useState<Admin | null>(null);
+  const [viewAdmin, setViewAdmin] = useState<User | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  const [form, setForm] = useState<Omit<Admin, "id" | "status" | "dateAdded">>({
-    avatar: "",
+  const initialFormState: AdminFormData = {
     firstName: "",
     lastName: "",
     email: "",
     username: "",
-    userType: "",
-    applicationAccess: "",
+    password: "",
+    role: "admin",
+    phone: "",
+    country: "",
+    city: "",
+    postalCode: "",
     addedBy: "",
     notes: "",
-  });
+  };
+
+  const [form, setForm] = useState<AdminFormData>(initialFormState);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    fetchAdmins();
+  }, []);
+
+  const fetchAdmins = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:5000/api/users/role/admin');
+      if (response.data.success) {
+        setAdmins(response.data.data);
+      } else {
+        setError("Failed to fetch admins");
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching admins:", err);
+      setError("Failed to fetch admins. Please try again later.");
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const isDark =
@@ -105,9 +131,8 @@ export default function AdminManagementTable() {
     if (!form.email.trim()) errs.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = "Invalid email address";
     if (!form.username.trim()) errs.username = "Username is required";
-    if (!form.userType.trim()) errs.userType = "User type is required";
-    if (!form.applicationAccess.trim()) errs.applicationAccess = "Application access is required";
-    if (!form.addedBy.trim()) errs.addedBy = "Added By is required";
+    if (!isEditMode && !form.password.trim()) errs.password = "Password is required";
+    else if (!isEditMode && form.password.length < 6) errs.password = "Password must be at least 6 characters";
     return errs;
   };
 
@@ -119,53 +144,149 @@ export default function AdminManagementTable() {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    setAdmins((prev) => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map((a) => a.id)) + 1 : 1,
-        ...form,
-        avatar: form.avatar || "/images/user/default.jpg",
-        status: "Active",
-        dateAdded: new Date().toISOString().slice(0, 10),
-      },
-    ]);
-    setShowAddForm(false);
-    setForm({
-      avatar: "",
-      firstName: "",
-      lastName: "",
-      email: "",
-      username: "",
-      userType: "",
-      applicationAccess: "",
-      addedBy: "",
-      notes: "",
-    });
+
+    try {
+      if (isEditMode && viewAdmin) {
+        // Update existing admin
+        const response = await axios.put(`http://localhost:5000/api/users/${viewAdmin._id}`, {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          username: form.username,
+          phone: form.phone,
+          country: form.country,
+          city: form.city,
+          postalCode: form.postalCode,
+          ...(form.password && { password: form.password }),
+        });
+
+        if (response.data.success) {
+          setSuccessMessage("Admin updated successfully");
+          fetchAdmins();
+          setShowAddForm(false);
+          setIsEditMode(false);
+          resetForm();
+          
+          // Auto dismiss success message after 3 seconds
+          setTimeout(() => {
+            setSuccessMessage(null);
+          }, 3000);
+        }
+      } else {
+        // Create new admin
+        const response = await axios.post('http://localhost:5000/api/users', {
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          username: form.username,
+          password: form.password,
+          role: "admin",
+          phone: form.phone,
+          country: form.country,
+          city: form.city,
+          postalCode: form.postalCode,
+          addedBy: form.addedBy,
+        });
+
+        if (response.data.success) {
+          setSuccessMessage("Admin created successfully");
+          fetchAdmins();
+          setShowAddForm(false);
+          resetForm();
+          
+          // Auto dismiss success message after 3 seconds
+          setTimeout(() => {
+            setSuccessMessage(null);
+          }, 3000);
+        }
+      }
+    } catch (err: any) {
+      console.error("Error saving admin:", err);
+      setError(err.response?.data?.message || "Failed to save admin. Please try again.");
+      
+      // Auto dismiss error message after 5 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("Are you sure you want to delete this admin?")) {
-      setAdmins((prev) => prev.filter((a) => a.id !== id));
+  const resetForm = () => {
+    setForm(initialFormState);
+    setErrors({});
+  };
+
+  const handleEdit = (admin: User) => {
+    setForm({
+      firstName: admin.firstName || "",
+      lastName: admin.lastName || "",
+      email: admin.email || "",
+      username: admin.username || "",
+      password: "", // Don't populate password for security
+      role: "admin",
+      phone: admin.phone || "",
+      country: admin.country || "",
+      city: admin.city || "",
+      postalCode: admin.postalCode || "",
+      addedBy: admin.createdBy || "",
+      notes: "",
+    });
+    setViewAdmin(admin);
+    setIsEditMode(true);
+    setShowAddForm(true);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+      try {
+        const response = await axios.delete(`http://localhost:5000/api/users/${id}`);
+        
+        if (response.data.success) {
+          setSuccessMessage(`${name} deleted successfully`);
+          setAdmins((prev) => prev.filter((admin) => admin._id !== id));
+          
+          // Auto dismiss success message after 3 seconds
+          setTimeout(() => {
+            setSuccessMessage(null);
+          }, 3000);
+        }
+      } catch (err: any) {
+        console.error("Error deleting admin:", err);
+        setError(err.response?.data?.message || "Failed to delete admin. Please try again.");
+        
+        // Auto dismiss error message after 5 seconds
+        setTimeout(() => {
+          setError(null);
+        }, 5000);
+      }
     }
   };
 
   const filteredAdmins = useMemo(() => {
     const lower = search.trim().toLowerCase();
     if (!lower) return admins;
-    return admins.filter((a) =>
-      a.email.toLowerCase().includes(lower) ||
-      a.username.toLowerCase().includes(lower) ||
-      a.firstName.toLowerCase().includes(lower) ||
-      a.lastName.toLowerCase().includes(lower)
+    return admins.filter((admin) =>
+      admin.email?.toLowerCase().includes(lower) ||
+      admin.username?.toLowerCase().includes(lower) ||
+      admin.firstName?.toLowerCase().includes(lower) ||
+      admin.lastName?.toLowerCase().includes(lower)
     );
   }, [admins, search]);
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen font-outfit">
@@ -185,7 +306,21 @@ export default function AdminManagementTable() {
             )}
           </button>
         </div>
-        {viewAdmin ? (
+
+        {/* Success/Error Messages */}
+        {error && (
+          <div className="mx-4 mt-4 p-3 bg-red-100 text-red-700 rounded-lg flex items-center dark:bg-red-900/30 dark:text-red-400">
+            <FaExclamationTriangle className="mr-2" /> {error}
+          </div>
+        )}
+        
+        {successMessage && (
+          <div className="mx-4 mt-4 p-3 bg-green-100 text-green-700 rounded-lg flex items-center dark:bg-green-900/30 dark:text-green-400">
+            <FaCheck className="mr-2" /> {successMessage}
+          </div>
+        )}
+
+        {viewAdmin && !showAddForm ? (
           <div className="p-8">
             <button
               className="mb-6 flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 text-xs font-medium"
@@ -195,26 +330,36 @@ export default function AdminManagementTable() {
             </button>
             <div className="flex flex-col md:flex-row gap-8">
               <div className="flex flex-col items-center">
-                <img
-                  src={viewAdmin.avatar}
-                  alt={viewAdmin.firstName}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-blue-500 mb-4"
-                />
+                <div className="w-32 h-32 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mb-4">
+                  <FaUser className="w-16 h-16 text-blue-500 dark:text-blue-400" />
+                </div>
                 <h2 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">
                   {viewAdmin.firstName} {viewAdmin.lastName}
                 </h2>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold mb-4
-                  ${viewAdmin.status === "Active"
-                    ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
-                    : "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400"}
-                `}>{viewAdmin.status}</span>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold mb-4 bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">
+                  Active
+                </span>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => handleEdit(viewAdmin)}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-xs font-medium"
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(viewAdmin._id, `${viewAdmin.firstName} ${viewAdmin.lastName}`)}
+                    className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition text-xs font-medium"
+                  >
+                    <FaTrash /> Delete
+                  </button>
+                </div>
               </div>
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                 <div className="flex items-center gap-2">
                   <FaIdCard className="text-blue-500" />
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">ID</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.id}</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin._id}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -234,36 +379,41 @@ export default function AdminManagementTable() {
                 <div className="flex items-center gap-2">
                   <FaUserShield className="text-blue-500" />
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">User Type</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.userType}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Role</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.role}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <FaClipboardList className="text-blue-500" />
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Application Access</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.applicationAccess}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Phone</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.phone || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <FaClipboardList className="text-blue-500" />
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Date Added</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.dateAdded}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Location</p>
+                    <p className="font-medium text-gray-800 dark:text-white">
+                      {viewAdmin.city && viewAdmin.country ? `${viewAdmin.city}, ${viewAdmin.country}` : 'N/A'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <FaUserShield className="text-blue-500" />
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">Added By</p>
-                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.addedBy}</p>
+                    <p className="font-medium text-gray-800 dark:text-white">{viewAdmin.createdBy || 'N/A'}</p>
                   </div>
                 </div>
-                <div className="md:col-span-2 mt-4">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Notes</p>
-                  <p className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-700 dark:text-gray-300 min-h-[80px]">
-                    {viewAdmin.notes || "No notes available."}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <FaClipboardList className="text-blue-500" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Created On</p>
+                    <p className="font-medium text-gray-800 dark:text-white">
+                      {new Date(viewAdmin.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -272,11 +422,15 @@ export default function AdminManagementTable() {
           <form onSubmit={handleFormSubmit} className="p-8">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
-                Add New Admin
+                {isEditMode ? 'Edit Admin' : 'Add New Admin'}
               </h2>
               <button
                 type="button"
-                onClick={() => setShowAddForm(false)}
+                onClick={() => {
+                  setShowAddForm(false);
+                  setIsEditMode(false);
+                  resetForm();
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-xs font-medium dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               >
                 <FaArrowLeft /> Back to Table
@@ -366,84 +520,88 @@ export default function AdminManagementTable() {
                       </p>
                     )}
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Password {isEditMode && "(Leave blank to keep current password)"}
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={form.password}
+                      onChange={handleFormChange}
+                      className={`w-full px-3 py-2 border rounded-lg ${
+                        errors.password
+                          ? "border-red-500 dark:border-red-400"
+                          : "border-gray-200 dark:border-gray-700"
+                      } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
+                    />
+                    {errors.password && (
+                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                        {errors.password}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 {/* Right Column */}
                 <div className="flex-1 space-y-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      User Type
+                      Phone
                     </label>
                     <input
-                      name="userType"
-                      value={form.userType}
-                      onChange={handleFormChange}
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.userType
-                          ? "border-red-500 dark:border-red-400"
-                          : "border-gray-200 dark:border-gray-700"
-                      } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
-                      placeholder="System Admin, Department Admin, etc."
-                    />
-                    {errors.userType && (
-                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.userType}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      Application Access
-                    </label>
-                    <input
-                      name="applicationAccess"
-                      value={form.applicationAccess}
-                      onChange={handleFormChange}
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.applicationAccess
-                          ? "border-red-500 dark:border-red-400"
-                          : "border-gray-200 dark:border-gray-700"
-                      } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
-                      placeholder="Dashboard, Reports, etc."
-                    />
-                    {errors.applicationAccess && (
-                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.applicationAccess}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      <FaUserShield className="inline mr-2" /> Added By (Admin Username)
-                    </label>
-                    <input
-                      name="addedBy"
-                      value={form.addedBy}
-                      onChange={handleFormChange}
-                      className={`w-full px-3 py-2 border rounded-lg ${
-                        errors.addedBy
-                          ? "border-red-500 dark:border-red-400"
-                          : "border-gray-200 dark:border-gray-700"
-                      } text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
-                      placeholder="admin username"
-                    />
-                    {errors.addedBy && (
-                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.addedBy}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                      <FaImage className="inline mr-2" /> Avatar URL
-                    </label>
-                    <input
-                      name="avatar"
-                      value={form.avatar}
+                      name="phone"
+                      value={form.phone}
                       onChange={handleFormChange}
                       className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white"
-                      placeholder="/images/user/default.jpg"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Country
+                    </label>
+                    <input
+                      name="country"
+                      value={form.country}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      City
+                    </label>
+                    <input
+                      name="city"
+                      value={form.city}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Postal Code
+                    </label>
+                    <input
+                      name="postalCode"
+                      value={form.postalCode}
+                      onChange={handleFormChange}
+                      className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white"
+                    />
+                  </div>
+                  {!isEditMode && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        <FaUserShield className="inline mr-2" /> Added By (Admin Username)
+                      </label>
+                      <input
+                        name="addedBy"
+                        value={form.addedBy}
+                        onChange={handleFormChange}
+                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white"
+                        placeholder="Your username"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
               {/* Full Width - Notes */}
@@ -463,7 +621,11 @@ export default function AdminManagementTable() {
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setShowAddForm(false)}
+                onClick={() => {
+                  setShowAddForm(false);
+                  setIsEditMode(false);
+                  resetForm();
+                }}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               >
                 Cancel
@@ -472,7 +634,7 @@ export default function AdminManagementTable() {
                 type="submit"
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium dark:bg-blue-600 dark:hover:bg-blue-700"
               >
-                <FaPlus className="inline mr-2" /> Add Admin
+                {isEditMode ? 'Update Admin' : 'Add Admin'}
               </button>
             </div>
           </form>
@@ -499,7 +661,11 @@ export default function AdminManagementTable() {
                   <FaFilter /> Filters
                 </button>
                 <button
-                  onClick={() => setShowAddForm(true)}
+                  onClick={() => {
+                    setShowAddForm(true);
+                    setIsEditMode(false);
+                    resetForm();
+                  }}
                   className="flex items-center gap-2 bg-blue-600 dark:bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-700 transition text-xs font-medium"
                 >
                   <FaPlus /> Add Admin
@@ -511,69 +677,59 @@ export default function AdminManagementTable() {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
                 <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
                   <tr>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Avatar</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">First Name</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Name</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Username</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User Type</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date Added</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Added By</th>
-                    <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">View</th>
-                    <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Delete</th>
+                    <th scope="col" className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
+                    <th scope="col" className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                    <th scope="col" className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                    <th scope="col" className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Username</th>
+                    <th scope="col" className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
+                    <th scope="col" className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                    <th scope="col" className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-xs">
                   {filteredAdmins.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="py-8 text-center text-gray-400 dark:text-gray-500 text-xs">
+                      <td colSpan={7} className="py-8 text-center text-gray-400 dark:text-gray-500 text-xs">
                         No admins found.
                       </td>
                     </tr>
                   ) : (
                     filteredAdmins.map((admin) => (
-                      <tr key={admin.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">{admin.id}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <img
-                            src={admin.avatar || "/images/user/default.jpg"}
-                            alt={admin.firstName}
-                            className="w-6 h-6 rounded-full object-cover border border-gray-200 dark:border-gray-600"
-                          />
+                      <tr key={admin._id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">{admin._id.substring(0, 8)}...</td>
+                        <td className="px-2 py-2 whitespace-nowrap font-medium text-gray-800 dark:text-white">
+                          {admin.firstName} {admin.lastName}
                         </td>
-                        <td className="px-2 py-2 whitespace-nowrap font-medium text-gray-800 dark:text-white">{admin.firstName}</td>
-                        <td className="px-2 py-2 whitespace-nowrap font-medium text-gray-800 dark:text-white">{admin.lastName}</td>
                         <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.email}</td>
                         <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.username}</td>
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.userType}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                            ${admin.status === "Active"
-                              ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
-                              : "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400"}
-                          `}>{admin.status}</span>
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.dateAdded}</td>
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.addedBy}</td>
-                        <td className="px-2 py-2 whitespace-nowrap text-center">
-                          <button
-                            onClick={() => setViewAdmin(admin)}
-                            className="inline-flex items-center justify-center p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                            title="View admin details"
-                          >
-                            <FaEye size={14} />
-                          </button>
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{admin.phone || 'N/A'}</td>
+                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">
+                          {new Date(admin.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-2 py-2 whitespace-nowrap text-center">
-                          <button
-                            onClick={() => handleDelete(admin.id)}
-                            className="inline-flex items-center justify-center p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                            title="Delete admin"
-                          >
-                            <FaTrash size={14} />
-                          </button>
+                          <div className="flex items-center justify-center space-x-2">
+                            <button
+                              onClick={() => setViewAdmin(admin)}
+                              className="inline-flex items-center justify-center p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                              title="View admin details"
+                            >
+                              <FaEye size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleEdit(admin)}
+                              className="inline-flex items-center justify-center p-2 rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400"
+                              title="Edit admin"
+                            >
+                              <FaEdit size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(admin._id, `${admin.firstName} ${admin.lastName}`)}
+                              className="inline-flex items-center justify-center p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                              title="Delete admin"
+                            >
+                              <FaTrash size={14} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
