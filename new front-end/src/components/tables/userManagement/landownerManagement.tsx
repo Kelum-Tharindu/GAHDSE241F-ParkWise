@@ -14,6 +14,16 @@ import {
   FaIdCard,
   FaClipboardList,
   FaArrowLeft,
+  FaFacebook,
+  FaTwitter,
+  FaLinkedin,
+  FaInstagram,
+  FaExternalLinkAlt,
+  FaCar,
+  FaBicycle,
+  FaTruck,
+  FaMoneyBillWave,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import axios from 'axios';
 
@@ -267,33 +277,215 @@ export default function LandownerManagementTable() {
             {Array.isArray(viewLandowner.parkingDetails) && viewLandowner.parkingDetails.length > 0 && (
               <div className="mt-8">
                 <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Parking Locations</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-6">
                   {viewLandowner.parkingDetails.map((parking) => (
-                    <div key={parking._id} className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
-                      <h4 className="font-medium text-gray-800 dark:text-white mb-2">{parking.name}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {parking.location?.address?.street || ''}, {parking.location?.address?.city || ''}
-                      </p>
-                      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                    <div key={parking._id} className="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-lg">
+                      <div className="flex flex-col md:flex-row justify-between mb-4">
                         <div>
-                          <p className="text-gray-500 dark:text-gray-400">Car Slots</p>
-                          <p className="font-medium text-gray-800 dark:text-white">
-                            {parking.slotDetails?.car ? 
-                              `${parking.slotDetails.car.availableSlot || 0}/${parking.slotDetails.car.totalSlot || 0}` : 
-                              'N/A'}
+                          <h4 className="text-base font-medium text-gray-800 dark:text-white mb-1">{parking.name}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                            {parking.location?.address?.No ? parking.location.address.No + ', ' : ''}
+                            {parking.location?.address?.street || ''}, 
+                            {parking.location?.address?.city || ''}
+                            {parking.location?.address?.postalCode ? ', ' + parking.location.address.postalCode : ''}
                           </p>
+                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                            <span className="mr-4">Lat: {parking.location?.latitude?.toFixed(6) || 'N/A'}</span>
+                            <span>Long: {parking.location?.longitude?.toFixed(6) || 'N/A'}</span>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-gray-500 dark:text-gray-400">Bicycle Slots</p>
-                          <p className="font-medium text-gray-800 dark:text-white">
-                            {parking.slotDetails?.bicycle ? 
-                              `${parking.slotDetails.bicycle.availableSlot || 0}/${parking.slotDetails.bicycle.totalSlot || 0}` : 
-                              'N/A'}
-                          </p>
+                        {parking.qrCode && (
+                          <div className="mt-3 md:mt-0">
+                            <a 
+                              href={parking.qrCode} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 dark:text-blue-400 text-xs flex items-center"
+                            >
+                              View QR Code <FaExternalLinkAlt className="ml-1" size={10} />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+                        <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Parking Slot Details</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {/* Car Slots */}
+                          <div className="bg-white dark:bg-gray-800 rounded-md p-4 shadow-sm">
+                            <div className="flex items-center mb-3">
+                              <FaCar className="text-blue-500 mr-2" />
+                              <h6 className="font-medium text-gray-700 dark:text-gray-300">Car Slots</h6>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Available/Total</p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  {parking.slotDetails?.car ? 
+                                    `${parking.slotDetails.car.availableSlot || 0}/${parking.slotDetails.car.totalSlot || 0}` : 
+                                    'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Booked</p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  {parking.slotDetails?.car?.bookingSlot || 0}
+                                </p>
+                              </div>
+                              <div className="mt-2">
+                                <p className="text-gray-500 dark:text-gray-400 flex items-center">
+                                  <FaMoneyBillWave className="mr-1" size={10} /> 30 Min Price
+                                </p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  ${parking.slotDetails?.car?.perPrice30Min?.toFixed(2) || 'N/A'}
+                                </p>
+                              </div>
+                              <div className="mt-2">
+                                <p className="text-gray-500 dark:text-gray-400 flex items-center">
+                                  <FaCalendarAlt className="mr-1" size={10} /> Day Price
+                                </p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  ${parking.slotDetails?.car?.perDayPrice?.toFixed(2) || 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Bicycle Slots */}
+                          <div className="bg-white dark:bg-gray-800 rounded-md p-4 shadow-sm">
+                            <div className="flex items-center mb-3">
+                              <FaBicycle className="text-green-500 mr-2" />
+                              <h6 className="font-medium text-gray-700 dark:text-gray-300">Bicycle Slots</h6>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Available/Total</p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  {parking.slotDetails?.bicycle ? 
+                                    `${parking.slotDetails.bicycle.availableSlot || 0}/${parking.slotDetails.bicycle.totalSlot || 0}` : 
+                                    'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Booked</p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  {parking.slotDetails?.bicycle?.bookingSlot || 0}
+                                </p>
+                              </div>
+                              <div className="mt-2">
+                                <p className="text-gray-500 dark:text-gray-400 flex items-center">
+                                  <FaMoneyBillWave className="mr-1" size={10} /> 30 Min Price
+                                </p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  ${parking.slotDetails?.bicycle?.perPrice30Min?.toFixed(2) || 'N/A'}
+                                </p>
+                              </div>
+                              <div className="mt-2">
+                                <p className="text-gray-500 dark:text-gray-400 flex items-center">
+                                  <FaCalendarAlt className="mr-1" size={10} /> Day Price
+                                </p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  ${parking.slotDetails?.bicycle?.perDayPrice?.toFixed(2) || 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Truck Slots */}
+                          <div className="bg-white dark:bg-gray-800 rounded-md p-4 shadow-sm">
+                            <div className="flex items-center mb-3">
+                              <FaTruck className="text-orange-500 mr-2" />
+                              <h6 className="font-medium text-gray-700 dark:text-gray-300">Truck Slots</h6>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Available/Total</p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  {parking.slotDetails?.truck ? 
+                                    `${parking.slotDetails.truck.availableSlot || 0}/${parking.slotDetails.truck.totalSlot || 0}` : 
+                                    'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Booked</p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  {parking.slotDetails?.truck?.bookingSlot || 0}
+                                </p>
+                              </div>
+                              <div className="mt-2">
+                                <p className="text-gray-500 dark:text-gray-400 flex items-center">
+                                  <FaMoneyBillWave className="mr-1" size={10} /> 30 Min Price
+                                </p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  ${parking.slotDetails?.truck?.perPrice30Min?.toFixed(2) || 'N/A'}
+                                </p>
+                              </div>
+                              <div className="mt-2">
+                                <p className="text-gray-500 dark:text-gray-400 flex items-center">
+                                  <FaCalendarAlt className="mr-1" size={10} /> Day Price
+                                </p>
+                                <p className="font-medium text-gray-800 dark:text-white text-sm">
+                                  ${parking.slotDetails?.truck?.perDayPrice?.toFixed(2) || 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Social Media Links */}
+            {viewLandowner.userDetails?.socialLinks && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Social Media</h3>
+                <div className="flex flex-wrap gap-4">
+                  {viewLandowner.userDetails.socialLinks.facebook && (
+                    <a 
+                      href={viewLandowner.userDetails.socialLinks.facebook} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <FaFacebook className="mr-2" /> Facebook
+                    </a>
+                  )}
+                  
+                  {viewLandowner.userDetails.socialLinks.twitter && (
+                    <a 
+                      href={viewLandowner.userDetails.socialLinks.twitter} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors"
+                    >
+                      <FaTwitter className="mr-2" /> Twitter
+                    </a>
+                  )}
+                  
+                  {viewLandowner.userDetails.socialLinks.linkedin && (
+                    <a 
+                      href={viewLandowner.userDetails.socialLinks.linkedin} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2 bg-blue-800 text-white rounded-lg hover:bg-blue-900 transition-colors"
+                    >
+                      <FaLinkedin className="mr-2" /> LinkedIn
+                    </a>
+                  )}
+                  
+                  {viewLandowner.userDetails.socialLinks.instagram && (
+                    <a 
+                      href={viewLandowner.userDetails.socialLinks.instagram} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
+                    >
+                      <FaInstagram className="mr-2" /> Instagram
+                    </a>
+                  )}
                 </div>
               </div>
             )}
