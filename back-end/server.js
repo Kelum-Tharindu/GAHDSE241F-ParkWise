@@ -15,6 +15,7 @@ const userProfileRoutes = require('./routes/userProfileRoutes');
 const cors = require('cors');
 const os = require('os');
 const landownerRoutes = require('./routes/landownerRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 
 
@@ -104,7 +105,6 @@ app.get('/', (req, res) => {
 
 
 
-
 // Routes
 app.use("/api/auth", authRoutes);
 app.use('/parking', parkingRoutes);
@@ -112,6 +112,7 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userProfileRoutes);
+app.use('/api/users', userRoutes);
 
 // -------------------- ERROR HANDLERS --------------------
 

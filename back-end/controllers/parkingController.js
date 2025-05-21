@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Parking = require("../models/parkingmodel");
+const Landowner = require("../models/LandOwner");
 const { generateQRCode123 } = require("../utils/qrGenertor");
 
 const addParking = async (req, res) => {
@@ -13,11 +14,22 @@ const addParking = async (req, res) => {
             return res.status(400).json({ message: "Parking with this name already exists." });
         }
 
+        // Verify that the landowner exists
+        const landowner = await Landowner.findById(ownerId);
+        if (!landowner) {
+            return res.status(404).json({ message: "Landowner not found." });
+        }
+
         // Save new parking with the provided details
         newParking = new Parking({ name, ownerId, slotDetails, location });
         console.log("New parking object:", newParking);
         await newParking.save();
         console.log("New parking created:", newParking);
+
+        // Update landowner's parkingIds array
+        landowner.parkingIds.push(newParking._id);
+        await landowner.save();
+        console.log("Updated landowner with new parking ID");
 
         // Generate QR code with the parking ID and name
         if (!newParking._id) {
@@ -27,10 +39,14 @@ const addParking = async (req, res) => {
         let qrCode;
         try {
             console.log("Generating QR code for:");
-            qrCode = await generateQRCode123(newParking._id, name); // This will assign the QR code to the qrCode variable
+            qrCode = await generateQRCode123(newParking._id, name);
         } catch (error) {
+            // If QR code generation fails, clean up both parking and landowner
             if (newParking && newParking._id) {
-                await Parking.findByIdAndDelete(newParking._id); // Delete the created parking record if QR code generation fails
+                await Parking.findByIdAndDelete(newParking._id);
+                // Remove the parking ID from landowner's array
+                landowner.parkingIds = landowner.parkingIds.filter(id => id.toString() !== newParking._id.toString());
+                await landowner.save();
             }
             throw new Error("Failed to generate QR code: " + error.message);
         }
@@ -41,9 +57,14 @@ const addParking = async (req, res) => {
 
         res.status(201).json({ message: "Parking added successfully.", parking: newParking });
     } catch (error) {
-        // If any error occurs, delete the parking document created
+        // If any error occurs, clean up both parking and landowner
         if (newParking && newParking._id) {
-            await Parking.findByIdAndDelete(newParking._id); // Delete the created parking record
+            await Parking.findByIdAndDelete(newParking._id);
+            // Remove the parking ID from landowner's array if it exists
+            if (landowner) {
+                landowner.parkingIds = landowner.parkingIds.filter(id => id.toString() !== newParking._id.toString());
+                await landowner.save();
+            }
         }
 
         res.status(500).json({ message: "Error adding parking.", error: error.message });

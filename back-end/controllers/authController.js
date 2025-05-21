@@ -1,4 +1,5 @@
 const User = require("../models/Usermodel");
+const Landowner = require("../models/LandOwner");
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
 const jwt = require("jsonwebtoken");
@@ -25,7 +26,19 @@ const registerUser = async (req, res) => {
 
     const newUser = new User({ username, password, email, role });
     await newUser.save();
-    console.log("User registered successfully:", newUser); // Log the new user object
+
+    // If user is a landowner, create a Landowner document
+    if (role === 'landowner') {
+      const newLandowner = new Landowner({
+        username: username,
+        userDocumentId: newUser._id,
+        parkingIds: []
+      });
+      await newLandowner.save();
+      console.log(`[REGISTER][SUCCESS] Created Landowner document for user: ${username}`);
+    }
+
+    console.log("====User registered successfully:", newUser);
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error(`[REGISTER][ERROR] Error registering user:`, error);

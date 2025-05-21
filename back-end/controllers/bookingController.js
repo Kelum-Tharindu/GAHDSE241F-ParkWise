@@ -314,6 +314,8 @@ const getAllBookings = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   calculateFee,
   confirmBooking,

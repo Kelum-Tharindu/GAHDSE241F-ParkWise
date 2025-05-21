@@ -3,145 +3,59 @@ import {
   FaSearch,
   FaEye,
   FaTrash,
-  FaPlus,
-  FaFilter,
   FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaBuilding,
-  FaLink,
   FaMoon,
   FaSun,
+  FaLinkedin,
+  FaFacebook,
+  FaTwitter,
+  FaInstagram,
 } from "react-icons/fa";
+import axios from "axios";
 
 interface User {
-  id: number;
+  _id: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  status: "Active" | "Inactive";
   role: string;
-  department: string;
-  bio: string;
-  linkedin: string;
-  avatar: string;
-  updated: string;
+  country?: string;
+  city?: string;
+  postalCode?: string;
+  taxId?: string;
+  updatedAt: string;
+  socialLinks?: {
+    facebook?: string;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+  };
 }
 
-const initialUsers: User[] = [
-  {
-    id: 1,
-    firstName: "Jeannette",
-    lastName: "Prosacco",
-    email: "Arnoldo.Bayer51@yahoo.com",
-    phone: "+1 555-123-4567",
-    status: "Active",
-    role: "Admin",
-    department: "Finance",
-    bio: "Experienced admin with a passion for numbers.",
-    linkedin: "https://linkedin.com/in/jeannette",
-    avatar: "/images/user/user-1.jpg",
-    updated: "21/09/2022",
-  },
-  {
-    id: 2,
-    firstName: "Janie",
-    lastName: "Funk",
-    email: "janie.funk@yahoo.com",
-    phone: "+1 555-987-6543",
-    status: "Active",
-    role: "User",
-    department: "HR",
-    bio: "",
-    linkedin: "",
-    avatar: "/images/user/user-17.jpg",
-    updated: "20/09/2022",
-  },
-  {
-    id: 3,
-    firstName: "Tonya",
-    lastName: "Keeling",
-    email: "tonya45@gmail.com",
-    phone: "+1 555-222-3333",
-    status: "Inactive",
-    role: "Admin",
-    department: "IT",
-    bio: "",
-    linkedin: "",
-    avatar: "/images/user/user-17.jpg",
-    updated: "20/09/2022",
-  },
-  {
-    id: 4,
-    firstName: "Ramiro",
-    lastName: "Homenick",
-    email: "ramiro.homenick@hotmail.com",
-    phone: "+1 555-444-5555",
-    status: "Active",
-    role: "Analyst",
-    department: "Analytics",
-    bio: "",
-    linkedin: "",
-    avatar: "/images/user/user-17.jpg",
-    updated: "21/09/2022",
-  },
-  {
-    id: 5,
-    firstName: "Dominick",
-    lastName: "West",
-    email: "dominick.west@hotmail.com",
-    phone: "+1 555-666-7777",
-    status: "Active",
-    role: "User",
-    department: "Support",
-    bio: "",
-    linkedin: "",
-    avatar: "/images/user/user-5.jpg",
-    updated: "20/09/2022",
-  },
-];
-
-function StatusBadge({ status }: { status: User["status"] }) {
+function StatusBadge({ role }: { role: string }) {
   return (
     <span
       className={`px-3 py-1 rounded-full text-xs font-semibold
-        ${status === "Active"
-          ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
-          : "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400"}
+        ${role === "admin"
+          ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400"
+          : role === "landowner"
+          ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400"
+          : "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"}
       `}
     >
-      {status}
+      {role}
     </span>
   );
 }
 
 export default function UserManagementTable() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [viewUser, setViewUser] = useState<User | null>(null);
-
-  const [form, setForm] = useState<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    department: string;
-    bio: string;
-    linkedin: string;
-  }>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    department: "",
-    bio: "",
-    linkedin: "",
-  });
-
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const isDark = localStorage.theme === "dark" ||
@@ -150,6 +64,24 @@ export default function UserManagementTable() {
     document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:5000/api/users/role/user');
+      setUsers(response.data.data);
+      setError("");
+    } catch (err) {
+      setError("Failed to fetch users");
+      console.error("Error fetching users:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleTheme = () => {
     const newDark = !darkMode;
     setDarkMode(newDark);
@@ -157,58 +89,23 @@ export default function UserManagementTable() {
     localStorage.theme = newDark ? "dark" : "light";
   };
 
-  const validate = () => {
-    const errs: { [key: string]: string } = {};
-    if (!form.firstName.trim()) errs.firstName = "First name is required";
-    if (!form.lastName.trim()) errs.lastName = "Last name is required";
-    if (!form.email.trim()) errs.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = "Invalid email address";
-    if (!form.phone.trim()) errs.phone = "Phone number is required";
-    if (!form.department.trim()) errs.department = "Department is required";
-    return errs;
+  const handleViewUser = (user: User) => {
+    setViewUser(user);
   };
 
-  const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+  const handleCloseView = () => {
+    setViewUser(null);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    setUsers((prev) => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map((u) => u.id)) + 1 : 1,
-        ...form,
-        status: "Active",
-        role: "User",
-        avatar: "/images/user/default.jpg",
-        updated: new Date().toLocaleDateString(),
-      },
-    ]);
-    setShowAddForm(false);
-    setForm({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      department: "",
-      bio: "",
-      linkedin: "",
-    });
-  };
-
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      setUsers((prev) => prev.filter((u) => u.id !== id));
+      try {
+        await axios.delete(`http://localhost:5000/api/users/${id}`);
+        setUsers(prev => prev.filter(user => user._id !== id));
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        alert("Failed to delete user");
+      }
     }
   };
 
@@ -218,6 +115,86 @@ export default function UserManagementTable() {
     if (!lower) return users;
     return users.filter((u) => u.email.toLowerCase().includes(lower));
   }, [users, search]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const renderSocialLinks = (socialLinks: User['socialLinks']) => {
+    if (!socialLinks) return null;
+
+    return (
+      <div className="flex gap-4">
+        {socialLinks.linkedin && (
+          <a
+            href={socialLinks.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+            title="LinkedIn"
+          >
+            <FaLinkedin className="w-6 h-6" />
+          </a>
+        )}
+        {socialLinks.facebook && (
+          <a
+            href={socialLinks.facebook}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+            title="Facebook"
+          >
+            <FaFacebook className="w-6 h-6" />
+          </a>
+        )}
+        {socialLinks.twitter && (
+          <a
+            href={socialLinks.twitter}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 dark:text-blue-300 hover:text-blue-600 dark:hover:text-blue-200 transition-colors"
+            title="Twitter"
+          >
+            <FaTwitter className="w-6 h-6" />
+          </a>
+        )}
+        {socialLinks.instagram && (
+          <a
+            href={socialLinks.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-pink-600 dark:text-pink-400 hover:text-pink-800 dark:hover:text-pink-300 transition-colors"
+            title="Instagram"
+          >
+            <FaInstagram className="w-6 h-6" />
+          </a>
+        )}
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen font-outfit flex items-center justify-center">
+        <div className="text-xl text-gray-600 dark:text-gray-400">Loading users...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen font-outfit flex items-center justify-center">
+        <div className="text-xl text-red-600 dark:text-red-400">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen font-outfit">
@@ -232,290 +209,148 @@ export default function UserManagementTable() {
             {darkMode ? <FaSun className="text-yellow-400" /> : <FaMoon className="text-gray-700" />}
           </button>
         </div>
+
         {viewUser ? (
-          <div className="p-8 flex flex-col items-center">
-            <img
-              src={viewUser.avatar}
-              alt={`${viewUser.firstName} ${viewUser.lastName}`}
-              className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 mb-4"
-            />
-            <h2 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">{viewUser.firstName} {viewUser.lastName}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-xs w-full max-w-xl">
-              <div>
-                <span className="font-semibold text-gray-600 dark:text-gray-400">ID:</span> {viewUser.id}
+          <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">User Details</h2>
+              <button
+                onClick={handleCloseView}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                Close
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Name</h3>
+                  <p className="text-gray-800 dark:text-white">{viewUser.firstName} {viewUser.lastName}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Email</h3>
+                  <p className="text-gray-800 dark:text-white">{viewUser.email}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Phone</h3>
+                  <p className="text-gray-800 dark:text-white">{viewUser.phone}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Role</h3>
+                  <StatusBadge role={viewUser.role} />
+                </div>
               </div>
-              <div>
-                <span className="font-semibold text-gray-600 dark:text-gray-400">Email:</span> {viewUser.email}
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 dark:text-gray-400">Role:</span> {viewUser.role}
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 dark:text-gray-400">Status:</span>{" "}
-                <StatusBadge status={viewUser.status} />
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 dark:text-gray-400">Phone:</span> {viewUser.phone}
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 dark:text-gray-400">Department:</span> {viewUser.department}
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 dark:text-gray-400">Updated:</span> {viewUser.updated}
-              </div>
-              <div>
-                <span className="font-semibold text-gray-600 dark:text-gray-400">LinkedIn:</span>{" "}
-                {viewUser.linkedin ? (
-                  <a href={viewUser.linkedin} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
-                    {viewUser.linkedin}
-                  </a>
-                ) : (
-                  <span className="text-gray-400">N/A</span>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Location</h3>
+                  <p className="text-gray-800 dark:text-white">
+                    {viewUser.city && `${viewUser.city}, `}
+                    {viewUser.country}
+                    {viewUser.postalCode && ` (${viewUser.postalCode})`}
+                  </p>
+                </div>
+                {viewUser.taxId && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">Tax ID</h3>
+                    <p className="text-gray-800 dark:text-white">{viewUser.taxId}</p>
+                  </div>
+                )}
+                {viewUser.socialLinks && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Social Links</h3>
+                    {renderSocialLinks(viewUser.socialLinks)}
+                  </div>
                 )}
               </div>
-              <div className="sm:col-span-2">
-                <span className="font-semibold text-gray-600 dark:text-gray-400">Bio:</span> {viewUser.bio || <span className="text-gray-400">N/A</span>}
-              </div>
             </div>
-            <button
-              className="mt-8 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 text-xs font-medium"
-              onClick={() => setViewUser(null)}
-            >
-              Back to Table
-            </button>
           </div>
-        ) : showAddForm ? (
-          <form onSubmit={handleFormSubmit} className="p-8 space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">Register New User</h2>
-            {/* Personal Info Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 pb-2">Personal Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    <FaUser className="inline mr-2" /> First Name
-                  </label>
-                  <input
-                    name="firstName"
-                    value={form.firstName}
-                    onChange={handleFormChange}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      errors.firstName
-                        ? "border-red-500 dark:border-red-400"
-                        : "border-gray-200 dark:border-gray-700"
-                    } focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
-                  />
-                  {errors.firstName && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.firstName}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    <FaUser className="inline mr-2" /> Last Name
-                  </label>
-                  <input
-                    name="lastName"
-                    value={form.lastName}
-                    onChange={handleFormChange}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      errors.lastName
-                        ? "border-red-500 dark:border-red-400"
-                        : "border-gray-200 dark:border-gray-700"
-                    } focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
-                  />
-                  {errors.lastName && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.lastName}</p>}
-                </div>
-              </div>
-            </div>
-            {/* Contact Info Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 pb-2">Contact Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    <FaEnvelope className="inline mr-2" /> Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleFormChange}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      errors.email
-                        ? "border-red-500 dark:border-red-400"
-                        : "border-gray-200 dark:border-gray-700"
-                    } focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
-                  />
-                  {errors.email && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.email}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    <FaPhone className="inline mr-2" /> Phone
-                  </label>
-                  <input
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleFormChange}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      errors.phone
-                        ? "border-red-500 dark:border-red-400"
-                        : "border-gray-200 dark:border-gray-700"
-                    } focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
-                  />
-                  {errors.phone && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.phone}</p>}
-                </div>
-              </div>
-            </div>
-            {/* Department */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 pb-2">Department</h3>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  <FaBuilding className="inline mr-2" /> Department
-                </label>
-                <input
-                  name="department"
-                  value={form.department}
-                  onChange={handleFormChange}
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    errors.department
-                      ? "border-red-500 dark:border-red-400"
-                      : "border-gray-200 dark:border-gray-700"
-                  } focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white`}
-                />
-                {errors.department && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.department}</p>}
-              </div>
-            </div>
-            {/* Additional Info Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 pb-2">Additional Information</h3>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  <FaLink className="inline mr-2" /> LinkedIn Profile
-                </label>
-                <input
-                  name="linkedin"
-                  value={form.linkedin}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Bio</label>
-                <textarea
-                  name="bio"
-                  value={form.bio}
-                  onChange={handleFormChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600/25 dark:bg-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
-            {/* Form Actions */}
-            <div className="flex gap-3 mt-6">
-              <button
-                type="submit"
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium dark:bg-blue-600 dark:hover:bg-blue-700"
-              >
-                Register User
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
         ) : (
           <>
-            {/* Search and Actions Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-b border-gray-100 dark:border-gray-700">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <FaSearch className="text-gray-400 dark:text-gray-500" />
+            {/* Search and Add User */}
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="relative flex-1 max-w-md">
+                  <input
+                    type="text"
+                    placeholder="Search by email..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search by email"
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded outline-none text-xs text-gray-700 dark:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:focus:border-blue-600 dark:focus:ring-blue-600"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition text-xs font-medium"
-                >
-                  <FaFilter /> Filters
-                </button>
-                <button
-                  onClick={() => setShowAddForm(true)}
-                  className="flex items-center gap-2 bg-blue-600 dark:bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:hover:bg-blue-700 transition text-xs font-medium"
-                >
-                  <FaPlus /> Add User
-                </button>
               </div>
             </div>
-            {/* Table */}
+
+            {/* Users Table */}
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs">
-                <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ID</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Avatar</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                    <th className="px-2 py-2 text-left font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Updated</th>
-                    <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">View</th>
-                    <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Delete</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Last Updated
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-xs">
-                  {filteredUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="py-8 text-center text-gray-400 dark:text-gray-500 text-xs">
-                        No users found.
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredUsers.map((user) => (
+                    <tr key={user._id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                              <FaUser className="text-gray-500 dark:text-gray-400" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {user.firstName} {user.lastName}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-white">{user.email}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{user.phone}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge role={user.role} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {formatDate(user.updatedAt)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleViewUser(user)}
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                          >
+                            <FaEye />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(user._id)}
+                            className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ) : (
-                    filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-700 dark:text-gray-300">{user.id}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <img
-                            src={user.avatar || "/images/user/default.jpg"}
-                            alt={`${user.firstName} ${user.lastName}`}
-                            className="w-6 h-6 rounded-full object-cover border border-gray-200 dark:border-gray-600"
-                          />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap font-medium text-gray-800 dark:text-white">{user.firstName} {user.lastName}</td>
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{user.email}</td>
-                        <td className="px-2 py-2 whitespace-nowrap">
-                          <StatusBadge status={user.status} />
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap text-gray-600 dark:text-gray-300">{user.updated}</td>
-                        <td className="px-2 py-2 whitespace-nowrap text-center">
-                          <button
-                            onClick={() => setViewUser(user)}
-                            className="inline-flex items-center justify-center p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                            title="View user details"
-                          >
-                            <FaEye size={14} />
-                          </button>
-                        </td>
-                        <td className="px-2 py-2 whitespace-nowrap text-center">
-                          <button
-                            onClick={() => handleDelete(user.id)}
-                            className="inline-flex items-center justify-center p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                            title="Delete user"
-                          >
-                            <FaTrash size={14} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
