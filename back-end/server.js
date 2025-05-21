@@ -14,6 +14,7 @@ const bookingRoutes = require('./routes/bookingRoute');
 const userProfileRoutes = require('./routes/userProfileRoutes');
 const cors = require('cors');
 const os = require('os');
+const landownerRoutes = require('./routes/landownerRoutes');
 
 
 
@@ -94,6 +95,7 @@ app.use(passport.session());
 app.use("/api/auth", authRoutes);
 app.use('/parking', parkingRoutes);
 app.use("/billing", billingRoutes);
+app.use('/landowner', landownerRoutes);
 
 // -------------------- TEST ROUTE --------------------
 app.get('/', (req, res) => {

@@ -145,9 +145,10 @@ const updateParking = async (req, res) => {
         const { identifier } = req.params;
         const updateData = req.body;
 
-        // Prevent updating the qrCode or _id
+        // Prevent updating the qrCode, _id, and ownerId
         delete updateData.qrCode;
         delete updateData._id;
+        delete updateData.ownerId;
 
         let query;
 
@@ -159,7 +160,11 @@ const updateParking = async (req, res) => {
         }
 
         // Find and update parking
-        const updatedParking = await Parking.findOneAndUpdate(query, updateData, { new: true });
+        const updatedParking = await Parking.findOneAndUpdate(
+            query,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        );
 
         if (!updatedParking) {
             return res.status(404).json({ message: "Parking not found." });
@@ -184,16 +189,35 @@ const deleteParking = async (req, res) => {
             query = { name: identifier }; // Otherwise, query by Name
         }
 
-        // Find and delete parking
-        const deletedParking = await Parking.findOneAndDelete(query);
-
-        if (!deletedParking) {
+        // Find parking before deletion to check if it exists
+        const parkingToDelete = await Parking.findOne(query);
+        if (!parkingToDelete) {
             return res.status(404).json({ message: "Parking not found." });
         }
 
-        res.status(200).json({ message: "Parking deleted successfully." });
+        // Check if there are any active bookings
+        // TODO: Add booking check if needed
+        // const hasActiveBookings = await Booking.exists({ parkingId: parkingToDelete._id, status: 'active' });
+        // if (hasActiveBookings) {
+        //     return res.status(400).json({ message: "Cannot delete parking with active bookings." });
+        // }
+
+        // Delete the parking
+        await Parking.findOneAndDelete(query);
+
+        res.status(200).json({ 
+            message: "Parking deleted successfully.",
+            deletedParking: {
+                id: parkingToDelete._id,
+                name: parkingToDelete.name
+            }
+        });
     } catch (error) {
-        res.status(500).json({ message: "Error deleting parking.", error: error.message });
+        console.error('Error deleting parking:', error);
+        res.status(500).json({ 
+            message: "Error deleting parking.", 
+            error: error.message 
+        });
     }
 };
 
