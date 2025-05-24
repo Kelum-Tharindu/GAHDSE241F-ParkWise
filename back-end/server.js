@@ -16,6 +16,7 @@ const cors = require('cors');
 const os = require('os');
 const landownerRoutes = require('./routes/landownerRoutes');
 const userRoutes = require('./routes/userRoutes');
+const cookieParser = require('cookie-parser');
 
 
 
@@ -66,6 +67,7 @@ app.use(cors({
 
 app.use(express.json());  // Middleware to parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded request bodies
+app.use(cookieParser()); // Middleware to parse cookies
 // Load environment variables
 dotenv.config();
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "../../../context/ThemeContext";
 import { 
   DollarSign, 
@@ -49,18 +49,47 @@ export default function DashboardContent() {
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalSpots, setTotalSpots] = useState(0);
   const [averageOccupancy, setAverageOccupancy] = useState(0);
-
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const { theme, toggleTheme } = useTheme();
   const darkMode = theme === "dark";
 
   useEffect(() => {
-    const revenue = parkingLocations.reduce((sum, location) => sum + location.revenue, 0);
-    const spots = parkingLocations.reduce((sum, location) => sum + location.spots, 0);
-    const avgOcc = parkingLocations.reduce((sum, location) => sum + location.occupancy, 0) / parkingLocations.length;
-    setTotalRevenue(revenue);
-    setTotalSpots(spots);
-    setAverageOccupancy(avgOcc);
+    // Validate token and get user details before loading page
+    const validate = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/validate-token", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          window.location.href = "/";
+          return;
+        }
+        const data = await res.json();
+        setUser(data.user);
+        setLoading(false);
+      } catch {
+        window.location.href = "/";
+      }
+    };
+    validate();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      const revenue = parkingLocations.reduce((sum, location) => sum + location.revenue, 0);
+      const spots = parkingLocations.reduce((sum, location) => sum + location.spots, 0);
+      const avgOcc = parkingLocations.reduce((sum, location) => sum + location.occupancy, 0) / parkingLocations.length;
+      setTotalRevenue(revenue);
+      setTotalSpots(spots);
+      setAverageOccupancy(avgOcc);
+    }
+  }, [loading]);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen text-lg">Loading...</div>;
+  }
 
   return (
     <div className={`flex-1 overflow-y-auto p-4 sm:p-6 ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-blue-50 to-indigo-50 text-gray-900'} transition-colors duration-300`}>
