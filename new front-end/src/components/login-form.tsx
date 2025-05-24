@@ -74,7 +74,7 @@ type UserRole = "user" | "admin" | "landowner" | "parking coordinator";
 const roleDashboardMap: Record<UserRole, string> = {
   user: "/dashboard/user",
   admin: "/dashboard/admin",
-  landowner: "/dashboard/landowner",
+  landowner: "/landownerhome",
   "parking coordinator": "/dashboard/parking-coordinator",
 };
 
@@ -98,6 +98,8 @@ export function LoginForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
+        credentials: "include", // <-- This is required for cookies!
+
       });
 
       const data = await res.json();
@@ -115,14 +117,12 @@ export function LoginForm({
         return;
       }
 
-      // Save token and role for later use (e.g. in AuthContext)
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
-
       // Role-based redirection
       const role = data.role as UserRole;
       if (role && roleDashboardMap[role]) {
         navigate(roleDashboardMap[role]);
+        //referesh the page to ensure the new role is applied
+        window.location.reload();
       } else {
         // fallback if role is missing or unknown
         navigate("/dashboard");

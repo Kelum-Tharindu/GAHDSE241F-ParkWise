@@ -11,6 +11,7 @@ const {
   googleLogin,
   googleCallback,
 } = require("../controllers/authController");
+const validateToken = require("../controllers/validateToken");
 const passport = require("passport");
 
 const router = express.Router();
@@ -36,5 +37,8 @@ router.get(
   passport.authenticate("google", { failureRedirect: "/login", session: false }),
   googleCallback
 );
+
+// Token Validation Route
+router.post("/validate-token", validateToken);
 
 module.exports = router;

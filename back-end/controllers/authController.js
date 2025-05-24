@@ -83,8 +83,15 @@ const loginUser = async (req, res) => {
       const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
+      // Set token in HTTP-only cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 1000, // 1 hour
+      });
       console.log(`[LOGIN][SUCCESS] User logged in: "${username}", userId: ${user._id}`);
-      res.status(200).json({ token, role: user.role, userId: user._id, username: user.username });//changed
+      return res.status(200).json({ message: "Login successful", role: user.role });
     }
   } catch (error) {
     console.error(`[LOGIN][ERROR] Error logging in:`, error);
@@ -441,6 +448,8 @@ const googleCallback = (req, res, next) => {
   })(req, res, next);
 };
 
+const validateToken = require("./validateToken");
+
 module.exports = {
   registerUser,
   loginUser,
@@ -452,4 +461,5 @@ module.exports = {
   disable2FA,
   googleLogin,
   googleCallback,
+  validateToken,
 };

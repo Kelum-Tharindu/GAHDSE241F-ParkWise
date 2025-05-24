@@ -43,6 +43,7 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/AdminHome";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -51,11 +52,11 @@ export default function App() {
       <Routes>
         {/* Dashboard Layout */}
         <Route element={<AppLayout />}>
-          <Route index path="/" element={<Home />} />
+          <Route  path="/signin" element={<ProtectedRoute requiredRole="admin"><Home /></ProtectedRoute>} />
 
-          <Route path="/landownerhome" element={<LandownerHome />} />
+          <Route path="/landownerhome" element={<ProtectedRoute requiredRole="landowner"><LandownerHome /></ProtectedRoute>} />
 
-          <Route path="/parkingcoordinatorhome" element={<ParkingCoordinatorHome />} />
+          <Route path="/parkingcoordinatorhome" element={<ProtectedRoute requiredRole="parking coordinator"><ParkingCoordinatorHome /></ProtectedRoute>} />
 
           {/* Dashboard */}
 
@@ -120,7 +121,7 @@ export default function App() {
         </Route>
 
         {/* Auth Layout */}
-        <Route path="/signin" element={<Login />} />
+        <Route index path="/" element={<Login />} />
         <Route path="/2fa" element={<Twofa />} />
         <Route path="/signup" element={<Register />} />
 

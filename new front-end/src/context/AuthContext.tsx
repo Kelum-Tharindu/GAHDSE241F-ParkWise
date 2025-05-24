@@ -15,16 +15,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // On mount, validate token with backend
+    const validate = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/validate-token", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!res.ok) {
+          setUser(null);
+          // Only redirect if not already on login page
+          if (window.location.pathname !== "/login") {
+            navigate("/login");
+          }
+          return;
+        }
+        const data = await res.json();
+        setUser(data.user);
+      } catch {
+        setUser(null);
+        if (window.location.pathname !== "/login") {
+          navigate("/login");
+        }
+      }
+    };
+    validate();
+    // eslint-disable-next-line
   }, []);
 
   const login = (userData: { role: string }) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
-    navigate("/");
+    // No localStorage, rely on backend cookie
+    // Redirect based on role
+    switch (userData.role) {
+      case "admin":
+        navigate("/dashboard/admin");
+        break;
+      case "landowner":
+        navigate("/dashboard/landowner");
+        break;
+      case "parking coordinator":
+        navigate("/dashboard/parking-coordinator");
+        break;
+      case "user":
+        navigate("/dashboard/user");
+        break;
+      default:
+        navigate("/dashboard");
+    }
   };
 
   const logout = () => {
