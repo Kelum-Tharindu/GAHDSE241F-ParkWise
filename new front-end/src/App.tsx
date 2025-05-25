@@ -70,7 +70,7 @@ export default function App() {
 
           {/* Tables */}
           <Route path="/basic-tables" element={<BasicTables />} />
-          <Route path="/parking-tables" element={<ParkingTable />} />
+          <Route path="/parking-tables" element={<ProtectedRoute requiredRole="admin"><ParkingTable /></ProtectedRoute>} />
           <Route path="/user-management" element={<UserManagement />} />
           <Route path="/admin-management" element={<AdminManagemet />} />
           <Route path="/landowner-management" element={<LandownerManagement />} />

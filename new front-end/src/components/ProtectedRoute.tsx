@@ -21,6 +21,8 @@ export default function ProtectedRoute({ requiredRole, children }: ProtectedRout
         if (!res.ok) {
           console.log("[ProtectedRoute] Token invalid or missing. Redirecting to login.");
           navigate("/");
+        //refresh page
+        window.location.reload();
           return;
         }
         const data = await res.json();
@@ -28,10 +30,14 @@ export default function ProtectedRoute({ requiredRole, children }: ProtectedRout
         if (data.user.role !== requiredRole) {
           console.log(`[ProtectedRoute] Role mismatch. Required: ${requiredRole}, Actual: ${data.user.role}. Redirecting to NotFound.`);
           navigate("/*");
+          
+        window.location.reload();
         }
       } catch (err) {
         console.log("[ProtectedRoute] Error during validation:", err);
         navigate("/");
+        
+        window.location.reload();
       }
     };
     validate();

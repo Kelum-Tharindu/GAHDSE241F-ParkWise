@@ -373,14 +373,24 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link to="/" className="text-2xl font-semibold text-brand-600">
-  {isExpanded || isHovered || isMobileOpen ? (
-    <span>ParkWise</span>
-  ) : (
-    <span>P</span>
-  )}
-</Link>
-
+         <Link
+          to={
+            user.role === "admin"
+              ? "/Admin Dashboard"
+              : user.role === "landowner"
+              ? "/landownerhome"
+              : user.role === "parking coordinator"
+              ? "/parkingcoordinatorhome"
+              : "/"
+          }
+          className="text-2xl font-semibold text-brand-600"
+        >
+          {isExpanded || isHovered || isMobileOpen ? (
+            <span>ParkWise</span>
+          ) : (
+            <span>P</span>
+          )}
+        </Link>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
