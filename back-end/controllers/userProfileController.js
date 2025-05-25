@@ -5,11 +5,15 @@ const mongoose = require('mongoose');
 // @route   GET /api/users/:id/profile
 // @access  Private
 const getUserProfile = async (req, res) => {
+  console.log("call getUserProfile");
     try {
       const { id } = req.params;
+      console.log(`Fetching profile for user ID: ${id}`);
   
       if (!mongoose.Types.ObjectId.isValid(id)) {
+        console.log(`Invalid user ID format: ${id}`);
         return res.status(400).json({ message: 'Invalid user ID format' });
+
       }
   
       const user = await User.findById(id).select(
@@ -17,6 +21,7 @@ const getUserProfile = async (req, res) => {
       );
   
       if (!user) {
+        console.log(`User not found for ID: ${id}`);
         return res.status(404).json({ message: 'User not found' });
       }
   

@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Dropdown } from "../uiMy/dropdown/Dropdown";
 import { DropdownItem } from "../uiMy/dropdown/DropdownItem";
 import { Link } from "react-router";
+import { useUser } from "../../context/UserContext";
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
+  const { user } = useUser();
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -19,6 +21,13 @@ export default function NotificationDropdown() {
     toggleDropdown();
     setNotifying(false);
   };
+
+  // Example: use user's avatar for notification items if available
+  const avatarUrl =
+    user && user.socialLinks && user.socialLinks.facebook
+      ? user.socialLinks.facebook
+      : "/images/user/user-02.jpg";
+
   return (
     <div className="relative">
       <button
@@ -77,7 +86,40 @@ export default function NotificationDropdown() {
           </button>
         </div>
         <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
-          {/* Example notification items */}
+          {/* Example notification item using user avatar */}
+          <li>
+            <DropdownItem
+              onItemClick={closeDropdown}
+              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+            >
+              <span className="relative block w-full h-10 rounded-full z-1 max-w-10">
+                <img
+                  width={40}
+                  height={40}
+                  src={avatarUrl}
+                  alt="User"
+                  className="w-full overflow-hidden rounded-full"
+                />
+                <span className="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
+              </span>
+
+              <span className="block">
+                <span className="mb-1.5 block text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
+                  <span className="font-medium text-gray-800 dark:text-white/90">
+                    {user?.firstName || user?.username || "User"}
+                  </span>
+                  <span> you have a new notification.</span>
+                </span>
+
+                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                  <span>System</span>
+                  <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                  <span>Just now</span>
+                </span>
+              </span>
+            </DropdownItem>
+          </li>
+
           <li>
             <DropdownItem
               onItemClick={closeDropdown}

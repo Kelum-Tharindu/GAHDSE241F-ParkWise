@@ -5,22 +5,30 @@ import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import UserAddressCard from "../components/UserProfile/UserAddressCard";
 import PageMeta from "../components/common/PageMeta";
 import { fetchUserProfile } from "../services/userProfileService";
+import { useUser } from "../context/UserContext";
 
 // Import the UserProfile type from the service
 import type { UserProfile } from "../services/userProfileService";
 
-// Temporary user ID - replace with actual user ID from authentication
-const TEMP_USER_ID = '682aca093ebd378083ca5685';
-
 export default function UserProfiles() {
+  const { user, loading: userLoading } = useUser();
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadUserProfile = async () => {
+    if (!user || !user._id) {
+      // Only set error if user context is done loading
+      if (!userLoading) {
+        console.log('User not authenticated:', user);
+        setError("User not authenticated");
+        setLoading(false);
+      }
+      return;
+    }
     try {
       console.log('Loading user profile...');
-      const data = await fetchUserProfile(TEMP_USER_ID);
+      const data = await fetchUserProfile(user._id);
       console.log('User profile loaded:', data);
       setUserData(data);
     } catch (err) {
@@ -32,8 +40,11 @@ export default function UserProfiles() {
   };
 
   useEffect(() => {
-    loadUserProfile();
-  }, []);
+    if (!userLoading) {
+      loadUserProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user && user._id, userLoading]);
 
   const handleProfileUpdate = (updatedData: UserProfile) => {
     setUserData(updatedData);

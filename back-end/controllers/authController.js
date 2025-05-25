@@ -81,7 +81,7 @@ const loginUser = async (req, res) => {
       console.log(`[LOGIN][SUCCESS] 2FA required for user: "${username}"`);
       return res.status(200).json({ message: "Enter OTP", userId: user._id });
     } else {
-      const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+      const token = jwt.sign({ id: user._id, role: user.role, username: user.username }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
       // Set token in HTTP-only cookie

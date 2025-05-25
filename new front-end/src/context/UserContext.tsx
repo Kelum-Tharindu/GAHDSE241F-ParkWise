@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 export type User = {
+  _id: string | null;
+  username: string | null;
   role: string | null;
-  // add other user fields if needed
+  
+
+  // add more fields as needed
 };
 
 interface UserContextType {
@@ -20,7 +24,12 @@ export const useUser = () => {
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User>({ role: null });
+  const [user, setUser] = useState<User>({
+    _id: null,
+    username: null,
+    role: null,
+   
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,9 +41,46 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         if (!res.ok) throw new Error("Not authenticated");
         const data = await res.json();
-        setUser({ role: data.user.role });
+        const backendUser = data.user;
+        setUser({
+          _id: backendUser._id || null,
+          username: backendUser.username || null,
+          firstName: backendUser.firstName || null,
+          lastName: backendUser.lastName || null,
+          email: backendUser.email || null,
+          phone: backendUser.phone || null,
+          role: backendUser.role || null,
+          country: backendUser.country || null,
+          city: backendUser.city || null,
+          postalCode: backendUser.postalCode || null,
+          taxId: backendUser.taxId || null,
+          socialLinks: backendUser.socialLinks || {
+            facebook: null,
+            twitter: null,
+            linkedin: null,
+            instagram: null,
+          },
+        });
       } catch {
-        setUser({ role: null });
+        setUser({
+          _id: null,
+          username: null,
+          firstName: null,
+          lastName: null,
+          email: null,
+          phone: null,
+          role: null,
+          country: null,
+          city: null,
+          postalCode: null,
+          taxId: null,
+          socialLinks: {
+            facebook: null,
+            twitter: null,
+            linkedin: null,
+            instagram: null,
+          },
+        });
       } finally {
         setLoading(false);
       }
