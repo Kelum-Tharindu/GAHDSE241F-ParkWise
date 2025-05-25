@@ -12,21 +12,30 @@ const parkingSchema = new mongoose.Schema({
         car: {
             totalSlot: { type: Number, required: true },
             bookingSlot: { type: Number, required: true },
-            availableSlot: { type: Number, required: true },
+            bookingAvailableSlot: { type: Number },
+            withoutBookingSlot: { type: Number, required: true },
+            withoutBookingAvailableSlot: { type: Number },
+            // availableSlot: { type: Number, required: true },
             perPrice30Min: { type: Number, required: true },
             perDayPrice: { type: Number, required: true }
         },
         bicycle: {
             totalSlot: { type: Number, required: true },
             bookingSlot: { type: Number, required: true },
-            availableSlot: { type: Number, required: true },
+            bookingAvailableSlot: { type: Number },
+            withoutBookingSlot: { type: Number, required: true },
+            withoutBookingAvailableSlot: { type: Number },
+            // availableSlot: { type: Number, required: true },
             perPrice30Min: { type: Number, required: true },
             perDayPrice: { type: Number, required: true }
         },
         truck: {
             totalSlot: { type: Number, required: true },
             bookingSlot: { type: Number, required: true },
-            availableSlot: { type: Number, required: true },
+            bookingAvailableSlot: { type: Number },
+            withoutBookingSlot: { type: Number, required: true },
+            withoutBookingAvailableSlot: { type: Number },
+            // availableSlot: { type: Number, required: true },
             perPrice30Min: { type: Number, required: true },
             perDayPrice: { type: Number, required: true }
         }

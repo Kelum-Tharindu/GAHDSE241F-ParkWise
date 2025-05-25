@@ -83,29 +83,49 @@ const getAllParking = async (req, res) => {
         const transformedParkingList = parkingList.map(parking => ({
             id: parking._id.toString(),
             name: parking.name,
-            latitude: parking.location.latitude,
-            longitude: parking.location.longitude,
-            address: {
-                street: parking.location.address.street,
-                city: parking.location.address.city
-            },
+            ownerId: parking.ownerId,
             slotDetails: {
                 car: {
-                    availableSlot: parking.slotDetails.car.availableSlot,
+                    totalSlot: parking.slotDetails.car.totalSlot,
+                    bookingSlot: parking.slotDetails.car.bookingSlot,
+                    bookingAvailableSlot: parking.slotDetails.car.bookingAvailableSlot,
+                    withoutBookingSlot: parking.slotDetails.car.withoutBookingSlot,
+                    withoutBookingAvailableSlot: parking.slotDetails.car.withoutBookingAvailableSlot,
                     perPrice30Min: parking.slotDetails.car.perPrice30Min,
                     perDayPrice: parking.slotDetails.car.perDayPrice
                 },
                 bicycle: {
-                    availableSlot: parking.slotDetails.bicycle.availableSlot,
+                    totalSlot: parking.slotDetails.bicycle.totalSlot,
+                    bookingSlot: parking.slotDetails.bicycle.bookingSlot,
+                    bookingAvailableSlot: parking.slotDetails.bicycle.bookingAvailableSlot,
+                    withoutBookingSlot: parking.slotDetails.bicycle.withoutBookingSlot,
+                    withoutBookingAvailableSlot: parking.slotDetails.bicycle.withoutBookingAvailableSlot,
                     perPrice30Min: parking.slotDetails.bicycle.perPrice30Min,
                     perDayPrice: parking.slotDetails.bicycle.perDayPrice
                 },
                 truck: {
-                    availableSlot: parking.slotDetails.truck.availableSlot,
+                    totalSlot: parking.slotDetails.truck.totalSlot,
+                    bookingSlot: parking.slotDetails.truck.bookingSlot,
+                    bookingAvailableSlot: parking.slotDetails.truck.bookingAvailableSlot,
+                    withoutBookingSlot: parking.slotDetails.truck.withoutBookingSlot,
+                    withoutBookingAvailableSlot: parking.slotDetails.truck.withoutBookingAvailableSlot,
                     perPrice30Min: parking.slotDetails.truck.perPrice30Min,
                     perDayPrice: parking.slotDetails.truck.perDayPrice
                 }
-            }
+            },
+            location: {
+                latitude: parking.location.latitude,
+                longitude: parking.location.longitude,
+                address: {
+                    No: parking.location.address.No,
+                    street: parking.location.address.street,
+                    city: parking.location.address.city,
+                    province: parking.location.address.province,
+                    country: parking.location.address.country,
+                    postalCode: parking.location.address.postalCode
+                }
+            },
+            qrCode: parking.qrCode || null
         }));
 
         res.status(200).json(transformedParkingList);

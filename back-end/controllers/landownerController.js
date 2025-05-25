@@ -6,7 +6,7 @@ const Parking = require('../models/parkingmodel');
 const getAllLandowners = async (req, res) => {
     try {
         const landowners = await Landowner.find()
-            .select('_id username email') // Only select necessary fields
+            .select('_id username') // Only select necessary fields
             .sort({ username: 1 }); // Sort by username
 
         if (!landowners || landowners.length === 0) {

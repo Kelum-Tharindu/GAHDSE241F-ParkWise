@@ -16,48 +16,14 @@ interface BackendParkingResponse {
   _id: string;
   id?: string;
   name: string;
-  address: {
-    city: string;
-    street: string;
-    No: string;
-    province: string;
-    country: string;
-    postalCode: string;
-  };
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  slotDetails: {
-    car: {
-      availableSlot: number;
-      perPrice30Min: number;
-      perDayPrice: number;
-    };
-    bicycle: {
-      availableSlot: number;
-      perPrice30Min: number;
-      perDayPrice: number;
-    };
-    truck: {
-      availableSlot: number;
-      perPrice30Min: number;
-      perDayPrice: number;
-    };
-  };
-}
-
-// Interface for frontend use
-interface ParkingResponse {
-  id: string;
-  name: string;
+  ownerId: string;
   location: {
     latitude: number;
     longitude: number;
     address: {
+      No: string;
       street: string;
       city: string;
-      No: string;
       province: string;
       country: string;
       postalCode: string;
@@ -65,21 +31,83 @@ interface ParkingResponse {
   };
   slotDetails: {
     car: {
-      availableSlot: number;
+      totalSlot: number;
+      bookingSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
       perPrice30Min: number;
       perDayPrice: number;
     };
     bicycle: {
-      availableSlot: number;
+      totalSlot: number;
+      bookingSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
       perPrice30Min: number;
       perDayPrice: number;
     };
     truck: {
-      availableSlot: number;
+      totalSlot: number;
+      bookingSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
       perPrice30Min: number;
       perDayPrice: number;
     };
   };
+  qrCode?: string;
+}
+
+// Interface for frontend use
+interface ParkingResponse {
+  id: string;
+  name: string;
+  ownerId: string;
+  location: {
+    latitude: number;
+    longitude: number;
+    address: {
+      No: string;
+      street: string;
+      city: string;
+      province: string;
+      country: string;
+      postalCode: string;
+    };
+  };
+  slotDetails: {
+    car: {
+      totalSlot: number;
+      bookingSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
+      perPrice30Min: number;
+      perDayPrice: number;
+    };
+    bicycle: {
+      totalSlot: number;
+      bookingSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
+      perPrice30Min: number;
+      perDayPrice: number;
+    };
+    truck: {
+      totalSlot: number;
+      bookingSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
+      perPrice30Min: number;
+      perDayPrice: number;
+    };
+  };
+  qrCode?: string;
 }
 
 // Interface for our component's internal use - for selected parking details
@@ -91,21 +119,27 @@ interface ParkingDetails {
     car: {
       totalSlot: number;
       bookingSlot: number;
-      availableSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
       perPrice30Min: number;
       perDayPrice: number;
     };
     bicycle: {
       totalSlot: number;
       bookingSlot: number;
-      availableSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
       perPrice30Min: number;
       perDayPrice: number;
     };
     truck: {
       totalSlot: number;
       bookingSlot: number;
-      availableSlot: number;
+      bookingAvailableSlot?: number;
+      withoutBookingSlot: number;
+      withoutBookingAvailableSlot?: number;
       perPrice30Min: number;
       perDayPrice: number;
     };
@@ -122,7 +156,7 @@ interface ParkingDetails {
       postalCode: string;
     };
   };
-  qrCode: string;
+  qrCode?: string;
 }
 
 interface Landowner {
@@ -147,21 +181,27 @@ export default function ParkingTable() {
       car: {
         totalSlot: 0,
         bookingSlot: 0,
-        availableSlot: 0,
+        bookingAvailableSlot: 0,
+        withoutBookingSlot: 0,
+        withoutBookingAvailableSlot: 0,
         perPrice30Min: 0,
         perDayPrice: 0
       },
       bicycle: {
         totalSlot: 0,
         bookingSlot: 0,
-        availableSlot: 0,
+        bookingAvailableSlot: 0,
+        withoutBookingSlot: 0,
+        withoutBookingAvailableSlot: 0,
         perPrice30Min: 0,
         perDayPrice: 0
       },
       truck: {
         totalSlot: 0,
         bookingSlot: 0,
-        availableSlot: 0,
+        bookingAvailableSlot: 0,
+        withoutBookingSlot: 0,
+        withoutBookingAvailableSlot: 0,
         perPrice30Min: 0,
         perDayPrice: 0
       }
@@ -186,21 +226,27 @@ export default function ParkingTable() {
       car: {
         totalSlot: 0,
         bookingSlot: 0,
-        availableSlot: 0,
+        bookingAvailableSlot: 0,
+        withoutBookingSlot: 0,
+        withoutBookingAvailableSlot: 0,
         perPrice30Min: 0,
         perDayPrice: 0
       },
       bicycle: {
         totalSlot: 0,
         bookingSlot: 0,
-        availableSlot: 0,
+        bookingAvailableSlot: 0,
+        withoutBookingSlot: 0,
+        withoutBookingAvailableSlot: 0,
         perPrice30Min: 0,
         perDayPrice: 0
       },
       truck: {
         totalSlot: 0,
         bookingSlot: 0,
-        availableSlot: 0,
+        bookingAvailableSlot: 0,
+        withoutBookingSlot: 0,
+        withoutBookingAvailableSlot: 0,
         perPrice30Min: 0,
         perDayPrice: 0
       }
@@ -220,36 +266,32 @@ export default function ParkingTable() {
   });
 
   // Add validation function for slots
-  const validateSlots = (total: number, booked: number, available: number) => {
-    return total >= booked && total >= available && (booked + available) <= total;
-  };
 
   // Add handler for slot updates
-  const handleSlotUpdate = (vehicleType: 'car' | 'bicycle' | 'truck', field: 'totalSlot' | 'bookingSlot' | 'availableSlot', value: number) => {
+  // Only allow updating totalSlot, bookingSlot, withoutBookingSlot, perPrice30Min, perDayPrice
+  const handleSlotUpdate = (
+    vehicleType: 'car' | 'bicycle' | 'truck',
+    field: 'totalSlot' | 'bookingSlot' | 'withoutBookingSlot' | 'perPrice30Min' | 'perDayPrice',
+    value: number
+  ) => {
     const newValue = Math.max(0, value); // Ensure non-negative values
     setUpdateForm(prev => {
       const newForm = { ...prev };
       const vehicleSlots = newForm.slotDetails[vehicleType];
-      
-      // Update the specified field
       vehicleSlots[field] = newValue;
-      
-      // If updating total slots, ensure booking and available slots don't exceed total
+      // If updating total slots, ensure booking and withoutSlots For booking don't exceed total
       if (field === 'totalSlot') {
         vehicleSlots.bookingSlot = Math.min(vehicleSlots.bookingSlot, newValue);
-        vehicleSlots.availableSlot = Math.min(vehicleSlots.availableSlot, newValue);
+        vehicleSlots.withoutBookingSlot = Math.min(vehicleSlots.withoutBookingSlot, newValue);
       }
-      
-      // If updating booking slots, adjust available slots
+      // If updating Slots For booking, adjust withoutBookingSlot
       if (field === 'bookingSlot') {
-        vehicleSlots.availableSlot = Math.min(vehicleSlots.totalSlot - newValue, vehicleSlots.availableSlot);
+        vehicleSlots.withoutBookingSlot = Math.min(vehicleSlots.totalSlot - newValue, vehicleSlots.withoutBookingSlot);
       }
-      
-      // If updating available slots, adjust booking slots
-      if (field === 'availableSlot') {
+      // If updating withoutBookingSlot, adjust bookingSlot
+      if (field === 'withoutBookingSlot') {
         vehicleSlots.bookingSlot = Math.min(vehicleSlots.totalSlot - newValue, vehicleSlots.bookingSlot);
       }
-      
       return newForm;
     });
   };
@@ -266,28 +308,27 @@ export default function ParkingTable() {
       
       const response = await axios.get<BackendParkingResponse[]>('http://localhost:5000/parking/all');
       console.log('Raw API response:', response.data);
-      console.log('Raw API response:', response.data[0].address.city);
       
       // Transform the data to match our interface
       const transformedData: ParkingResponse[] = response.data.map((parking: BackendParkingResponse) => {
-        // Add null checks and default values
         const location = parking.location || {};
-        const address = parking.address || {};
+        const address = location.address || {};
         const slotDetails = parking.slotDetails || {};
         const carSlots = slotDetails.car || {};
         const bicycleSlots = slotDetails.bicycle || {};
         const truckSlots = slotDetails.truck || {};
 
-        const transformedParking = {
+        return {
           id: parking._id || parking.id || '',
           name: parking.name || '',
+          ownerId: parking.ownerId || '',
           location: {
             latitude: location.latitude || 0,
             longitude: location.longitude || 0,
             address: {
-              street: address.street || '',
-              city: address.city || '--',
               No: address.No || '',
+              street: address.street || '',
+              city: address.city || '',
               province: address.province || '',
               country: address.country || '',
               postalCode: address.postalCode || ''
@@ -295,25 +336,35 @@ export default function ParkingTable() {
           },
           slotDetails: {
             car: {
-              availableSlot: carSlots.availableSlot || 0,
+              totalSlot: carSlots.totalSlot || 0,
+              bookingSlot: carSlots.bookingSlot || 0,
+              bookingAvailableSlot: carSlots.bookingAvailableSlot || 0,
+              withoutBookingSlot: carSlots.withoutBookingSlot || 0,
+              withoutBookingAvailableSlot: carSlots.withoutBookingAvailableSlot || 0,
               perPrice30Min: carSlots.perPrice30Min || 0,
               perDayPrice: carSlots.perDayPrice || 0
             },
             bicycle: {
-              availableSlot: bicycleSlots.availableSlot || 0,
+              totalSlot: bicycleSlots.totalSlot || 0,
+              bookingSlot: bicycleSlots.bookingSlot || 0,
+              bookingAvailableSlot: bicycleSlots.bookingAvailableSlot || 0,
+              withoutBookingSlot: bicycleSlots.withoutBookingSlot || 0,
+              withoutBookingAvailableSlot: bicycleSlots.withoutBookingAvailableSlot || 0,
               perPrice30Min: bicycleSlots.perPrice30Min || 0,
               perDayPrice: bicycleSlots.perDayPrice || 0
             },
             truck: {
-              availableSlot: truckSlots.availableSlot || 0,
+              totalSlot: truckSlots.totalSlot || 0,
+              bookingSlot: truckSlots.bookingSlot || 0,
+              bookingAvailableSlot: truckSlots.bookingAvailableSlot || 0,
+              withoutBookingSlot: truckSlots.withoutBookingSlot || 0,
+              withoutBookingAvailableSlot: truckSlots.withoutBookingAvailableSlot || 0,
               perPrice30Min: truckSlots.perPrice30Min || 0,
               perDayPrice: truckSlots.perDayPrice || 0
             }
-          }
+          },
+          qrCode: parking.qrCode || ''
         };
-        
-        console.log('Transformed parking data:', transformedParking);
-        return transformedParking;
       });
 
       console.log('Final transformed data:', transformedData);
@@ -337,7 +388,7 @@ export default function ParkingTable() {
 
   const fetchLandowners = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/landowner/all');
+      const response = await axios.get('http://localhost:5000/api/landowners/all');
       setLandowners(response.data);
     } catch (error) {
       console.error('Error fetching landowners:', error);
@@ -406,21 +457,27 @@ export default function ParkingTable() {
           car: {
             totalSlot: detailedParking.slotDetails.car.totalSlot,
             bookingSlot: detailedParking.slotDetails.car.bookingSlot,
-            availableSlot: detailedParking.slotDetails.car.availableSlot,
+            bookingAvailableSlot: detailedParking.slotDetails.car.bookingAvailableSlot,
+            withoutBookingSlot: detailedParking.slotDetails.car.withoutBookingSlot,
+            withoutBookingAvailableSlot: detailedParking.slotDetails.car.withoutBookingAvailableSlot,
             perPrice30Min: detailedParking.slotDetails.car.perPrice30Min,
             perDayPrice: detailedParking.slotDetails.car.perDayPrice
           },
           bicycle: {
             totalSlot: detailedParking.slotDetails.bicycle.totalSlot,
             bookingSlot: detailedParking.slotDetails.bicycle.bookingSlot,
-            availableSlot: detailedParking.slotDetails.bicycle.availableSlot,
+            bookingAvailableSlot: detailedParking.slotDetails.bicycle.bookingAvailableSlot,
+            withoutBookingSlot: detailedParking.slotDetails.bicycle.withoutBookingSlot,
+            withoutBookingAvailableSlot: detailedParking.slotDetails.bicycle.withoutBookingAvailableSlot,
             perPrice30Min: detailedParking.slotDetails.bicycle.perPrice30Min,
             perDayPrice: detailedParking.slotDetails.bicycle.perDayPrice
           },
           truck: {
             totalSlot: detailedParking.slotDetails.truck.totalSlot,
             bookingSlot: detailedParking.slotDetails.truck.bookingSlot,
-            availableSlot: detailedParking.slotDetails.truck.availableSlot,
+            bookingAvailableSlot: detailedParking.slotDetails.truck.bookingAvailableSlot,
+            withoutBookingSlot: detailedParking.slotDetails.truck.withoutBookingSlot,
+            withoutBookingAvailableSlot: detailedParking.slotDetails.truck.withoutBookingAvailableSlot,
             perPrice30Min: detailedParking.slotDetails.truck.perPrice30Min,
             perDayPrice: detailedParking.slotDetails.truck.perDayPrice
           }
@@ -466,6 +523,9 @@ export default function ParkingTable() {
       return;
     }
 
+    // Log update form data before sending request
+    console.log('[Update Parking] Form data:', JSON.stringify(updateForm, null, 2));
+
     try {
       const response = await axios.put(
         `http://localhost:5000/parking/update/${selectedParking.id}`,
@@ -504,6 +564,9 @@ export default function ParkingTable() {
         return;
       }
 
+      // Log add form data before sending request
+      console.log('[Add Parking] Form data:', JSON.stringify(addForm, null, 2));
+
       const response = await axios.post('http://localhost:5000/parking/add', addForm);
       if (response.status === 201) {
         alert('Parking added successfully!');
@@ -517,21 +580,27 @@ export default function ParkingTable() {
             car: {
               totalSlot: 0,
               bookingSlot: 0,
-              availableSlot: 0,
+              bookingAvailableSlot: 0,
+              withoutBookingSlot: 0,
+              withoutBookingAvailableSlot: 0,
               perPrice30Min: 0,
               perDayPrice: 0
             },
             bicycle: {
               totalSlot: 0,
               bookingSlot: 0,
-              availableSlot: 0,
+              bookingAvailableSlot: 0,
+              withoutBookingSlot: 0,
+              withoutBookingAvailableSlot: 0,
               perPrice30Min: 0,
               perDayPrice: 0
             },
             truck: {
               totalSlot: 0,
               bookingSlot: 0,
-              availableSlot: 0,
+              bookingAvailableSlot: 0,
+              withoutBookingSlot: 0,
+              withoutBookingAvailableSlot: 0,
               perPrice30Min: 0,
               perDayPrice: 0
             }
@@ -630,13 +699,13 @@ export default function ParkingTable() {
                     Location
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                    Available Car Slots
+                    Total Car Slots
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                    Available Bicycle Slots
+                    Total Bicycle Slots
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start font-medium text-gray-500 text-theme-xs dark:text-gray-400">
-                    Available Truck Slots
+                    Total Truck Slots
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 text-start font-medium text-gray-500 text-theme-xs dark:text-gray-400">
                     Actions
@@ -653,13 +722,13 @@ export default function ParkingTable() {
                       {parking.location?.address?.city || 'N/A'}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start text-theme-sm text-gray-500 dark:text-gray-400">
-                      {parking.slotDetails?.car?.availableSlot || 0}
+                      {parking.slotDetails?.car?.totalSlot || 0}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start text-theme-sm text-gray-500 dark:text-gray-400">
-                      {parking.slotDetails?.bicycle?.availableSlot || 0}
+                      {parking.slotDetails?.bicycle?.totalSlot || 0}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start text-theme-sm text-gray-500 dark:text-gray-400">
-                      {parking.slotDetails?.truck?.availableSlot || 0}
+                      {parking.slotDetails?.truck?.totalSlot || 0}
                     </TableCell>
                     <TableCell className="px-5 py-4 text-start text-theme-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-2">
@@ -770,12 +839,20 @@ export default function ParkingTable() {
                       <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.car?.totalSlot || 0}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Booked Slots</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Slots For booking</p>
                       <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.car?.bookingSlot || 0}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Available Slots</p>
-                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.car?.availableSlot || 0}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Booking Available Slots</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.car?.bookingAvailableSlot || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Slots for Normal use</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.car?.withoutBookingSlot || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Available slots for Normal use</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.car?.withoutBookingAvailableSlot || 0}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per 30 min</p>
@@ -797,12 +874,20 @@ export default function ParkingTable() {
                       <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.bicycle?.totalSlot || 0}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Booked Slots</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Slots For booking</p>
                       <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.bicycle?.bookingSlot || 0}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Available Slots</p>
-                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.bicycle?.availableSlot || 0}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Booking Available Slots</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.bicycle?.bookingAvailableSlot || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Slots for Normal use</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.bicycle?.withoutBookingSlot || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Available slots for Normal use</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.bicycle?.withoutBookingAvailableSlot || 0}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per 30 min</p>
@@ -824,12 +909,20 @@ export default function ParkingTable() {
                       <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.truck?.totalSlot || 0}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Booked Slots</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Slots For booking</p>
                       <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.truck?.bookingSlot || 0}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Available Slots</p>
-                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.truck?.availableSlot || 0}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Booking Available Slots</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.truck?.bookingAvailableSlot || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Slots for Normal use</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.truck?.withoutBookingSlot || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Available slots for Normal use</p>
+                      <p className="text-gray-800 dark:text-white">{selectedParking.slotDetails?.truck?.withoutBookingAvailableSlot || 0}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Price per 30 min</p>
@@ -1054,7 +1147,7 @@ export default function ParkingTable() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-500 dark:text-gray-400">Booked Slots</label>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Slots For booking</label>
                       <input
                         type="number"
                         value={updateForm.slotDetails.car.bookingSlot}
@@ -1063,12 +1156,32 @@ export default function ParkingTable() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available Slots</label>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available Slots for Booking</label>
                       <input
                         type="number"
-                        value={updateForm.slotDetails.car.availableSlot}
-                        onChange={(e) => handleSlotUpdate('car', 'availableSlot', parseInt(e.target.value))}
+                        value={updateForm.slotDetails.car.bookingAvailableSlot}
+                        readOnly
+                        disabled
+                        className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Slots for Normal use</label>
+                      <input
+                        type="number"
+                        value={updateForm.slotDetails.car.withoutBookingSlot}
+                        onChange={(e) => handleSlotUpdate('car', 'withoutBookingSlot', parseInt(e.target.value))}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available slots for Normal use</label>
+                      <input
+                        type="number"
+                        value={updateForm.slotDetails.car.withoutBookingAvailableSlot}
+                        readOnly
+                        disabled
+                        className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -1118,7 +1231,7 @@ export default function ParkingTable() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-500 dark:text-gray-400">Booked Slots</label>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Slots For booking</label>
                       <input
                         type="number"
                         value={updateForm.slotDetails.bicycle.bookingSlot}
@@ -1127,12 +1240,32 @@ export default function ParkingTable() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available Slots</label>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available Slots for Booking</label>
                       <input
                         type="number"
-                        value={updateForm.slotDetails.bicycle.availableSlot}
-                        onChange={(e) => handleSlotUpdate('bicycle', 'availableSlot', parseInt(e.target.value))}
+                        value={updateForm.slotDetails.bicycle.bookingAvailableSlot}
+                        readOnly
+                        disabled
+                        className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Slots for Normal use</label>
+                      <input
+                        type="number"
+                        value={updateForm.slotDetails.bicycle.withoutBookingSlot}
+                        onChange={(e) => handleSlotUpdate('bicycle', 'withoutBookingSlot', parseInt(e.target.value))}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available slots for Normal use</label>
+                      <input
+                        type="number"
+                        value={updateForm.slotDetails.bicycle.withoutBookingAvailableSlot}
+                        readOnly
+                        disabled
+                        className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -1182,7 +1315,7 @@ export default function ParkingTable() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-500 dark:text-gray-400">Booked Slots</label>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Slots For booking</label>
                       <input
                         type="number"
                         value={updateForm.slotDetails.truck.bookingSlot}
@@ -1191,12 +1324,32 @@ export default function ParkingTable() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available Slots</label>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available Slots for Booking</label>
                       <input
                         type="number"
-                        value={updateForm.slotDetails.truck.availableSlot}
-                        onChange={(e) => handleSlotUpdate('truck', 'availableSlot', parseInt(e.target.value))}
+                        value={updateForm.slotDetails.truck.bookingAvailableSlot}
+                        readOnly
+                        disabled
+                        className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Slots for Normal use</label>
+                      <input
+                        type="number"
+                        value={updateForm.slotDetails.truck.withoutBookingSlot}
+                        onChange={(e) => handleSlotUpdate('truck', 'withoutBookingSlot', parseInt(e.target.value))}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500 dark:text-gray-400">Available slots for Normal use</label>
+                      <input
+                        type="number"
+                        value={updateForm.slotDetails.truck.withoutBookingAvailableSlot}
+                        readOnly
+                        disabled
+                        className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 dark:bg-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -1459,7 +1612,7 @@ export default function ParkingTable() {
                             car: { 
                               ...addForm.slotDetails.car, 
                               totalSlot: Math.max(0, parseInt(e.target.value) || 0),
-                              availableSlot: Math.max(0, parseInt(e.target.value) || 0)
+                              
                             }
                           }
                         })}
@@ -1523,7 +1676,7 @@ export default function ParkingTable() {
                             bicycle: { 
                               ...addForm.slotDetails.bicycle, 
                               totalSlot: Math.max(0, parseInt(e.target.value) || 0),
-                              availableSlot: Math.max(0, parseInt(e.target.value) || 0)
+                              
                             }
                           }
                         })}
@@ -1587,7 +1740,7 @@ export default function ParkingTable() {
                             truck: { 
                               ...addForm.slotDetails.truck, 
                               totalSlot: Math.max(0, parseInt(e.target.value) || 0),
-                              availableSlot: Math.max(0, parseInt(e.target.value) || 0)
+                              
                             }
                           }
                         })}
