@@ -15,6 +15,7 @@ import {
   UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
+import { useUser } from "../context/UserContext";
 
 type NavItem = {
   name: string;
@@ -27,7 +28,7 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Admin Dashboard",
-    path: "/",
+    path: "/Admin Dashboard",
   },
   {
     icon: <GridIcon />,
@@ -125,8 +126,41 @@ const othersItems: NavItem[] = [
  
 ];
 
+// Role-based nav item filter
+const getNavItemsForRole = (role: string | null) => {
+  if (role === "admin") {
+    return navItems.filter(
+      (item) =>
+        item.name === "Admin Dashboard" ||
+        item.name === "User Management" ||
+        item.name === "Financial & Analytics" ||
+        item.name === "Parking Management"
+    );
+  }
+  if (role === "landowner") {
+    return navItems.filter(
+      (item) =>
+        item.name === "Landowner Dashboard" ||
+        item.name === "My Lands" ||
+        item.name === "Booking Overview" ||
+        item.name === "Earnings"
+    );
+  }
+  if (role === "parking coordinator") {
+    return navItems.filter(
+      (item) =>
+        item.name === "Coordinator Dashboard" ||
+        item.name === "Purchased Chunks" ||
+        item.name === "Payments"
+    );
+  }
+  // fallback: show nothing or a minimal set
+  return [];
+};
+
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { user, loading } = useUser();
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
@@ -316,6 +350,9 @@ const AppSidebar: React.FC = () => {
     </ul>
   );
 
+  // Use filtered nav items
+  const filteredNavItems = getNavItemsForRole(user.role);
+
   return (
     <aside
       className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
@@ -362,7 +399,11 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {loading ? (
+                <div className="text-center text-gray-400 py-4">Loading...</div>
+              ) : (
+                renderMenuItems(filteredNavItems, "main")
+              )}
             </div>
             <div className="">
               <h2
