@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "parking_app",
+            "cwd": "parking_app",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "parking_app (profile mode)",
+            "cwd": "parking_app",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "parking_app (release mode)",
+            "cwd": "parking_app",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "parking_scanner",
+            "cwd": "parking_scanner",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "parking_scanner (profile mode)",
+            "cwd": "parking_scanner",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "parking_scanner (release mode)",
+            "cwd": "parking_scanner",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
