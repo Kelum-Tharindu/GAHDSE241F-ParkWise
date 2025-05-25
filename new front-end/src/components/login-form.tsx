@@ -73,9 +73,9 @@ type UserRole = "user" | "admin" | "landowner" | "parking coordinator";
 
 const roleDashboardMap: Record<UserRole, string> = {
   user: "/dashboard/user",
-  admin: "/dashboard/admin",
-  landowner: "/landownerhome",
-  "parking coordinator": "/dashboard/parking-coordinator",
+  admin: "/Admin Dashboard",
+  landowner: "/Land Owner Dashboard",
+  "parking coordinator": "/Parking Coordinator Dashboard",
 };
 
 export function LoginForm({

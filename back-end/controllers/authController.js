@@ -12,6 +12,7 @@ const passport = require("passport");
 const registerUser = async (req, res) => {
   try {
     const { username, password, email, role } = req.body;
+    
 
     if (!username || !username.trim() || !password || !password.trim() || !email || !email.trim()) {
       console.log(`[REGISTER][FAIL] Missing fields for username: "${username}", email: "${email}"`);

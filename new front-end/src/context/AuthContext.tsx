@@ -18,7 +18,7 @@
 //     // On mount, validate token with backend
 //     const validate = async () => {
 //       try {
-//         const res = await fetch("http://localhost:5000/api/auth/validattoken", {
+//         const res = await fetch("http://localhost:5000/api/auth/validate-token", {
 //           method: "POST",
 //           credentials: "include",
 //         });

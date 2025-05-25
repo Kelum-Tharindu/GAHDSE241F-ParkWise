@@ -52,11 +52,11 @@ export default function App() {
       <Routes>
         {/* Dashboard Layout */}
         <Route element={<AppLayout />}>
-          <Route  path="/signin" element={<ProtectedRoute requiredRole="admin"><Home /></ProtectedRoute>} />
+          <Route  path="/Admin Dashboard" element={<ProtectedRoute requiredRole="admin"><Home /></ProtectedRoute>} />
 
-          <Route path="/landownerhome" element={<ProtectedRoute requiredRole="landowner"><LandownerHome /></ProtectedRoute>} />
+          <Route path="/Land Owner Dashboard" element={<ProtectedRoute requiredRole="landowner"><LandownerHome /></ProtectedRoute>} />
 
-          <Route path="/parkingcoordinatorhome" element={<ProtectedRoute requiredRole="parking coordinator"><ParkingCoordinatorHome /></ProtectedRoute>} />
+          <Route path="/Parking Coordinator Dashboard" element={<ProtectedRoute requiredRole="parking coordinator"><ParkingCoordinatorHome /></ProtectedRoute>} />
 
           {/* Dashboard */}
 

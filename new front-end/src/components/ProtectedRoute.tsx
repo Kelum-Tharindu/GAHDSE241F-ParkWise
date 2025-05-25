@@ -27,7 +27,7 @@ export default function ProtectedRoute({ requiredRole, children }: ProtectedRout
         console.log("[ProtectedRoute] User data:", data.user);
         if (data.user.role !== requiredRole) {
           console.log(`[ProtectedRoute] Role mismatch. Required: ${requiredRole}, Actual: ${data.user.role}. Redirecting to NotFound.`);
-          navigate("/pages/OtherPage/NotFound");
+          navigate("/*");
         }
       } catch (err) {
         console.log("[ProtectedRoute] Error during validation:", err);
