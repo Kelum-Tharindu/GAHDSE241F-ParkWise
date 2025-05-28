@@ -6,6 +6,7 @@ const {
     getAllLandownersWithDetails 
 } = require('../controllers/landownerController');
 
+
 // Get all landowners (basic info)
 router.get('/all', getAllLandowners);
 

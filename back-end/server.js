@@ -17,6 +17,7 @@ const os = require('os');
 const landownerRoutes = require('./routes/landownerRoutes');
 const userRoutes = require('./routes/userRoutes');
 const cookieParser = require('cookie-parser');
+const transactionRoutes = require('./routes/transactionRoutes');
 
 
 
@@ -103,6 +104,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userProfileRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/landowners', landownerRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // -------------------- TEST ROUTE --------------------
 app.get('/', (req, res) => {
