@@ -10,4 +10,5 @@ const billingSchema = new mongoose.Schema({
     paymentStatus: { type: String, enum: ["pending", "completed"], default: "pending" }
 });
 
-module.exports = mongoose.model("Billing", billingSchema);
+// Fix for OverwriteModelError in development (prevents redefining model)
+module.exports = mongoose.models.Billing || mongoose.model("Billing", billingSchema);
