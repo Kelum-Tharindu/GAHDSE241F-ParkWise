@@ -207,7 +207,7 @@ function PaymentForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
           >
             <option value="" className="bg-white dark:bg-[#232b39] text-gray-900 dark:text-white">Select Method</option>
             <option value="card" className="bg-white dark:bg-[#232b39] text-gray-900 dark:text-white">Card</option>
-            <option value="bank" className="bg-white dark:bg-[#232b39] text-gray-900 dark:text-white">Bank Transfer</option>
+            <option value="Bank Transfer" className="bg-white dark:bg-[#232b39] text-gray-900 dark:text-white">Bank Transfer</option>
             <option value="check" className="bg-white dark:bg-[#232b39] text-gray-900 dark:text-white">Check</option>
           </select>
         </div>

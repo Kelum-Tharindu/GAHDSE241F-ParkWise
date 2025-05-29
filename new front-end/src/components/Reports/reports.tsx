@@ -6,6 +6,18 @@ import {
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
+import axios from 'axios';
+
+// Payment data interface for API response
+interface PaymentData {
+  _id: string;
+  type: string;
+  amount: number;
+  method: string;
+  status: string;
+  date: string;
+  name: string;
+}
 
 // Register ChartJS components
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -107,7 +119,7 @@ function BookingsPDF({ data, from, to, summary }: { data: BookingRow[]; from: st
   );
 }
 
-function PaymentsPDF({ data, from, to, summary }: { data: typeof paymentsData; from: string; to: string; summary: { total: number; income: number; payouts: number; net: number; } }) {
+function PaymentsPDF({ data, from, to, summary }: { data: PaymentData[]; from: string; to: string; summary: { total: number; income: number; payouts: number; net: number; } }) {
   return (
     <Document>
       <Page style={styles.page}>
@@ -143,16 +155,15 @@ function PaymentsPDF({ data, from, to, summary }: { data: typeof paymentsData; f
               <Text style={styles.cellHeader}>Type</Text>
               <Text style={styles.cellHeader}>Method</Text>
               <Text style={styles.cellHeader}>Amount</Text>
-              <Text style={styles.cellHeader}>Date</Text>
-            </View>
+              <Text style={styles.cellHeader}>Date</Text>            </View>
             {data.map((row) => (
-              <View style={styles.row} key={row.id}>
-                <Text style={styles.cell}>{row.id}</Text>
-                <Text style={styles.cell}>{row.user}</Text>
-                <Text style={styles.cell}>{row.type}</Text>
+              <View style={styles.row} key={row._id}>
+                <Text style={styles.cell}>{row._id.substring(0, 8)}</Text>
+                <Text style={styles.cell}>{row.name}</Text>
+                <Text style={styles.cell}>{row.type.charAt(0).toUpperCase() + row.type.slice(1)}</Text>
                 <Text style={styles.cell}>{row.method}</Text>
                 <Text style={styles.cell}>{row.amount}</Text>
-                <Text style={styles.cell}>{row.date}</Text>
+                <Text style={styles.cell}>{new Date(row.date).toLocaleDateString()}</Text>
               </View>
             ))}
           </View>
@@ -238,15 +249,15 @@ type ReportType = "bookings" | "payments" | "spots";
 
 export default function AdminReportsDashboard() {
   const [report, setReport] = useState<ReportType>("bookings");
-  const [from, setFrom] = useState("2025-04-27");
-  const [to, setTo] = useState("2025-05-02");
+  const [from, setFrom] = useState("2024-04-27");
+  const [to, setTo] = useState("2026-05-02");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [vehicleFilter, setVehicleFilter] = useState("all");
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
-  const [showCharts, setShowCharts] = useState(true);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");  const [showCharts, setShowCharts] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [payments, setPayments] = useState<PaymentData[]>([]);
 
   // Simulate loading data
   useEffect(() => {
@@ -259,6 +270,29 @@ export default function AdminReportsDashboard() {
     
     loadData();
   }, [report, from, to]);
+  
+  // Fetch payment data from the backend when report type is 'payments'
+  useEffect(() => {
+    if (report !== 'payments') return;
+    setIsLoading(true);
+    axios.get('http://localhost:5000/api/transactions/details')
+      .then(res => {
+        console.log('Payments API response:', res.data);
+        if (Array.isArray(res.data)) {
+          console.log('Payments data is an array with length:', res.data.length);
+          console.log('First payment item example:', res.data.length > 0 ? res.data[0] : 'No items');
+          setPayments(res.data);
+        } else {
+          console.error('Payments API did not return an array:', res.data);
+          setPayments([]);
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching payments:', err);
+        setPayments([]);
+      })
+      .finally(() => setIsLoading(false));
+  }, [report]);
   // Fetch bookings from backend on mount or when report changes to 'bookings'
   useEffect(() => {
     if (report !== 'bookings') return;
@@ -323,17 +357,39 @@ export default function AdminReportsDashboard() {
     
     return dateFilter && searchFilter && statusFilterResult && vehicleFilterResult;
   });
-  
-  // Log final filtered bookings
+    // Log final filtered bookings
   console.log('Final filtered bookings for table:', filteredBookings);
 
-  const filteredPayments = paymentsData.filter(payment => 
-    (payment.date >= from && payment.date <= to) &&
-    (searchTerm === "" || 
-      payment.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.type.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (paymentMethodFilter === "all" || payment.method === paymentMethodFilter)
-  );
+  // Use real API data if available, otherwise fall back to mock data
+  const paymentData = payments.length > 0 ? payments : paymentsData.map(p => ({
+    _id: p.id.toString(),
+    type: p.type.toLowerCase(),
+    amount: p.amount,
+    method: p.method,
+    status: 'completed',
+    date: p.date,
+    name: p.user
+  }));
+
+  const filteredPayments = paymentData.filter(payment => {
+    // Format dates for comparison
+    let paymentDate = payment.date;
+    try {
+      if (typeof paymentDate === 'string') {
+        paymentDate = new Date(paymentDate).toISOString().split('T')[0];
+      }
+    } catch (e) {
+      console.error('Error parsing payment date:', e);
+    }
+
+    return (
+      (!from || !to || !paymentDate || (paymentDate >= from && paymentDate <= to)) &&
+      (searchTerm === "" || 
+        payment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        payment.type.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (paymentMethodFilter === "all" || payment.method === paymentMethodFilter)
+    );
+  });
 
   const filteredSpots = spotsData.filter(spot =>
     searchTerm === "" || 
@@ -346,12 +402,11 @@ export default function AdminReportsDashboard() {
     cancelled: filteredBookings.filter(b => b.bookingState?.toLowerCase() === "cancelled").length,
     active: filteredBookings.filter(b => b.bookingState?.toLowerCase() === "active" || b.bookingState?.toLowerCase() === "pending").length
   };
-
   const paymentsSummary = {
     total: filteredPayments.length,
-    income: filteredPayments.filter(p => p.type === "Booking").reduce((sum, p) => sum + p.amount, 0),
-    payouts: filteredPayments.filter(p => p.type === "Payout").reduce((sum, p) => sum + p.amount, 0),
-    net: filteredPayments.reduce((sum, p) => p.type === "Booking" ? sum + p.amount : sum - p.amount, 0)
+    income: filteredPayments.filter(p => p.type === "booking").reduce((sum, p) => sum + p.amount, 0),
+    payouts: filteredPayments.filter(p => p.type === "payout").reduce((sum, p) => sum + p.amount, 0),
+    net: filteredPayments.reduce((sum, p) => p.type === "booking" || p.type === "billing" ? sum + p.amount : sum - p.amount, 0)
   };
 
   const spotsSummary = {
@@ -386,15 +441,14 @@ export default function AdminReportsDashboard() {
       },
     ],
   };
-
   const paymentsChartData = {
-    labels: ['Bookings', 'Payouts'],
+    labels: ['Income', 'Payouts'],
     datasets: [
       {
         label: 'Transaction Amounts',
         data: [
-          filteredPayments.filter(p => p.type === "Booking").reduce((sum, p) => sum + p.amount, 0),
-          filteredPayments.filter(p => p.type === "Payout").reduce((sum, p) => sum + p.amount, 0)
+          filteredPayments.filter(p => p.type === "booking" || p.type === "billing").reduce((sum, p) => sum + p.amount, 0),
+          filteredPayments.filter(p => p.type === "payout").reduce((sum, p) => sum + p.amount, 0)
         ],
         backgroundColor: [
           'rgba(54, 162, 235, 0.6)',
@@ -559,10 +613,10 @@ export default function AdminReportsDashboard() {
                   className="rounded px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-[#181f2a] dark:text-white text-sm"
                 >
                   <option value="all">All Payment Methods</option>
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="PayPal">PayPal</option>
-                  <option value="Mobile Payment">Mobile Payment</option>
+                  <option value="card">Credit Card</option>
+                  <option value="bank">Bank Transfer</option>
+                  <option value="check">Check</option>
+                 
                 </select>
               )}
             </div>
@@ -939,27 +993,26 @@ export default function AdminReportsDashboard() {
                           No payments for selected period or filters.
                         </td>
                       </tr>
-                    ) : (
-                      filteredPayments.map((row, idx) => (
+                    ) : (                      filteredPayments.map((row, idx) => (
                         <tr
-                          key={row.id}
+                          key={row._id}
                           className={`border-b border-gray-100 dark:border-[#222b3a] transition-all hover:bg-blue-50 dark:hover:bg-[#1e2a3d] ${
                             idx % 2 === 0 ? "bg-gray-50 dark:bg-[#232b39]" : ""
                           }`}
                         >
-                          <td className="px-4 py-3 font-mono">{row.id}</td>
-                          <td className="px-4 py-3">{row.user}</td>
+                          <td className="px-4 py-3 font-mono">{row._id}</td>
+                          <td className="px-4 py-3">{row.name}</td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              row.type === "Booking" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
+                              row.type === "booking" || row.type === "billing" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
                               "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
                             }`}>
-                              {row.type}
+                              {row.type.charAt(0).toUpperCase() + row.type.slice(1)}
                             </span>
                           </td>
                           <td className="px-4 py-3">{row.method}</td>
                           <td className="px-4 py-3">{row.amount}</td>
-                          <td className="px-4 py-3">{row.date}</td>
+                          <td className="px-4 py-3">{new Date(row.date).toLocaleDateString()}</td>
                         </tr>
                       ))
                     )}
