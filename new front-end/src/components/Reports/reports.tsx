@@ -228,6 +228,7 @@ interface BookingRow {
   Date: string;
 }
 
+
 // --- Main Component ---
 type ReportType = "bookings" | "payments" | "spots";
 
@@ -254,7 +255,6 @@ export default function AdminReportsDashboard() {
     
     loadData();
   }, [report, from, to]);
-
   // Fetch bookings from backend on mount or when report changes to 'bookings'
   useEffect(() => {
     if (report !== 'bookings') return;
@@ -262,9 +262,12 @@ export default function AdminReportsDashboard() {
     fetch('http://localhost:5000/api/bookings/booking-details')
       .then(res => res.json())
       .then(data => {
-        console.log('Bookings API response:', data);
+        console.log('Bookings API response (raw):', data);
         if (Array.isArray(data)) {
+          console.log('Bookings data is an array with length:', data.length);
+          console.log('First booking item example:', data.length > 0 ? data[0] : 'No items');
           setBookings(data);
+          console.log('Bookings set in state:', data);
         } else {
           console.error('Bookings API did not return an array:', data);
           setBookings([]);
@@ -274,18 +277,51 @@ export default function AdminReportsDashboard() {
         console.error('Error fetching bookings:', err);
         setBookings([]);
       })
-      .finally(() => setIsLoading(false));
-  }, [report]);
-
+      .finally(() => setIsLoading(false));  }, [report]);
   // Filter data based on search and filters
-  const filteredBookings = bookings.filter(booking =>
-    (booking.Date >= from && booking.Date <= to) &&
-    (searchTerm === "" || 
+  const filteredBookings = bookings.filter(booking => {
+    // Debug logging for each booking item
+    console.log('Checking booking item:', booking);
+    
+    // Convert date strings to Date objects for proper comparison
+    let bookingDate = booking.Date;
+    // If bookingDate is a string, try to convert it to a comparable format
+    try {
+      if (typeof bookingDate === 'string') {
+        // Format will depend on your backend implementation
+        bookingDate = new Date(bookingDate).toISOString().split('T')[0];
+      }
+      console.log('Parsed booking date:', bookingDate, 'comparing with', from, 'and', to);
+    } catch (e) {
+      console.error('Error parsing date:', e);
+    }
+    
+    const dateFilter = (!from || !to || !bookingDate) ? true : (bookingDate >= from && bookingDate <= to);
+    const searchFilter = (searchTerm === "" || 
       booking.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.parkingName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (statusFilter === "all" || booking.bookingState === statusFilter) &&
-    (vehicleFilter === "all" || booking.vehicleType === vehicleFilter)
-  );
+      booking.parkingName?.toLowerCase().includes(searchTerm.toLowerCase()));
+    const statusFilterResult = (statusFilter === "all" || booking.bookingState?.toLowerCase() === statusFilter.toLowerCase());
+    const vehicleFilterResult = (vehicleFilter === "all" || booking.vehicleType === vehicleFilter);
+    
+    // Log filter results for debugging
+    if (!dateFilter || !searchFilter || !statusFilterResult || !vehicleFilterResult) {
+      console.log('Booking filtered out:', {
+        booking,
+        bookingDate,
+        fromDate: from,
+        toDate: to,
+        dateFilter,
+        searchFilter,
+        statusFilterResult,
+        vehicleFilterResult
+      });
+    }
+    
+    return dateFilter && searchFilter && statusFilterResult && vehicleFilterResult;
+  });
+  
+  // Log final filtered bookings
+  console.log('Final filtered bookings for table:', filteredBookings);
 
   const filteredPayments = paymentsData.filter(payment => 
     (payment.date >= from && payment.date <= to) &&
