@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
 });
 
 // --- PDF Components ---
-function BookingsPDF({ data, from, to, summary }: { data: BookingRow[]; from: string; to: string; summary: { total: number; completed: number; cancelled: number; } }) {
+function BookingsPDF({ data, from, to, summary }: { data: BookingRow[]; from: string; to: string; summary: { total: number; completed: number; cancelled: number; active: number; } }) {
   return (
     <Document>
       <Page style={styles.page}>
@@ -60,6 +60,10 @@ function BookingsPDF({ data, from, to, summary }: { data: BookingRow[]; from: st
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Total Bookings:</Text>
             <Text style={styles.summaryValue}>{summary.total}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Active Bookings:</Text>
+            <Text style={styles.summaryValue}>{summary.active}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Completed Bookings:</Text>
@@ -335,12 +339,12 @@ export default function AdminReportsDashboard() {
     searchTerm === "" || 
     spot.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   // Calculate summaries for PDF reports
   const bookingsSummary = {
     total: filteredBookings.length,
-    completed: filteredBookings.filter(b => b.bookingState === "completed").length,
-    cancelled: filteredBookings.filter(b => b.bookingState === "cancelled").length
+    completed: filteredBookings.filter(b => b.bookingState?.toLowerCase() === "completed").length,
+    cancelled: filteredBookings.filter(b => b.bookingState?.toLowerCase() === "cancelled").length,
+    active: filteredBookings.filter(b => b.bookingState?.toLowerCase() === "active" || b.bookingState?.toLowerCase() === "pending").length
   };
 
   const paymentsSummary = {
@@ -357,27 +361,26 @@ export default function AdminReportsDashboard() {
     occupancyRate: Math.round(filteredSpots.reduce((sum, s) => sum + s.occupied, 0) / 
       filteredSpots.reduce((sum, s) => sum + s.total, 0) * 100)
   };
-
   // Chart data
   const bookingsChartData = {
-    labels: ['Completed', 'Cancelled', 'Other'],
+    labels: ['Completed', 'Cancelled', 'Active'],
     datasets: [
       {
         label: 'Bookings by State',
         data: [
-          filteredBookings.filter(b => b.bookingState === "completed").length,
-          filteredBookings.filter(b => b.bookingState === "cancelled").length,
-          filteredBookings.filter(b => b.bookingState !== "completed" && b.bookingState !== "cancelled").length
+          filteredBookings.filter(b => b.bookingState?.toLowerCase() === "completed").length,
+          filteredBookings.filter(b => b.bookingState?.toLowerCase() === "cancelled").length,
+          filteredBookings.filter(b => b.bookingState?.toLowerCase() === "active" || b.bookingState?.toLowerCase() === "pending").length
         ],
         backgroundColor: [
           'rgba(75, 192, 192, 0.6)',
           'rgba(255, 99, 132, 0.6)',
-          'rgba(255, 206, 86, 0.6)'
+          'rgba(54, 162, 235, 0.6)'
         ],
         borderColor: [
           'rgba(75, 192, 192, 1)',
           'rgba(255, 99, 132, 1)',
-          'rgba(255, 206, 86, 1)'
+          'rgba(54, 162, 235, 1)'
         ],
         borderWidth: 1,
       },
@@ -524,16 +527,16 @@ export default function AdminReportsDashboard() {
               <FaFilter className="text-gray-500 dark:text-gray-400" />
               
               {report === "bookings" && (
-                <>
-                  <select 
+                <>                  <select 
                     value={statusFilter} 
                     onChange={e => setStatusFilter(e.target.value)}
                     className="rounded px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-[#181f2a] dark:text-white text-sm"
                   >
                     <option value="all">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending</option>
                     <option value="Completed">Completed</option>
                     <option value="Cancelled">Cancelled</option>
-                    <option value="Pending">Pending</option>
                   </select>
                   
                   <select 
@@ -581,7 +584,37 @@ export default function AdminReportsDashboard() {
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  {bookingsSummary.completed} completed, {bookingsSummary.cancelled} cancelled
+                  {bookingsSummary.completed} completed, {bookingsSummary.active} active, {bookingsSummary.cancelled} cancelled
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Active Bookings</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">{bookingsSummary.active}</p>
+                  </div>
+                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <FaCar className="text-green-600 dark:text-green-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Currently active or pending bookings
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Completed Bookings</p>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">{bookingsSummary.completed}</p>
+                  </div>
+                  <div className="p-2 bg-teal-100 dark:bg-teal-900 rounded-lg">
+                    <FaCar className="text-teal-600 dark:text-teal-300" />
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Successfully completed bookings
                 </div>
               </div>
             </>
