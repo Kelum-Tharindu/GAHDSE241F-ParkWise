@@ -8,5 +8,6 @@ router.post('/confirm-booking', bookingController.confirmBooking);
 router.get('/parking-names', getParkingNames);
 router.get('/booking-history/:userId', bookingController.getBookingHistoryByUserId);
 router.get('/all-bookings', bookingController.getAllBookings);
+router.get('/booking-details', bookingController.getBookingDetails);
 
 module.exports = router;

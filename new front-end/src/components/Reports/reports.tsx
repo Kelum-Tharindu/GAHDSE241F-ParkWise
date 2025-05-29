@@ -11,15 +11,6 @@ import { Pie, Bar } from 'react-chartjs-2';
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // --- Example Data ---
-const bookingsData = [
-  { id: 1, user: "Kasun Perera", spot: "Lot A - 12", amount: 400, date: "2025-04-27", status: "Completed", duration: 2, vehicle: "Car" },
-  { id: 2, user: "Nimal Silva", spot: "Lot B - 3", amount: 600, date: "2025-04-28", status: "Cancelled", duration: 4, vehicle: "Van" },
-  { id: 3, user: "Saman Fernando", spot: "Lot C - 7", amount: 900, date: "2025-04-29", status: "Completed", duration: 6, vehicle: "Car" },
-  { id: 4, user: "Priya Mendis", spot: "Lot A - 5", amount: 300, date: "2025-04-30", status: "Pending", duration: 1.5, vehicle: "Motorcycle" },
-  { id: 5, user: "Lakmal Perera", spot: "Lot D - 2", amount: 750, date: "2025-05-01", status: "Completed", duration: 5, vehicle: "Car" },
-  { id: 6, user: "Chamari Silva", spot: "Lot B - 9", amount: 450, date: "2025-05-02", status: "Completed", duration: 3, vehicle: "Car" },
-];
-
 const paymentsData = [
   { id: 1, user: "Kasun Perera", type: "Booking", amount: 400, date: "2025-04-27", method: "Credit Card" },
   { id: 2, user: "Nimal Silva", type: "Payout", amount: 1500, date: "2025-04-28", method: "Bank Transfer" },
@@ -57,7 +48,7 @@ const styles = StyleSheet.create({
 });
 
 // --- PDF Components ---
-function BookingsPDF({ data, from, to, summary }: { data: typeof bookingsData; from: string; to: string; summary: { total: number; completed: number; cancelled: number; revenue: number; } }) {
+function BookingsPDF({ data, from, to, summary }: { data: BookingRow[]; from: string; to: string; summary: { total: number; completed: number; cancelled: number; } }) {
   return (
     <Document>
       <Page style={styles.page}>
@@ -78,31 +69,29 @@ function BookingsPDF({ data, from, to, summary }: { data: typeof bookingsData; f
             <Text style={styles.summaryLabel}>Cancelled Bookings:</Text>
             <Text style={styles.summaryValue}>{summary.cancelled}</Text>
           </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Revenue:</Text>
-            <Text style={styles.summaryValue}>LKR {summary.revenue}</Text>
-          </View>
         </View>
         
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Detailed Bookings</Text>
           <View style={styles.table}>
             <View style={styles.row}>
-              <Text style={styles.cellHeader}>ID</Text>
-              <Text style={styles.cellHeader}>User</Text>
-              <Text style={styles.cellHeader}>Spot</Text>
-              <Text style={styles.cellHeader}>Amount</Text>
+              <Text style={styles.cellHeader}>Booking ID</Text>
+              <Text style={styles.cellHeader}>Parking Name</Text>
+              <Text style={styles.cellHeader}>User Name</Text>
+              <Text style={styles.cellHeader}>Vehicle Type</Text>
+              <Text style={styles.cellHeader}>Booking State</Text>
+              <Text style={styles.cellHeader}>Total Duration</Text>
               <Text style={styles.cellHeader}>Date</Text>
-              <Text style={styles.cellHeader}>Status</Text>
             </View>
             {data.map((row) => (
-              <View style={styles.row} key={row.id}>
-                <Text style={styles.cell}>{row.id}</Text>
-                <Text style={styles.cell}>{row.user}</Text>
-                <Text style={styles.cell}>{row.spot}</Text>
-                <Text style={styles.cell}>{row.amount}</Text>
-                <Text style={styles.cell}>{row.date}</Text>
-                <Text style={styles.cell}>{row.status}</Text>
+              <View style={styles.row} key={row.bookingId}>
+                <Text style={styles.cell}>{row.bookingId}</Text>
+                <Text style={styles.cell}>{row.parkingName}</Text>
+                <Text style={styles.cell}>{row.userName}</Text>
+                <Text style={styles.cell}>{row.vehicleType}</Text>
+                <Text style={styles.cell}>{row.bookingState}</Text>
+                <Text style={styles.cell}>{row.totalDuration}</Text>
+                <Text style={styles.cell}>{row.Date}</Text>
               </View>
             ))}
           </View>
@@ -228,6 +217,17 @@ function SpotsPDF({ data, summary }: { data: typeof spotsData; summary: { locati
   );
 }
 
+// --- Define BookingRow type for backend data
+interface BookingRow {
+  bookingId: string;
+  parkingName: string;
+  userName: string;
+  vehicleType: string;
+  bookingState: string;
+  totalDuration: string;
+  Date: string;
+}
+
 // --- Main Component ---
 type ReportType = "bookings" | "payments" | "spots";
 
@@ -241,6 +241,7 @@ export default function AdminReportsDashboard() {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
   const [showCharts, setShowCharts] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [bookings, setBookings] = useState<BookingRow[]>([]);
 
   // Simulate loading data
   useEffect(() => {
@@ -254,14 +255,36 @@ export default function AdminReportsDashboard() {
     loadData();
   }, [report, from, to]);
 
+  // Fetch bookings from backend on mount or when report changes to 'bookings'
+  useEffect(() => {
+    if (report !== 'bookings') return;
+    setIsLoading(true);
+    fetch('http://localhost:5000/api/bookings/booking-details')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Bookings API response:', data);
+        if (Array.isArray(data)) {
+          setBookings(data);
+        } else {
+          console.error('Bookings API did not return an array:', data);
+          setBookings([]);
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching bookings:', err);
+        setBookings([]);
+      })
+      .finally(() => setIsLoading(false));
+  }, [report]);
+
   // Filter data based on search and filters
-  const filteredBookings = bookingsData.filter(booking => 
-    (booking.date >= from && booking.date <= to) &&
+  const filteredBookings = bookings.filter(booking =>
+    (booking.Date >= from && booking.Date <= to) &&
     (searchTerm === "" || 
-      booking.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.spot.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (statusFilter === "all" || booking.status === statusFilter) &&
-    (vehicleFilter === "all" || booking.vehicle === vehicleFilter)
+      booking.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.parkingName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (statusFilter === "all" || booking.bookingState === statusFilter) &&
+    (vehicleFilter === "all" || booking.vehicleType === vehicleFilter)
   );
 
   const filteredPayments = paymentsData.filter(payment => 
@@ -280,9 +303,8 @@ export default function AdminReportsDashboard() {
   // Calculate summaries for PDF reports
   const bookingsSummary = {
     total: filteredBookings.length,
-    completed: filteredBookings.filter(b => b.status === "Completed").length,
-    cancelled: filteredBookings.filter(b => b.status === "Cancelled").length,
-    revenue: filteredBookings.reduce((sum, b) => b.status !== "Cancelled" ? sum + b.amount : sum, 0)
+    completed: filteredBookings.filter(b => b.bookingState === "completed").length,
+    cancelled: filteredBookings.filter(b => b.bookingState === "cancelled").length
   };
 
   const paymentsSummary = {
@@ -302,14 +324,14 @@ export default function AdminReportsDashboard() {
 
   // Chart data
   const bookingsChartData = {
-    labels: ['Completed', 'Cancelled', 'Pending'],
+    labels: ['Completed', 'Cancelled', 'Other'],
     datasets: [
       {
-        label: 'Bookings by Status',
+        label: 'Bookings by State',
         data: [
-          filteredBookings.filter(b => b.status === "Completed").length,
-          filteredBookings.filter(b => b.status === "Cancelled").length,
-          filteredBookings.filter(b => b.status === "Pending").length
+          filteredBookings.filter(b => b.bookingState === "completed").length,
+          filteredBookings.filter(b => b.bookingState === "cancelled").length,
+          filteredBookings.filter(b => b.bookingState !== "completed" && b.bookingState !== "cancelled").length
         ],
         backgroundColor: [
           'rgba(75, 192, 192, 0.6)',
@@ -524,38 +546,6 @@ export default function AdminReportsDashboard() {
                 </div>
                 <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   {bookingsSummary.completed} completed, {bookingsSummary.cancelled} cancelled
-                </div>
-              </div>
-              
-              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
-                    <p className="text-2xl font-bold text-gray-800 dark:text-white">LKR {bookingsSummary.revenue}</p>
-                  </div>
-                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                    <FaMoneyBillWave className="text-green-600 dark:text-green-300" />
-                  </div>
-                </div>
-                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  From {bookingsSummary.completed} completed bookings
-                </div>
-              </div>
-              
-              <div className="bg-white dark:bg-[#1e293b] rounded-xl p-4 shadow border border-gray-100 dark:border-gray-800">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Average Booking</p>
-                    <p className="text-2xl font-bold text-gray-800 dark:text-white">
-                      LKR {bookingsSummary.completed > 0 ? Math.round(bookingsSummary.revenue / bookingsSummary.completed) : 0}
-                    </p>
-                  </div>
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                    <FaUserAlt className="text-purple-600 dark:text-purple-300" />
-                  </div>
-                </div>
-                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Per completed booking
                 </div>
               </div>
             </>
@@ -823,47 +813,37 @@ export default function AdminReportsDashboard() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-100 dark:bg-[#222b3a] text-gray-700 dark:text-gray-200 uppercase">
-                      <th className="px-4 py-3 text-left">ID</th>
-                      <th className="px-4 py-3 text-left">User</th>
-                      <th className="px-4 py-3 text-left">Spot</th>
-                      <th className="px-4 py-3 text-left">Vehicle</th>
-                      <th className="px-4 py-3 text-left">Duration (hrs)</th>
-                      <th className="px-4 py-3 text-left">Amount (LKR)</th>
+                      <th className="px-4 py-3 text-left">Booking ID</th>
+                      <th className="px-4 py-3 text-left">Parking Name</th>
+                      <th className="px-4 py-3 text-left">User Name</th>
+                      <th className="px-4 py-3 text-left">Vehicle Type</th>
+                      <th className="px-4 py-3 text-left">Booking State</th>
+                      <th className="px-4 py-3 text-left">Total Duration</th>
                       <th className="px-4 py-3 text-left">Date</th>
-                      <th className="px-4 py-3 text-left">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredBookings.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
+                        <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
                           No bookings for selected period or filters.
                         </td>
                       </tr>
                     ) : (
                       filteredBookings.map((row, idx) => (
                         <tr
-                          key={row.id}
+                          key={row.bookingId}
                           className={`border-b border-gray-100 dark:border-[#222b3a] transition-all hover:bg-blue-50 dark:hover:bg-[#1e2a3d] ${
                             idx % 2 === 0 ? "bg-gray-50 dark:bg-[#232b39]" : ""
                           }`}
                         >
-                          <td className="px-4 py-3 font-mono">{row.id}</td>
-                          <td className="px-4 py-3">{row.user}</td>
-                          <td className="px-4 py-3">{row.spot}</td>
-                          <td className="px-4 py-3">{row.vehicle}</td>
-                          <td className="px-4 py-3">{row.duration}</td>
-                          <td className="px-4 py-3">{row.amount}</td>
-                          <td className="px-4 py-3">{row.date}</td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              row.status === "Completed" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                              row.status === "Cancelled" ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" :
-                              "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                            }`}>
-                              {row.status}
-                            </span>
-                          </td>
+                          <td className="px-4 py-3 font-mono">{row.bookingId}</td>
+                          <td className="px-4 py-3">{row.parkingName}</td>
+                          <td className="px-4 py-3">{row.userName}</td>
+                          <td className="px-4 py-3">{row.vehicleType}</td>
+                          <td className="px-4 py-3">{row.bookingState}</td>
+                          <td className="px-4 py-3">{row.totalDuration}</td>
+                          <td className="px-4 py-3">{row.Date}</td>
                         </tr>
                       ))
                     )}
@@ -982,7 +962,7 @@ export default function AdminReportsDashboard() {
         <div className="flex justify-between items-center mt-4 text-xs text-gray-500 dark:text-gray-400">
           <span>
             {report === "bookings"
-              ? `Showing ${filteredBookings.length} of ${bookingsData.length} bookings`
+              ? `Showing ${filteredBookings.length} of ${bookings.length} bookings`
               : report === "payments"
               ? `Showing ${filteredPayments.length} of ${paymentsData.length} payments`
               : `Showing ${filteredSpots.length} of ${spotsData.length} parking locations`}

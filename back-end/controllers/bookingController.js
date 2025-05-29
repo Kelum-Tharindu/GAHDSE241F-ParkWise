@@ -1,5 +1,6 @@
 const Booking = require('../models/bookingmodel');
 const Parking = require('../models/parkingmodel');
+const User = require('../models/usermodel');
 const crypto = require('crypto');
 const { generateQR } = require("../utils/qrGenertor");
 
@@ -314,12 +315,51 @@ const getAllBookings = async (req, res) => {
   }
 };
 
+// Get simplified booking details with joins
+const getBookingDetails = async (req, res) => {
+  try {
+    // Get all bookings
+    const bookings = await Booking.find().lean();
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({ message: 'No bookings found' });
+    }
 
+    // Collect unique parking names and userIds
+    const parkingNames = [...new Set(bookings.map(b => b.parkingName))];
+    const userIds = [...new Set(bookings.map(b => b.userId.toString()))];
+
+    // Fetch parking name to id map (if you use parkingId, adjust accordingly)
+    const parkings = await Parking.find({ name: { $in: parkingNames } }).select('_id name').lean();
+    const parkingNameMap = {};
+    parkings.forEach(p => { parkingNameMap[p.name] = p.name; });
+
+    // Fetch user id to username map
+    const users = await User.find({ _id: { $in: userIds } }).select('_id username').lean();
+    const userMap = {};
+    users.forEach(u => { userMap[u._id.toString()] = u.username; });
+
+    // Build result
+    const result = bookings.map(b => ({
+      bookingId: b._id,
+      parkingName: parkingNameMap[b.parkingName] || b.parkingName || 'Unknown',
+      userName: userMap[b.userId.toString()] || 'Unknown',
+      vehicleType: b.vehicleType,
+      bookingState: b.bookingState,
+      totalDuration: b.totalDuration || 'pending',
+      Date:b.bookingDate ? new Date(b.bookingDate).toLocaleDateString() : 'N/A',     
+    }));
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch booking details', error: error.message });
+  }
+};
 
 module.exports = {
   calculateFee,
   confirmBooking,
   getParkingNames,
   getBookingHistoryByUserId,
-  getAllBookings
+  getAllBookings,
+  getBookingDetails
 };
