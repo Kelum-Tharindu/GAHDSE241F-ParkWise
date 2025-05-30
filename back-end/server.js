@@ -41,20 +41,16 @@ const app = express();
 
 // -------------------- CORS CONFIG --------------------
 const allowedOrigins = [
-  'http://localhost:5173',  // React Dev
+  'http://localhost:5173',  // Vite React Dev
   'http://localhost:3000',  // Optional other dev port
   'http://localhost:5500',
   'http://localhost:51761',  // Flutter Web dev
   `http://${localIP}:3000`, // Flutter or React from another device
+  `http://${localIP}:5173`, // Vite React from another device
   process.env.FRONTEND_URL  // React Prod
 ];
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173", // Make frontend URL configurable through .env
-    methods: "GET,POST,PUT,DELETE",
-    allowedHeaders: "Content-Type,Authorization",
-    credentials: true, // Allow cookies and credentials
-
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -63,7 +59,8 @@ app.use(cors({
     }
   },
   methods: "GET,POST,PUT,DELETE",
-  allowedHeaders: "Content-Type,Authorization"
+  allowedHeaders: "Content-Type,Authorization",
+  credentials: true // Allow cookies and credentials
 }));
 
 app.use(express.json());  // Middleware to parse JSON request bodies

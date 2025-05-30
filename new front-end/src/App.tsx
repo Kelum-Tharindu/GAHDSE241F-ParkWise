@@ -38,6 +38,7 @@ import PurchaseParkingChunk from "./pages/EventCoordinator/PurchasedChunks/Purch
 import ParkingChunkPayment from "./pages/EventCoordinator/Payments/spotsChunkPayment";
 import LandownerHome from "./pages/Landowner/Home/Home";
 import ParkingCoordinatorHome from "./pages/EventCoordinator/Home/Home";
+import TargetManagementPage from "./pages/Dashboard/TargetManagement";
 
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
@@ -91,13 +92,13 @@ export default function App() {
           {/* Support Page */}
           <Route path="/support" element={<FAQ />} />
 
-          <Route path="/account-settings" element={<AccountSettings/>} />
-
-          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/account-settings" element={<AccountSettings/>} />          <Route path="/pricing" element={<Pricing />} />
 
           <Route path="/payments" element={<Payments />} />
 
           <Route path="/reports" element={<Reports />} />
+          
+          <Route path="/target-management" element={<ProtectedRoute requiredRole="admin"><TargetManagementPage /></ProtectedRoute>} />
 
           <Route path="/view-lands" element={<LandownerParkingRentalsTable />} />
 

@@ -1,11 +1,11 @@
 {
   "name": "mern-auth-backend",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
+  "main": "index.js",  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node sever.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "test:target-api": "node tests/testTargetManagementAPI.js"
   },
   "keywords": [],
   "author": "",
