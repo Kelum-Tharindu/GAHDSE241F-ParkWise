@@ -49,10 +49,15 @@ exports.createBulkBookingChunk = async (req, res) => {
     });
     await chunk.save();
 
-    // Generate encrypted id using sha256
-    const encryptedId = crypto.createHash('sha256').update(chunk._id.toString()).digest('hex');
-    // Generate QR code with collection id (chunk._id)
-    const qrImage = await generateQR(chunk._id.toString());
+    // Prepare the payload and encrypt it (id and type)
+    const payload = JSON.stringify({
+      id: chunk._id.toString(),
+      type: 'bulkbooking'
+    });
+    // Encrypt the payload using sha256
+    const encryptedCode = crypto.createHash('sha256').update(payload).digest('hex');
+    // Generate QR code with only the encrypted code
+    const qrImage = await generateQR(encryptedCode);
 
     // Update chunk with qrImage
     chunk.qrImage = qrImage;
@@ -61,5 +66,38 @@ exports.createBulkBookingChunk = async (req, res) => {
     res.status(201).json(chunk);
   } catch (error) {
     res.status(400).json({ message: 'Failed to create bulk booking chunk', error: error.message });
+  }
+};
+
+// Decrypt function to get details from encrypted code
+exports.decryptBulkBookingCode = async (req, res) => {
+  try {
+    const { code } = req.body; // code is the sha256 hash
+    // Since sha256 is one-way, you cannot decrypt it directly.
+    // Instead, you must search all bulk bookings and compare hashes.
+    const chunks = await BulkBookingChunk.find();
+    for (const chunk of chunks) {
+      const payload = JSON.stringify({ id: chunk._id.toString(), type: 'bulkbooking' });
+      const hash = crypto.createHash('sha256').update(payload).digest('hex');
+      if (hash === code) {
+        return res.status(200).json({ id: chunk._id.toString(), type: 'bulkbooking' });
+      }
+    }
+    res.status(404).json({ message: 'No matching record found for this code.' });
+  } catch (error) {
+    res.status(400).json({ message: 'Failed to decrypt code', error: error.message });
+  }
+};
+
+// Update status of a bulk booking chunk
+exports.updateBulkBookingStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const chunk = await BulkBookingChunk.findByIdAndUpdate(id, { status }, { new: true });
+    if (!chunk) return res.status(404).json({ message: 'Chunk not found' });
+    res.status(200).json(chunk);
+  } catch (error) {
+    res.status(400).json({ message: 'Failed to update status', error: error.message });
   }
 };

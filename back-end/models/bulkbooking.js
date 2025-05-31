@@ -14,7 +14,6 @@ const BulkBookingChunkSchema = new mongoose.Schema({
   status: { type: String, enum: ['Active', 'Expired', 'Full'], required: true },
   remarks: { type: String, default: '' },
   qrImage: { type: String },
-  vehicleType: { type: String, enum: ['car', 'bicycle', 'truck'], required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('BulkBookingChunk', BulkBookingChunkSchema);
