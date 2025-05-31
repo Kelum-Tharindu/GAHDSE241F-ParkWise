@@ -23,7 +23,7 @@ const calculateFee = async (req, res) => {
 
     const totalMinutes = calculateMinutes(entryTime, exitTime);
     const usageFee = Math.ceil(totalMinutes / 30) * pricing.perPrice30Min;
-    const bookingFee = 100; // Static booking fee (or change as needed)
+    const bookingFee = 10; // Static booking fee (or change as needed)
     const totalFee = usageFee + bookingFee;
 
     res.status(200).json({

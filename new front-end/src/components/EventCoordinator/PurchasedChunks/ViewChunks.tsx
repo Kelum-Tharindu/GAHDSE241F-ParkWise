@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import {
   Search,
   Eye,
@@ -9,15 +10,17 @@ import {
   ChevronRight,
   SortAsc,
   SortDesc,
-  Users,
-  ParkingCircle,
   CheckCircle,
   Clock,
   XCircle,
 } from "lucide-react";
 
+type SortKey = "purchaseDate" | "parkingName" | "chunkName" | "status";
+type SortDirection = "asc" | "desc";
+
 interface Chunk {
-  id: string;
+  _id: string;
+  user: string;
   purchaseDate: string;
   parkingName: string;
   chunkName: string;
@@ -27,97 +30,17 @@ interface Chunk {
   availableSpots: number;
   validFrom: string;
   validTo: string;
-  status: "Active" | "Expired" | "Pending";
+  status: "Active" | "Expired" | "Full";
   remarks?: string;
+  qrImage?: string;
+  vehicleType: "car" | "bicycle" | "truck";
 }
 
-const allChunks: Chunk[] = [
-  {
-    id: "CHUNK-2025-01",
-    purchaseDate: "2025-04-01",
-    parkingName: "Colombo Fort Parking",
-    chunkName: "Morning Shift - April",
-    company: "Acme Corp",
-    totalSpots: 30,
-    usedSpots: 20,
-    availableSpots: 10,
-    validFrom: "2025-04-01",
-    validTo: "2025-04-30",
-    status: "Active",
-    remarks: "For company staff",
-  },
-  {
-    id: "CHUNK-2025-02",
-    purchaseDate: "2025-03-15",
-    parkingName: "Kandy Lake Parking",
-    chunkName: "Weekend Batch",
-    company: "Beta Solutions",
-    totalSpots: 15,
-    usedSpots: 15,
-    availableSpots: 0,
-    validFrom: "2025-03-16",
-    validTo: "2025-03-31",
-    status: "Expired",
-    remarks: "Fully utilized",
-  },
-  {
-    id: "CHUNK-2025-03",
-    purchaseDate: "2025-04-10",
-    parkingName: "Galle Face Green",
-    chunkName: "VIP Guests",
-    company: "Acme Corp",
-    totalSpots: 5,
-    usedSpots: 2,
-    availableSpots: 3,
-    validFrom: "2025-04-10",
-    validTo: "2025-05-10",
-    status: "Active",
-    remarks: "",
-  },
-  {
-    id: "CHUNK-2025-04",
-    purchaseDate: "2025-04-12",
-    parkingName: "Negombo Beach Parking",
-    chunkName: "Pending Approval",
-    company: "Omega Ltd",
-    totalSpots: 10,
-    usedSpots: 0,
-    availableSpots: 10,
-    validFrom: "2025-04-15",
-    validTo: "2025-05-15",
-    status: "Pending",
-    remarks: "Awaiting payment",
-  },
-];
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("en-GB", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Active":
-      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400";
-    case "Pending":
-      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400";
-    case "Expired":
-      return "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400";
-    default:
-      return "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400";
-  }
-};
-
-type SortKey = "purchaseDate" | "parkingName" | "chunkName" | "status";
-type SortDirection = "asc" | "desc";
-
 export default function ParkingCoordinatorChunksTable() {
+  const [chunks, setChunks] = useState<Chunk[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Expired" | "Pending">("All");
+  const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Expired" | "Full">("All");
   const [companyFilter, setCompanyFilter] = useState<"All" | string>("All");
   const [viewChunk, setViewChunk] = useState<Chunk | null>(null);
   const [darkMode, setDarkMode] = useState(false);
@@ -134,6 +57,18 @@ export default function ParkingCoordinatorChunksTable() {
         window.matchMedia("(prefers-color-scheme: dark)").matches);
     setDarkMode(isDark);
     document.documentElement.classList.toggle("dark", isDark);
+    // Fetch chunks from backend
+    axios.get("http://localhost:5000/api/bulkbooking/")
+      .then(res => {
+        // Defensive: ensure array or fallback to []
+        if (Array.isArray(res.data)) {
+          setChunks(res.data);
+        } else {
+          setChunks([]);
+        }
+      })
+      .catch(() => setChunks([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const toggleTheme = () => {
@@ -143,10 +78,10 @@ export default function ParkingCoordinatorChunksTable() {
     localStorage.theme = newDark ? "dark" : "light";
   };
 
-  const allCompanies = Array.from(new Set(allChunks.map((c) => c.company)));
+  const allCompanies = Array.from(new Set(chunks.map((c) => c.company)));
 
   const filteredChunks = useMemo(() => {
-    let list = allChunks;
+    let list = chunks;
     if (statusFilter !== "All") list = list.filter((c) => c.status === statusFilter);
     if (companyFilter !== "All") list = list.filter((c) => c.company === companyFilter);
     const lower = search.trim().toLowerCase();
@@ -156,7 +91,7 @@ export default function ParkingCoordinatorChunksTable() {
           c.parkingName.toLowerCase().includes(lower) ||
           c.chunkName.toLowerCase().includes(lower) ||
           c.company.toLowerCase().includes(lower) ||
-          c.id.toLowerCase().includes(lower)
+          c._id.toLowerCase().includes(lower)
       );
     }
     list = [...list].sort((a, b) => {
@@ -185,7 +120,7 @@ export default function ParkingCoordinatorChunksTable() {
       return 0;
     });
     return list;
-  }, [search, statusFilter, companyFilter, sortKey, sortDir]);
+  }, [search, statusFilter, companyFilter, sortKey, sortDir, chunks]);
 
   const totalPages = Math.max(1, Math.ceil(filteredChunks.length / PAGE_SIZE));
   const pagedChunks = filteredChunks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -198,6 +133,36 @@ export default function ParkingCoordinatorChunksTable() {
       setSortDir("asc");
     }
   };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-GB", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(date);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Active":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400";
+      case "Full":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400";
+      case "Expired":
+        return "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400";
+      default:
+        return "bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans text-gray-900 dark:text-gray-100 flex items-center justify-center">
+        <span className="text-lg font-bold text-gray-900 dark:text-gray-100">Loading chunks...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans text-gray-900 dark:text-gray-100">
@@ -247,7 +212,7 @@ export default function ParkingCoordinatorChunksTable() {
                   >
                     <option value="All">All Statuses</option>
                     <option value="Active">Active</option>
-                    <option value="Pending">Pending</option>
+                    <option value="Full">Full</option>
                     <option value="Expired">Expired</option>
                   </select>
                   <select
@@ -301,6 +266,9 @@ export default function ParkingCoordinatorChunksTable() {
                   <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-20">
                     Available
                   </th>
+                  <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-20">
+                    Vehicle Type
+                  </th>
                   <th className="px-2 py-2 text-center font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-28">
                     Validity
                   </th>
@@ -329,7 +297,7 @@ export default function ParkingCoordinatorChunksTable() {
                 ) : (
                   pagedChunks.map((c) => (
                     <tr
-                      key={c.id}
+                      key={c._id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
                       onClick={() => setViewChunk(c)}
                     >
@@ -340,27 +308,23 @@ export default function ParkingCoordinatorChunksTable() {
                       <td className="px-2 py-2 whitespace-nowrap text-center">{c.totalSpots}</td>
                       <td className="px-2 py-2 whitespace-nowrap text-center">{c.usedSpots}</td>
                       <td className="px-2 py-2 whitespace-nowrap text-center">{c.availableSpots}</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-center">{c.vehicleType}</td>
                       <td className="px-2 py-2 whitespace-nowrap text-center">
                         <span className="block">{formatDate(c.validFrom)}</span>
-                        <span className="block">to</span>
                         <span className="block">{formatDate(c.validTo)}</span>
                       </td>
                       <td className="px-2 py-2 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(c.status)}`}>
-                          {c.status}
-                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(c.status)}`}>{c.status}</span>
                       </td>
                       <td className="px-2 py-2 whitespace-nowrap text-center">
-                        <button
-                          onClick={e => {
-                            e.stopPropagation();
-                            setViewChunk(c);
-                          }}
-                          className="inline-flex items-center justify-center p-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:text-blue-400 transition duration-200"
-                          title="View chunk details"
-                        >
-                          <Eye size={12} />
-                        </button>
+                        <Eye size={16} className="inline-block text-blue-500" />
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-center">
+                        {c.qrImage ? (
+                          <img src={c.qrImage} alt="QR" className="w-8 h-8 inline-block" />
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -407,16 +371,14 @@ export default function ParkingCoordinatorChunksTable() {
             >
               <ArrowLeft size={14} />
             </button>
-            <div className="mb-2 text-xs text-gray-400">{viewChunk.id}</div>
+            <div className="mb-2 text-xs text-gray-400">{viewChunk._id}</div>
             <div className="text-base font-bold text-gray-900 dark:text-white mb-1">{viewChunk.parkingName}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">{viewChunk.chunkName}</div>
             <div className="flex items-center gap-2 mb-2">
               {viewChunk.status === "Active" && <CheckCircle className="text-emerald-500" size={14} />}
-              {viewChunk.status === "Pending" && <Clock className="text-yellow-500" size={14} />}
+              {viewChunk.status === "Full" && <Clock className="text-yellow-500" size={14} />}
               {viewChunk.status === "Expired" && <XCircle className="text-red-500" size={14} />}
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(viewChunk.status)}`}>
-                {viewChunk.status}
-              </span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(viewChunk.status)}`}>{viewChunk.status}</span>
               <span className="text-xs text-gray-600 dark:text-gray-400">{formatDate(viewChunk.purchaseDate)}</span>
             </div>
             <ul className="space-y-1 text-xs mb-2">
@@ -438,13 +400,37 @@ export default function ParkingCoordinatorChunksTable() {
               </li>
               <li className="flex flex-col">
                 <span className="text-gray-600 dark:text-gray-400">Validity</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {formatDate(viewChunk.validFrom)} to {formatDate(viewChunk.validTo)}
-                </span>
+                <span className="font-medium text-gray-900 dark:text-white">{formatDate(viewChunk.validFrom)} to {formatDate(viewChunk.validTo)}</span>
               </li>
               <li className="flex flex-col">
                 <span className="text-gray-600 dark:text-gray-400">Remarks</span>
                 <span className="font-medium text-gray-900 dark:text-white">{viewChunk.remarks || "-"}</span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Vehicle Type</span>
+                <span className="font-medium text-gray-900 dark:text-white">{viewChunk.vehicleType}</span>
+              </li>
+              <li className="flex flex-col items-center">
+                <span className="text-gray-600 dark:text-gray-400">QR Code</span>
+                {viewChunk.qrImage ? (
+                  <>
+                    <img
+                      src={viewChunk.qrImage}
+                      alt="QR"
+                      className="w-48 h-48 mt-2 border border-gray-300 dark:border-gray-600 rounded bg-white"
+                      style={{ imageRendering: 'pixelated' }}
+                    />
+                    <a
+                      href={viewChunk.qrImage}
+                      download={`qr_${viewChunk._id}.png`}
+                      className="mt-2 inline-block px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs transition"
+                    >
+                      Download QR
+                    </a>
+                  </>
+                ) : (
+                  <span className="text-gray-400">No QR</span>
+                )}
               </li>
             </ul>
           </div>

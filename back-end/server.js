@@ -19,7 +19,7 @@ const userRoutes = require('./routes/userRoutes');
 const cookieParser = require('cookie-parser');
 const transactionRoutes = require('./routes/transactionRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
-
+const bulkbookingRoutes = require('./routes/bulkbooking');
 
 // -------------------- GET LOCAL IP --------------------
 const getLocalIP = () => {
@@ -103,6 +103,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/landowners', landownerRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/bulkbooking', bulkbookingRoutes);
 
 // -------------------- TEST ROUTE --------------------
 app.get('/', (req, res) => {
