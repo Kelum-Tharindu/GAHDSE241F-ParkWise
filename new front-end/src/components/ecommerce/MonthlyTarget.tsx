@@ -130,11 +130,11 @@ export default function MonthlyTarget() {
       );
     }
   };
-
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
-        <div className="flex justify-between">          <div>
+        <div className="flex justify-between">
+          <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
               Monthly Target
             </h3>
@@ -149,35 +149,37 @@ export default function MonthlyTarget() {
             >
               Manage Targets
             </a>
-            <div className="relative inline-block">              <button className="dropdown-toggle" onClick={toggleDropdown} aria-label="Monthly Target Options">
+            <div className="relative inline-block">
+              <button className="dropdown-toggle" onClick={toggleDropdown} aria-label="Monthly Target Options">
                 <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
               </button>
+              <Dropdown
+                isOpen={isOpen}
+                onClose={closeDropdown}
+                className="w-40 p-2"
+              >
+                <DropdownItem
+                  onItemClick={closeDropdown}
+                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                  tag="a"
+                  to="/target-management"
+                >
+                  Manage Targets
+                </DropdownItem>
+                <DropdownItem
+                  onItemClick={closeDropdown}
+                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                >
+                  View More
+                </DropdownItem>
+                <DropdownItem
+                  onItemClick={closeDropdown}
+                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                >
+                  Delete
+                </DropdownItem>
+              </Dropdown>
             </div>
-            <Dropdown
-              isOpen={isOpen}
-              onClose={closeDropdown}
-              className="w-40 p-2"
-            ><DropdownItem
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                tag="a"
-                to="/target-management"
-              >
-                Manage Targets
-              </DropdownItem>
-              <DropdownItem
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              >
-                View More
-              </DropdownItem>
-              <DropdownItem
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              >
-                Delete
-              </DropdownItem>
-            </Dropdown>
           </div>
         </div>
         

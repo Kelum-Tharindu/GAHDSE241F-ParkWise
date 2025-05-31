@@ -146,7 +146,7 @@ const getNavItemsForRole = (role: string | null) => {
         item.name === "Earnings"
     );
   }
-  if (role === "parking coordinator") {
+  if (role === "Parking Coordinator") {
     return navItems.filter(
       (item) =>
         item.name === "Coordinator Dashboard" ||
@@ -379,8 +379,8 @@ const AppSidebar: React.FC = () => {
               ? "/Admin Dashboard"
               : user.role === "landowner"
               ? "/landownerhome"
-              : user.role === "parking coordinator"
-              ? "/parkingcoordinatorhome"
+              : user.role === "Parking Coordinator"
+              ? "/Parking Coordinator Dashboard"
               : "/"
           }
           className="text-2xl font-semibold text-brand-600"

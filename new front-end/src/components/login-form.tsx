@@ -69,13 +69,14 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-type UserRole = "user" | "admin" | "landowner" | "parking coordinator";
+type UserRole = "user" | "admin" | "landowner" | "Parking Coordinator";
 
 const roleDashboardMap: Record<UserRole, string> = {
   user: "/dashboard/user",
   admin: "/Admin Dashboard",
+  'Parking Coordinator': "/Parking Coordinator Dashboard",
   landowner: "/Land Owner Dashboard",
-  "parking coordinator": "/Parking Coordinator Dashboard",
+ 
 };
 
 export function LoginForm({
@@ -119,6 +120,7 @@ export function LoginForm({
 
       // Role-based redirection
       const role = data.role as UserRole;
+      console.log("User role:", role);
       if (role && roleDashboardMap[role]) {
         navigate(roleDashboardMap[role]);
         //referesh the page to ensure the new role is applied

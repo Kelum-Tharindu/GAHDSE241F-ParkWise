@@ -57,7 +57,7 @@ export default function App() {
 
           <Route path="/Land Owner Dashboard" element={<ProtectedRoute requiredRole="landowner"><LandownerHome /></ProtectedRoute>} />
 
-          <Route path="/Parking Coordinator Dashboard" element={<ProtectedRoute requiredRole="parking coordinator"><ParkingCoordinatorHome /></ProtectedRoute>} />
+          <Route path="/Parking Coordinator Dashboard" element={<ProtectedRoute requiredRole="Parking Coordinator"><ParkingCoordinatorHome /></ProtectedRoute>} />
 
           {/* Dashboard */}
 
