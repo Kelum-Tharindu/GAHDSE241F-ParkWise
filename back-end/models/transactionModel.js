@@ -5,7 +5,7 @@ const LandOwner = require('./LandOwner');
 const transactionSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['booking', 'billing','admin'],
+    enum: ['booking', 'billing', 'bulkbooking', 'admin'],
     required: true
   },
   bookingId: {
@@ -17,6 +17,11 @@ const transactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Billing',
     required: function() { return this.type === 'billing'; }
+  },
+  bulkBookingId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BulkBookingChunk',
+    required: function() { return this.type === 'bulkbooking'; }
   },
   LandOwnerID: {
     type: mongoose.Schema.Types.ObjectId,

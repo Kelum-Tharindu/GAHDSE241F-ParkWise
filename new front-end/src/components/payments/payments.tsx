@@ -22,11 +22,18 @@ interface BillingRef {
   spaces?: number;
   location?: string;
 }
+interface BulkBookingRef {
+  chunkName?: string;
+  company?: string;
+  userName?: string;
+}
+
 interface Transaction {
   _id: string;
   type: string;
   bookingId?: BookingRef;
   billingId?: BillingRef;
+  bulkBookingId?: BulkBookingRef;
   amount: number;
   method: string;
   status: string;
@@ -35,6 +42,9 @@ interface Transaction {
   spaces?: number;
   location?: string;
   landownerName?: string; // Add landownerName field from admin transactions
+  bookedBy?: string; // For bulk booking user name
+  chunkName?: string; // For bulk booking chunk name
+  company?: string; // For bulk booking company
 }
 
 function formatLKR(amount: number) {
@@ -278,11 +288,10 @@ export default function PaymentTables() {
         setLoading(false);
       });
   }, [tableRefreshKey]);
-
   // Filtered data
   let currentData: Transaction[] = [];
   if (showCustomers) {
-    currentData = allTransactions.filter((t) => t.type === "booking" || t.type === "billing");
+    currentData = allTransactions.filter((t) => t.type === "booking" || t.type === "billing" || t.type === "bulkbooking");
   } else {
     currentData = allTransactions.filter((t) => t.type === "admin");
   }
@@ -425,13 +434,15 @@ export default function PaymentTables() {
                   </th>
                   <th className="px-2 py-2 text-left">Method</th>
                   {showCustomers ? (
-                    <>
-                      <th className="px-2 py-2 text-left">
-                        <FaMapMarkerAlt className="inline mr-1" /> Location
-                      </th>
-                      <th className="px-2 py-2 text-left">
-                        <FaParking className="inline mr-1" /> Spot/Spaces
-                      </th>
+                    <>                  <th className="px-2 py-2 text-left">
+                    <FaMapMarkerAlt className="inline mr-1" /> Location
+                  </th>
+                  <th className="px-2 py-2 text-left">
+                    <FaParking className="inline mr-1" /> Details
+                  </th>
+                  <th className="px-2 py-2 text-left">
+                    <FaUser className="inline mr-1" /> User/Info
+                  </th>
                     </>
                   ) : (
                     <>
@@ -441,10 +452,9 @@ export default function PaymentTables() {
                   <th className="px-2 py-2 text-left">Status</th>
                 </tr>
               </thead>
-              <tbody>                {filteredData.length === 0 ? (
-                  <tr>
+              <tbody>                {filteredData.length === 0 ? (                  <tr>
                     <td
-                      colSpan={showCustomers ? 7 : 6}
+                      colSpan={showCustomers ? 8 : 6}
                       className="px-2 py-8 text-center"
                     >
                       <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
@@ -476,17 +486,25 @@ export default function PaymentTables() {
                       <td className="px-2 py-2 font-semibold">
                         {formatLKR(payment.amount)}
                       </td>
-                      <td className="px-2 py-2">{payment.method}</td>
-                      {showCustomers ? (
+                      <td className="px-2 py-2">{payment.method}</td>                      {showCustomers ? (
                         <>
                           <td className="px-2 py-2">
                             {payment.location || payment.bookingId?.location || payment.billingId?.location || "-"}
                           </td>
                           <td className="px-2 py-2">
-                            {payment.spot || payment.bookingId?.spot || payment.spaces || payment.billingId?.spaces || "-"}
+                            {payment.type === 'bulkbooking' 
+                              ? `${payment.chunkName || 'Bulk Booking'} (${payment.company || 'Unknown Company'})` 
+                              : (payment.spot || payment.bookingId?.spot || payment.spaces || payment.billingId?.spaces || "-")
+                            }
+                          </td>
+                          <td className="px-2 py-2">
+                            {payment.type === 'bulkbooking' 
+                              ? payment.bookedBy || 'Unknown User'
+                              : (payment.type === 'booking' ? 'Individual Booking' : (payment.type === 'billing' ? 'Billing Payment' : '-'))
+                            }
                           </td>
                         </>
-                      ) : (                        <>
+                      ) : (<>
                           <td className="px-2 py-2">{payment.landownerName || "Unknown"}</td>
                         </>
                       )}

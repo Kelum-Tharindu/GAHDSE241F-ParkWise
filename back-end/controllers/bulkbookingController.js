@@ -1,4 +1,5 @@
 const BulkBookingChunk = require('../models/bulkbooking');
+const Transaction = require('../models/transactionModel');
 const crypto = require('crypto');
 const { generateQR } = require('../utils/qrGenertor');
 
@@ -89,11 +90,48 @@ exports.createBulkBookingChunk = async (req, res) => {
     // Encrypt the payload using sha256
     const encryptedCode = crypto.createHash('sha256').update(payload).digest('hex');
     // Generate QR code with only the encrypted code
-    const qrImage = await generateQR(encryptedCode);
-
-    // Update chunk with qrImage
+    const qrImage = await generateQR(encryptedCode);    // Update chunk with qrImage
     chunk.qrImage = qrImage;
     await chunk.save();
+
+    // Calculate transaction amount based on pricing
+    // First get the parking details to calculate the amount
+    let transactionAmount = 0;
+    try {
+      const Parking = require('../models/parkingmodel');
+      const parking = await Parking.findById(parkingId);
+      if (parking && parking.slotDetails && parking.slotDetails[vehicleType]) {
+        const pricePerDay = parking.slotDetails[vehicleType].perDayPrice || 0;
+        
+        // Calculate number of days (inclusive)
+        const startDate = new Date(validFrom);
+        const endDate = new Date(validTo);
+        const numDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+        
+        transactionAmount = pricePerDay * totalSpots * numDays;
+      }
+    } catch (pricingError) {
+      console.warn('Warning: Could not calculate pricing for bulk booking transaction:', pricingError.message);
+      // Continue without failing the bulk booking creation
+    }
+
+    // Create corresponding transaction record
+    try {
+      const transaction = new Transaction({
+        type: 'bulkbooking',
+        bulkBookingId: chunk._id,
+        amount: transactionAmount,
+        method: 'Credit Card', // Default payment method - can be made dynamic later
+        status: 'Completed', // Assuming immediate completion - can be made dynamic later
+        date: new Date()
+      });
+      
+      await transaction.save();
+      console.log('Transaction created for bulk booking:', transaction._id);
+    } catch (transactionError) {
+      console.error('Warning: Failed to create transaction for bulk booking:', transactionError.message);
+      // Log the error but don't fail the bulk booking creation
+    }
 
     res.status(201).json(chunk);
   } catch (error) {
