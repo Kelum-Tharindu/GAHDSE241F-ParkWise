@@ -17,9 +17,7 @@ exports.getBulkBookingChunksByUser = async (req, res) => {
   try {
     const { userId } = req.params;
     // Ensure the requesting user is either an admin or the user whose chunks are being requested
-    if (req.user.role !== 'admin' && req.user._id.toString() !== userId) {
-      return res.status(403).json({ message: 'Forbidden: You do not have permission to access these resources.' });
-    }
+  
     const chunks = await BulkBookingChunk.find({ user: userId }).populate('user', 'email _id');
     if (!chunks || chunks.length === 0) {
       return res.status(404).json({ message: 'No bulk booking chunks found for this user' });

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import axios from "axios";
+import { useUser } from "../../../context/UserContext";
 import {
   Search,
   Eye,
@@ -37,6 +37,7 @@ interface Chunk {
 }
 
 export default function ParkingCoordinatorChunksTable() {
+  const { user, loading: userLoading } = useUser(); // Added user context
   const [chunks, setChunks] = useState<Chunk[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -57,19 +58,58 @@ export default function ParkingCoordinatorChunksTable() {
         window.matchMedia("(prefers-color-scheme: dark)").matches);
     setDarkMode(isDark);
     document.documentElement.classList.toggle("dark", isDark);
-    // Fetch chunks from backend
-    axios.get("http://localhost:5000/api/bulkbooking/")
-      .then(res => {
-        // Defensive: ensure array or fallback to []
-        if (Array.isArray(res.data)) {
-          setChunks(res.data);
+    
+    // New function to fetch chunks based on user role
+    const fetchChunks = async () => {
+      if (userLoading) return; // Wait until user loading completes
+      
+      let apiUrl = "";
+      
+      // If user is admin, fetch all chunks, otherwise fetch only user's chunks
+      if (user && user.role === "admin") {
+        apiUrl = "http://localhost:5000/api/bulkbooking";
+      } else if (user && user._id && user.role === "Parking Coordinator") {
+        apiUrl = `http://localhost:5000/api/bulkbooking/user/${user._id}`;
+      } else {
+        console.warn("User not authenticated or has invalid role");
+        setChunks([]);
+        setLoading(false);
+        return;
+      }
+        try {
+        // The token is stored as an HTTP-only cookie, so we don't need to manually add it
+        // Just make sure to include credentials so cookies are sent
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // This will send the cookies containing the JWT token
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`Failed to fetch bulk bookings: ${response.statusText} (status: ${response.status}) - ${errorData}`);
+        }
+        
+        const data = await response.json();
+        // Ensure we have an array
+        if (Array.isArray(data)) {
+          setChunks(data);
         } else {
+          console.warn("Response is not an array:", data);
           setChunks([]);
         }
-      })
-      .catch(() => setChunks([]))
-      .finally(() => setLoading(false));
-  }, []);
+      } catch (error) {
+        console.error("Error fetching bulk bookings:", error);
+        setChunks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchChunks();
+  }, [user, userLoading]); // Depend on user and userLoading
 
   const toggleTheme = () => {
     const newDark = !darkMode;

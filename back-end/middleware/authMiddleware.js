@@ -5,65 +5,74 @@ const Landowner = require("../models/LandOwner");
 const protect = async (req, res, next) => {
     let token;
 
-    // Check for token in Authorization header
+    console.log("========================= Middleware Called");
+
+
+    // ✅ Check for token in Authorization header first
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-        try {
-            // Get token from header
-            token = req.headers.authorization.split(" ")[1];
+        token = req.headers.authorization.split(" ")[1];
+    } 
+    // ✅ Fallback: check cookie for token
+    else if (req.cookies?.token) {
+        token = req.cookies.token;
+    }
 
-            // Verify token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // ❌ No token found
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: "Not authorized, token not provided",
+        });
+    }
 
-            // Get user from database and exclude sensitive fields
-            const user = await User.findById(decoded.id)
-                .select("-password -otpSecret -hashedBackupCodes -backupCodes -resetPasswordToken -resetPasswordExpire");
+    try {
+        // ✅ Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            if (!user) {
-                return res.status(401).json({ 
-                    success: false,
-                    message: "Not authorized, user not found" 
-                });
-            }
+        // ✅ Get user from DB
+        const user = await User.findById(decoded.id).select(
+            "-password -otpSecret -hashedBackupCodes -backupCodes -resetPasswordToken -resetPasswordExpire"
+        );
 
-            // Attach user to request
-            req.user = user;
-
-            // If user is a landowner, attach landowner profile
-            if (user.role === "landowner") {
-                const landowner = await Landowner.findOne({ user: user._id })
-                    .select("-verificationDocuments -paymentDetails");
-                req.landowner = landowner;
-            }
-
-            next();
-        } catch (error) {
-            console.error("Authentication error:", error);
-
-            // Handle different JWT error cases
-            if (error.name === "TokenExpiredError") {
-                return res.status(401).json({ 
-                    success: false,
-                    message: "Session expired, please login again" 
-                });
-            }
-
-            if (error.name === "JsonWebTokenError") {
-                return res.status(401).json({ 
-                    success: false,
-                    message: "Not authorized, invalid token" 
-                });
-            }
-
-            // Generic error response
-            res.status(401).json({ 
+        if (!user) {
+            console.error("User not found for token");
+            return res.status(401).json({
                 success: false,
-                message: "Not authorized, authentication failed" 
+                message: "Not authorized, user not found",
             });
         }
-    } else {
-        res.status(401).json({ 
+
+        req.user = user;
+
+        // ✅ Attach landowner profile if needed
+        if (user.role === "landowner") {
+            const landowner = await Landowner.findOne({ user: user._id }).select(
+                "-verificationDocuments -paymentDetails"
+            );
+            req.landowner = landowner;
+        }
+
+        next();
+    } catch (error) {
+        console.error("JWT verification failed:", error);
+
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({
+                success: false,
+                message: "Session expired, please login again",
+            });
+        }
+
+        if (error.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                success: false,
+                message: "Not authorized, invalid token",
+            });
+        }
+
+        res.status(401).json({
             success: false,
-            message: "Not authorized, no token provided" 
+            message: "Not authorized, authentication failed",
         });
     }
 };

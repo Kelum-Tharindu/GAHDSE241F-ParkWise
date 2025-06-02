@@ -104,25 +104,25 @@ export default function PurchaseParkingChunk() {
       let apiUrl = "";
       // Using "admin" and "Event Coordinator" as role names. Adjust if different in your system.
       if (user.role === "admin") {
+        console.log("===Fetching all bulk bookings for admin");
         apiUrl = "http://localhost:5000/api/bulkbooking";
-      } else if (user.role === "Event Coordinator") { 
+      } else if (user.role === "Parking Coordinator") { 
+        console.log("===Fetching bulk bookings for Parking Coordinator:", user._id);
         apiUrl = `http://localhost:5000/api/bulkbooking/user/${user._id}`;
       } else {
         console.warn("User role not recognized for fetching bulk bookings:", user.role);
         setFetchedChunks([]);
         setChunksLoading(false);
         return;
-      }
-
-      try {
+      }      try {
+        // The token is stored as an HTTP-only cookie, so we don't need to manually add it
+        // Just make sure to include credentials so cookies are sent
         const response = await fetch(apiUrl, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            // Include Authorization header if your API requires it (e.g., JWT token)
-            // "Authorization": `Bearer ${your_auth_token_here}`,
           },
-          credentials: "include", // Important if using cookies for session management
+          credentials: "include", // This will send the cookies containing the JWT token
         });
         if (!response.ok) {
           const errorData = await response.text(); // Or response.json() if error is JSON
@@ -198,7 +198,82 @@ export default function PurchaseParkingChunk() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (validateStep()) {
+      // Call the submitNewChunk function
+      submitNewChunk();
+    }
+  };
+
+  // New function to submit the chunk to the API
+  const submitNewChunk = async () => {
+    if (!user || !user._id) {
+      console.error("User not authenticated");
+      return;
+    }
+
+    try {
+      const chunkData = {
+        user: user._id,
+        parkingId: form.parkingId,
+        chunkName: form.chunkName,
+        company: form.company,
+        totalSpots: form.totalSpots,
+        validFrom: form.validFrom,
+        validTo: form.validTo,
+        remarks: form.remarks,
+      };
+
+      const response = await fetch("http://localhost:5000/api/bulkbooking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // This will send the cookies containing the JWT token
+        body: JSON.stringify(chunkData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to create bulk booking: ${response.statusText} (status: ${response.status}) - ${errorData}`);
+      }
+
+      // Successfully created chunk, now update the UI
       setSubmitted(true);
+      
+      // Refresh the list of chunks
+      const fetchChunks = async () => {
+        let apiUrl = "";
+        if (user.role === "admin") {
+          apiUrl = "http://localhost:5000/api/bulkbooking";
+        } else if (user._id && user.role === "Parking Coordinator") {
+          apiUrl = `http://localhost:5000/api/bulkbooking/user/${user._id}`;
+        } else {
+          return;
+        }
+
+        try {
+          const response = await fetch(apiUrl, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch updated chunks: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          setFetchedChunks(data);
+        } catch (error) {
+          console.error("Error refreshing chunk list:", error);
+        }
+      };
+      
+      fetchChunks();
+    } catch (error) {
+      console.error("Error creating bulk booking chunk:", error);
+      // Handle error (could show an error message to the user)
     }
   };
 
