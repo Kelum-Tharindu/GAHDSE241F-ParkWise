@@ -337,6 +337,19 @@ export default function PurchaseParkingChunk() {
     "Review & Confirm"
   ];
 
+  // Helper to calculate number of days between two dates (inclusive)
+  const getNumDays = (from: string, to: string) => {
+    if (!from || !to) return 0;
+    const start = new Date(from);
+    const end = new Date(to);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+    // Add 1 to include both start and end dates
+    return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+  };
+
+  const numDays = getNumDays(form.validFrom, form.validTo);
+  const totalPrice = (parking?.pricePerDay || 0) * form.totalSpots * (numDays || 1);
+
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans text-gray-900 dark:text-gray-100">
       {/* Header */}
@@ -494,13 +507,13 @@ export default function PurchaseParkingChunk() {
                               ? "border-red-500 dark:border-red-400"
                               : "border-gray-200 dark:border-gray-700"
                           } focus:ring-2 focus:ring-green-900 dark:bg-gray-900 text-sm transition-shadow`}
-                        >                          <option value="">Select parking location...</option>
+                        >
+                          <option value="">Select parking location...</option>
                           {parkingLoading ? (
                             <option disabled>Loading parking options...</option>
                           ) : parkingOptions.length === 0 ? (
                             <option disabled>No parking locations available</option>
-                          ) : (
-                            parkingOptions.map((p) => (
+                          ) : (                            parkingOptions.map((p) => (
                               <option key={p.id} value={p.id}>
                                 {p.name} ({p.available} of {p.bookingSlots} booking slots available)
                               </option>
@@ -554,6 +567,39 @@ export default function PurchaseParkingChunk() {
                   {/* Step 2: Spot Allocation */}
                   {step === 2 && (
                     <div className="space-y-6">
+                      {/* Show all dynamic parking details */}
+                      <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mb-2">
+                        <div className="mb-2 flex flex-wrap gap-4">
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Location:</span>
+                            <div className="font-medium">{parking?.name || '-'}</div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Vehicle Type:</span>
+                            <div className="font-medium capitalize">{parking?.vehicleType || '-'}</div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Available:</span>
+                            <div className="font-medium">{parking?.available ?? '-'}</div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Total Slots:</span>
+                            <div className="font-medium">{parking?.totalSlots ?? '-'}</div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Booking Slots:</span>
+                            <div className="font-medium">{parking?.bookingSlots ?? '-'}</div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Price/Day:</span>
+                            <div className="font-medium">${parking?.pricePerDay ?? '-'}</div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Price/30min:</span>
+                            <div className="font-medium">${parking?.price30Min ?? '-'}</div>
+                          </div>
+                        </div>
+                      </div>
                       <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
                         <div className="text-center mb-2">
                           <span className="text-4xl font-bold text-green-900 dark:text-green-400">{form.totalSpots}</span>
@@ -638,6 +684,24 @@ export default function PurchaseParkingChunk() {
                           )}
                         </div>
                       </div>
+                      <div className="flex flex-wrap gap-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">Price/Day:</span>
+                          <div className="font-medium">${parking?.pricePerDay ?? '-'}</div>
+                        </div>
+                        <div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">Number of Spots:</span>
+                          <div className="font-medium">{form.totalSpots}</div>
+                        </div>
+                        <div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">Number of Days:</span>
+                          <div className="font-medium">{numDays}</div>
+                        </div>
+                        <div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Price:</span>
+                          <div className="font-bold text-green-900 dark:text-green-400">${totalPrice.toLocaleString()}</div>
+                        </div>
+                      </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Remarks (optional)
@@ -658,7 +722,8 @@ export default function PurchaseParkingChunk() {
                     <div className="space-y-6">
                       <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                         <h3 className="text-lg font-semibold mb-4">Purchase Summary</h3>
-                        <div className="space-y-4">                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                        <div className="space-y-4">
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
                             <span className="text-gray-600 dark:text-gray-400">Parking Location</span>
                             <span className="font-medium">{parking?.name || "-"}</span>
                           </div>
@@ -667,8 +732,24 @@ export default function PurchaseParkingChunk() {
                             <span className="font-medium capitalize">{form.vehicleType}</span>
                           </div>
                           <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Available</span>
+                            <span className="font-medium">{parking?.available ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Total Slots</span>
+                            <span className="font-medium">{parking?.totalSlots ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Booking Slots</span>
+                            <span className="font-medium">{parking?.bookingSlots ?? '-'}</span>
+                          </div>
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
                             <span className="text-gray-600 dark:text-gray-400">Price Per Day</span>
-                            <span className="font-medium">${parking?.pricePerDay || 0}</span>
+                            <span className="font-medium">${parking?.pricePerDay ?? 0}</span>
+                          </div>
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Price Per 30min</span>
+                            <span className="font-medium">${parking?.price30Min ?? 0}</span>
                           </div>
                           <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
                             <span className="text-gray-600 dark:text-gray-400">Chunk Name</span>
@@ -681,6 +762,14 @@ export default function PurchaseParkingChunk() {
                           <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
                             <span className="text-gray-600 dark:text-gray-400">Number of Spots</span>
                             <span className="font-medium">{form.totalSpots}</span>
+                          </div>
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Number of Days</span>
+                            <span className="font-medium">{numDays}</span>
+                          </div>
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Total Price</span>
+                            <span className="font-bold text-green-900 dark:text-green-400">${totalPrice.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
                             <span className="text-gray-600 dark:text-gray-400">Validity Period</span>
@@ -859,14 +948,15 @@ export default function PurchaseParkingChunk() {
                 </div>
                 {form.parkingId && form.company && form.totalSpots > 0 && (
                   <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">                      <div className="flex items-center justify-between">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
                         <div className="text-sm font-medium">Total Price</div>
                         <div className="text-xl font-bold text-green-900 dark:text-green-400">
-                          ${((parking?.pricePerDay || 0) * form.totalSpots).toLocaleString()}
+                          ${totalPrice.toLocaleString()}
                         </div>
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        ${parking?.pricePerDay || 0} per spot/day
+                        ${parking?.pricePerDay || 0} per spot/day × {form.totalSpots} spots × {numDays} days
                       </div>
                     </div>
                   </div>
