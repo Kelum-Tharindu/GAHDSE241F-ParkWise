@@ -162,14 +162,15 @@ const getAllParkingNames = async (req, res) => {
 
         const parkingNames = parkingList.map(parking => {
             const vehicleSlots = parking.slotDetails[vehicleType];
+            console.log(`Processing parking: ${parking.name}, Vehicle Type: ${vehicleType}`, vehicleSlots);
             return {
                 id: parking._id.toString(),
                 name: parking.name,
-                available: vehicleSlots?.bookingAvailableSlot || 0,
-                totalSlots: vehicleSlots?.totalSlot || 0,
-                bookingSlots: vehicleSlots?.bookingSlot || 0,
-                pricePerDay: vehicleSlots?.perDayPrice || 0,
-                price30Min: vehicleSlots?.perPrice30Min || 0,
+                available: vehicleSlots?.bookingAvailableSlot || 10,
+                totalSlots: vehicleSlots?.totalSlot || 100,
+                bookingSlots: vehicleSlots?.bookingSlot || 50,
+                pricePerDay: vehicleSlots?.perDayPrice || 100,
+                price30Min: vehicleSlots?.perPrice30Min || 20,
                 vehicleType: vehicleType
             };
         });

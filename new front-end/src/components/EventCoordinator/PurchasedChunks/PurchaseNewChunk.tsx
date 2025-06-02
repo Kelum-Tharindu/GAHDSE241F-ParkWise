@@ -582,22 +582,22 @@ export default function PurchaseParkingChunk() {
                             <span className="text-xs text-gray-500 dark:text-gray-400">Available:</span>
                             <div className="font-medium">{parking?.available ?? '-'}</div>
                           </div>
-                          <div>
+                          {/* <div>
                             <span className="text-xs text-gray-500 dark:text-gray-400">Total Slots:</span>
                             <div className="font-medium">{parking?.totalSlots ?? '-'}</div>
                           </div>
                           <div>
                             <span className="text-xs text-gray-500 dark:text-gray-400">Booking Slots:</span>
                             <div className="font-medium">{parking?.bookingSlots ?? '-'}</div>
-                          </div>
+                          </div> */}
                           <div>
                             <span className="text-xs text-gray-500 dark:text-gray-400">Price/Day:</span>
                             <div className="font-medium">${parking?.pricePerDay ?? '-'}</div>
                           </div>
-                          <div>
+                          {/* <div>
                             <span className="text-xs text-gray-500 dark:text-gray-400">Price/30min:</span>
                             <div className="font-medium">${parking?.price30Min ?? '-'}</div>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                       <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
@@ -608,7 +608,7 @@ export default function PurchaseParkingChunk() {
                         <input
                           type="range"
                           min={1}
-                          max={parking?.available || 100}
+                          max={parking?.available ?? 100}
                           value={form.totalSpots}
                           onChange={(e) => handleSlider(Number(e.target.value))}
                           className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer accent-green-900 dark:bg-green-800"

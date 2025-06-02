@@ -10,34 +10,31 @@ const parkingSchema = new mongoose.Schema({
     
     slotDetails: {
         car: {
-            totalSlot: { type: Number, required: true },
-            bookingSlot: { type: Number, required: true },
-            bookingAvailableSlot: { type: Number },
-            withoutBookingSlot: { type: Number, required: true },
-            withoutBookingAvailableSlot: { type: Number },
-            // availableSlot: { type: Number, required: true },
-            perPrice30Min: { type: Number, required: true },
-            perDayPrice: { type: Number, required: true }
+            totalSlot: { type: Number, default: 0 },
+            bookingSlot: { type: Number, default: 0 },
+            bookingAvailableSlot: { type: Number, default: 0 },
+            withoutBookingSlot: { type: Number, default: 0 },
+            withoutBookingAvailableSlot: { type: Number, default: 0 },
+            perPrice30Min: { type: Number, default: 0 },
+            perDayPrice: { type: Number, default: 0 }
         },
         bicycle: {
-            totalSlot: { type: Number, required: true },
-            bookingSlot: { type: Number, required: true },
-            bookingAvailableSlot: { type: Number },
-            withoutBookingSlot: { type: Number, required: true },
-            withoutBookingAvailableSlot: { type: Number },
-            // availableSlot: { type: Number, required: true },
-            perPrice30Min: { type: Number, required: true },
-            perDayPrice: { type: Number, required: true }
+            totalSlot: { type: Number, default: 0 },
+            bookingSlot: { type: Number, default: 0 },
+            bookingAvailableSlot: { type: Number, default: 0 },
+            withoutBookingSlot: { type: Number, default: 0 },
+            withoutBookingAvailableSlot: { type: Number, default: 0 },
+            perPrice30Min: { type: Number, default: 0 },
+            perDayPrice: { type: Number, default: 0 }
         },
         truck: {
-            totalSlot: { type: Number, required: true },
-            bookingSlot: { type: Number, required: true },
-            bookingAvailableSlot: { type: Number },
-            withoutBookingSlot: { type: Number, required: true },
-            withoutBookingAvailableSlot: { type: Number },
-            // availableSlot: { type: Number, required: true },
-            perPrice30Min: { type: Number, required: true },
-            perDayPrice: { type: Number, required: true }
+            totalSlot: { type: Number, default: 0 },
+            bookingSlot: { type: Number, default: 0 },
+            bookingAvailableSlot: { type: Number, default: 0 },
+            withoutBookingSlot: { type: Number, default: 0 },
+            withoutBookingAvailableSlot: { type: Number, default: 0 },
+            perPrice30Min: { type: Number, default: 0 },
+            perDayPrice: { type: Number, default: 0 }
         }
     },
     location: {
@@ -52,7 +49,7 @@ const parkingSchema = new mongoose.Schema({
             postalCode: { type: String, required: true }
         }
     },
-    qrCode: { type: String } // New field to store QR code URL or encoded data
+    qrCode: { type: String }
 });
 
 // ✅ Prevent OverwriteModelError during development
