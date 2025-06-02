@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import {
   Sun,
   Moon,
@@ -183,8 +183,7 @@ export default function PurchaseParkingChunk() {
     localStorage.theme = newDark ? "dark" : "light";
   };
 
-  const parking = parkingOptions.find((p) => p.id === form.parkingId);
-  const validateStep = (): boolean => {
+  const parking = parkingOptions.find((p) => p.id === form.parkingId);  const validateStep = (): boolean => {
     const errs: Partial<Record<keyof FormState, string>> = {};
     if (step === 1) {
       if (!form.vehicleType) errs.vehicleType = "Select a vehicle type";
@@ -199,10 +198,40 @@ export default function PurchaseParkingChunk() {
         errs.totalSpots = `Only ${parking.available} spots available`;
     }
     if (step === 3) {
-      if (!form.validFrom) errs.validFrom = "Select a start date";
-      if (!form.validTo) errs.validTo = "Select an end date";
-      if (form.validFrom && form.validTo && form.validFrom > form.validTo)
-        errs.validTo = "End date must be after start date";
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+      
+      if (!form.validFrom) {
+        errs.validFrom = "Select a start date";
+      } else {
+        const startDate = new Date(form.validFrom);
+        if (isNaN(startDate.getTime())) {
+          errs.validFrom = "Please enter a valid start date";
+        } else if (startDate < today) {
+          errs.validFrom = "Start date cannot be in the past";
+        }
+      }
+      
+      if (!form.validTo) {
+        errs.validTo = "Select an end date";
+      } else {
+        const endDate = new Date(form.validTo);
+        if (isNaN(endDate.getTime())) {
+          errs.validTo = "Please enter a valid end date";
+        } else if (endDate < today) {
+          errs.validTo = "End date cannot be in the past";
+        }
+      }
+      
+      if (form.validFrom && form.validTo && !errs.validFrom && !errs.validTo) {
+        const startDate = new Date(form.validFrom);
+        const endDate = new Date(form.validTo);
+        if (startDate > endDate) {
+          errs.validTo = "End date must be after start date";
+        } else if (startDate.getTime() === endDate.getTime()) {
+          errs.validTo = "End date must be different from start date";
+        }
+      }
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -336,6 +365,14 @@ export default function PurchaseParkingChunk() {
     "Validity Period",
     "Review & Confirm"
   ];
+  // Helper to get today's date in YYYY-MM-DD format for date input min attribute
+  const getTodaysDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   // Helper to calculate number of days between two dates (inclusive)
   const getNumDays = (from: string, to: string) => {
@@ -644,8 +681,7 @@ export default function PurchaseParkingChunk() {
                   {/* Step 3: Validity */}
                   {step === 3 && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                        <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Valid From
                           </label>
@@ -653,6 +689,7 @@ export default function PurchaseParkingChunk() {
                             name="validFrom"
                             type="date"
                             value={form.validFrom}
+                            min={getTodaysDate()}
                             onChange={handleChange}
                             className={`w-full px-4 py-3 rounded-lg border ${
                               errors.validFrom
@@ -663,8 +700,7 @@ export default function PurchaseParkingChunk() {
                           {errors.validFrom && (
                             <div className="text-xs text-red-500 mt-1">{errors.validFrom}</div>
                           )}
-                        </div>
-                        <div>
+                        </div>                        <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Valid To
                           </label>
@@ -672,6 +708,7 @@ export default function PurchaseParkingChunk() {
                             name="validTo"
                             type="date"
                             value={form.validTo}
+                            min={form.validFrom || getTodaysDate()}
                             onChange={handleChange}
                             className={`w-full px-4 py-3 rounded-lg border ${
                               errors.validTo
