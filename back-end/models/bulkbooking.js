@@ -13,6 +13,7 @@ const BulkBookingChunkSchema = new mongoose.Schema({
   validTo: { type: Date, required: true },
   status: { type: String, enum: ['Active', 'Expired', 'Full'], required: true },
   remarks: { type: String, default: '' },
+  vehicleType: { type: String, enum: ['car', 'bicycle', 'truck'], default: 'car' },
   qrImage: { type: String },
 }, { timestamps: true });
 

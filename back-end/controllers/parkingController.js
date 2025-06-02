@@ -134,6 +134,52 @@ const getAllParking = async (req, res) => {
     }
 };
 
+// Get all parking names and IDs (lightweight version)
+const getAllParkingNames = async (req, res) => {
+    try {
+        // Get vehicle type from query parameters or default to 'car'
+        const vehicleType = req.query.vehicleType || 'car';
+        
+        // Validate vehicle type to ensure it's one of our supported types
+        if (!['car', 'bicycle', 'truck'].includes(vehicleType)) {
+            return res.status(400).json({ 
+                message: "Invalid vehicle type. Supported types are: car, bicycle, truck" 
+            });
+        }
+
+        // Fetch parking list with specific fields needed for the selected vehicle type
+        const projection = {
+            name: 1,
+            _id: 1,
+            [`slotDetails.${vehicleType}`]: 1
+        };
+        
+        const parkingList = await Parking.find({}, projection);
+        
+        if (!parkingList || parkingList.length === 0) {
+            return res.status(404).json({ message: "No parking locations found" });
+        }
+
+        const parkingNames = parkingList.map(parking => {
+            const vehicleSlots = parking.slotDetails[vehicleType];
+            return {
+                id: parking._id.toString(),
+                name: parking.name,
+                available: vehicleSlots?.bookingAvailableSlot || 0,
+                totalSlots: vehicleSlots?.totalSlot || 0,
+                bookingSlots: vehicleSlots?.bookingSlot || 0,
+                pricePerDay: vehicleSlots?.perDayPrice || 0,
+                price30Min: vehicleSlots?.perPrice30Min || 0,
+                vehicleType: vehicleType
+            };
+        });
+
+        res.status(200).json(parkingNames);
+    } catch (error) {
+        res.status(500).json({ message: "Error retrieving parking names.", error: error.message });
+    }
+};
+
 // Get Parking by ID or Name
 const getParkingByIdOrName = async (req, res) => {
     try {
@@ -265,6 +311,7 @@ const deleteParking = async (req, res) => {
 module.exports = {
     addParking,
     getAllParking,
+    getAllParkingNames,
     getParkingByIdOrName,
     getParkingByOwnerIdOrName,
     updateParking,

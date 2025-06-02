@@ -12,10 +12,23 @@ import {
   Building,
   Tag,
   ClipboardList,
+  Car,
+  Bike,
+  Truck
 } from "lucide-react";
 import { useUser } from "../../../context/UserContext";
 
-type ParkingOption = { id: string; name: string; available: number };
+type ParkingOption = { 
+  id: string; 
+  name: string; 
+  available: number;
+  totalSlots: number;
+  bookingSlots: number;
+  pricePerDay: number;
+  price30Min: number;
+  vehicleType: string;
+};
+
 type FormState = {
   parkingId: string;
   chunkName: string;
@@ -24,6 +37,7 @@ type FormState = {
   validFrom: string;
   validTo: string;
   remarks: string;
+  vehicleType: string;
 };
 
 // Define BulkBooking type based on backend model
@@ -45,24 +59,10 @@ type BulkBooking = {
   qrImage?: string;
 };
 
-const parkingOptions: ParkingOption[] = [
-  { id: "colombo", name: "Colombo Fort Parking", available: 100 },
-  { id: "kandy", name: "Kandy Lake Parking", available: 60 },
-  { id: "galle", name: "Galle Face Green", available: 80 },
-];
-
-const companyOptions = [
-  "Acme Corp",
-  "Beta Solutions",
-  "Omega Ltd",
-  "Gamma Innovations",
-];
-
 export default function PurchaseParkingChunk() {
   const { user, loading: userLoading } = useUser(); // Get user from context
   const [darkMode, setDarkMode] = useState(false);
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormState>({
+  const [step, setStep] = useState(1);  const [form, setForm] = useState<FormState>({
     parkingId: "",
     chunkName: "",
     company: "",
@@ -70,9 +70,14 @@ export default function PurchaseParkingChunk() {
     validFrom: "",
     validTo: "",
     remarks: "",
+    vehicleType: "car", // Default to car
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitted, setSubmitted] = useState(false);
+  
+  // State for fetched parking options
+  const [parkingOptions, setParkingOptions] = useState<ParkingOption[]>([]);
+  const [parkingLoading, setParkingLoading] = useState<boolean>(true);
 
   // State for fetched bulk booking chunks
   const [fetchedChunks, setFetchedChunks] = useState<BulkBooking[]>([]);
@@ -86,6 +91,36 @@ export default function PurchaseParkingChunk() {
     setDarkMode(isDark);
     document.documentElement.classList.toggle("dark", isDark);
   }, []);
+  // Fetch parking options from backend
+  useEffect(() => {
+    const fetchParkingOptions = async () => {
+      setParkingLoading(true);
+      try {
+        const response = await fetch(`http://localhost:5000/api/parking/names?vehicleType=${form.vehicleType}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Send cookies for authentication if needed
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch parking options: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setParkingOptions(data);
+      } catch (error) {
+        console.error("Error fetching parking options:", error);
+        // Set default empty array if fetch fails
+        setParkingOptions([]);
+      } finally {
+        setParkingLoading(false);
+      }
+    };
+
+    fetchParkingOptions();
+  }, [form.vehicleType]); // Re-fetch when vehicle type changes
 
   // useEffect to fetch bulk booking chunks based on user role
   useEffect(() => {
@@ -149,13 +184,13 @@ export default function PurchaseParkingChunk() {
   };
 
   const parking = parkingOptions.find((p) => p.id === form.parkingId);
-
   const validateStep = (): boolean => {
     const errs: Partial<Record<keyof FormState, string>> = {};
     if (step === 1) {
+      if (!form.vehicleType) errs.vehicleType = "Select a vehicle type";
       if (!form.parkingId) errs.parkingId = "Select a parking location";
       if (!form.chunkName.trim()) errs.chunkName = "Enter a chunk name";
-      if (!form.company) errs.company = "Select a company";
+      if (!form.company) errs.company = "Enter a company name";
     }
     if (step === 2) {
       if (!form.totalSpots || form.totalSpots < 1)
@@ -210,8 +245,7 @@ export default function PurchaseParkingChunk() {
       return;
     }
 
-    try {
-      const chunkData = {
+    try {      const chunkData = {
         user: user._id,
         parkingId: form.parkingId,
         chunkName: form.chunkName,
@@ -220,6 +254,7 @@ export default function PurchaseParkingChunk() {
         validFrom: form.validFrom,
         validTo: form.validTo,
         remarks: form.remarks,
+        vehicleType: form.vehicleType
       };
 
       const response = await fetch("http://localhost:5000/api/bulkbooking", {
@@ -405,6 +440,49 @@ export default function PurchaseParkingChunk() {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Vehicle Type
+                        </label>
+                        <div className="flex gap-2 mb-4">
+                          <button
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, vehicleType: 'car' }))}
+                            className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-2 
+                              ${form.vehicleType === 'car' 
+                                ? 'bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                                : 'bg-gray-100 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                              }`}
+                          >
+                            <Car size={18} />
+                            <span>Car</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, vehicleType: 'bicycle' }))}
+                            className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-2 
+                              ${form.vehicleType === 'bicycle' 
+                                ? 'bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                                : 'bg-gray-100 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                              }`}
+                          >
+                            <Bike size={18} />
+                            <span>Bicycle</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, vehicleType: 'truck' }))}
+                            className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-2 
+                              ${form.vehicleType === 'truck' 
+                                ? 'bg-green-100 text-green-800 border border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+                                : 'bg-gray-100 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                              }`}
+                          >
+                            <Truck size={18} />
+                            <span>Truck</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Parking Location
                         </label>
                         <select
@@ -416,13 +494,18 @@ export default function PurchaseParkingChunk() {
                               ? "border-red-500 dark:border-red-400"
                               : "border-gray-200 dark:border-gray-700"
                           } focus:ring-2 focus:ring-green-900 dark:bg-gray-900 text-sm transition-shadow`}
-                        >
-                          <option value="">Select parking location...</option>
-                          {parkingOptions.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name} ({p.available} available)
-                            </option>
-                          ))}
+                        >                          <option value="">Select parking location...</option>
+                          {parkingLoading ? (
+                            <option disabled>Loading parking options...</option>
+                          ) : parkingOptions.length === 0 ? (
+                            <option disabled>No parking locations available</option>
+                          ) : (
+                            parkingOptions.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name} ({p.available} of {p.bookingSlots} booking slots available)
+                              </option>
+                            ))
+                          )}
                         </select>
                         {errors.parkingId && (
                           <div className="text-xs text-red-500 mt-1">{errors.parkingId}</div>
@@ -451,7 +534,7 @@ export default function PurchaseParkingChunk() {
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Company
                         </label>
-                        <select
+                        <input
                           name="company"
                           value={form.company}
                           onChange={handleChange}
@@ -460,14 +543,8 @@ export default function PurchaseParkingChunk() {
                               ? "border-red-500 dark:border-red-400"
                               : "border-gray-200 dark:border-gray-700"
                           } focus:ring-2 focus:ring-green-900 dark:bg-gray-900 text-sm transition-shadow`}
-                        >
-                          <option value="">Select company...</option>
-                          {companyOptions.map((c) => (
-                            <option key={c} value={c}>
-                              {c}
-                            </option>
-                          ))}
-                        </select>
+                          placeholder="Enter company name"
+                        />
                         {errors.company && (
                           <div className="text-xs text-red-500 mt-1">{errors.company}</div>
                         )}
@@ -581,10 +658,17 @@ export default function PurchaseParkingChunk() {
                     <div className="space-y-6">
                       <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                         <h3 className="text-lg font-semibold mb-4">Purchase Summary</h3>
-                        <div className="space-y-4">
-                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                        <div className="space-y-4">                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
                             <span className="text-gray-600 dark:text-gray-400">Parking Location</span>
                             <span className="font-medium">{parking?.name || "-"}</span>
+                          </div>
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Vehicle Type</span>
+                            <span className="font-medium capitalize">{form.vehicleType}</span>
+                          </div>
+                          <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                            <span className="text-gray-600 dark:text-gray-400">Price Per Day</span>
+                            <span className="font-medium">${parking?.pricePerDay || 0}</span>
                           </div>
                           <div className="flex justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
                             <span className="text-gray-600 dark:text-gray-400">Chunk Name</span>
@@ -651,10 +735,27 @@ export default function PurchaseParkingChunk() {
                     <div className="flex flex-col items-center py-12">
                       <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6">
                         <CheckCircle className="text-green-900 dark:text-green-400" size={32} />
-                      </div>
-                      <div className="text-2xl font-bold mb-2 text-green-900 dark:text-green-200">Purchase Successful!</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 text-center mb-8 max-w-md">
+                      </div>                      <div className="text-2xl font-bold mb-2 text-green-900 dark:text-green-200">Purchase Successful!</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 text-center mb-4 max-w-md">
                         Your parking spot chunk has been created successfully. You can now allocate spots to your company's employees or customers.
+                      </div>
+                      <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg mb-6 max-w-md">
+                        <div className="flex justify-between mb-2 pb-2 border-b border-green-100 dark:border-green-800">
+                          <span className="text-green-800 dark:text-green-300">Parking:</span>
+                          <span className="font-medium text-green-900 dark:text-green-200">{parking?.name}</span>
+                        </div>
+                        <div className="flex justify-between mb-2 pb-2 border-b border-green-100 dark:border-green-800">
+                          <span className="text-green-800 dark:text-green-300">Vehicle Type:</span>
+                          <span className="font-medium text-green-900 dark:text-green-200 capitalize">{form.vehicleType}</span>
+                        </div>
+                        <div className="flex justify-between mb-2 pb-2 border-b border-green-100 dark:border-green-800">
+                          <span className="text-green-800 dark:text-green-300">Spots:</span>
+                          <span className="font-medium text-green-900 dark:text-green-200">{form.totalSpots}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-green-800 dark:text-green-300">Total Price:</span>
+                          <span className="font-medium text-green-900 dark:text-green-200">${((parking?.pricePerDay || 0) * form.totalSpots).toLocaleString()}</span>
+                        </div>
                       </div>
                       <div className="flex gap-4">
                         <button
@@ -666,8 +767,7 @@ export default function PurchaseParkingChunk() {
                         </button>
                         <button
                           type="button"
-                          className="px-4 py-2 bg-green-900 hover:bg-green-800 text-white rounded-lg transition font-medium text-sm shadow-sm"
-                          onClick={() => {
+                          className="px-4 py-2 bg-green-900 hover:bg-green-800 text-white rounded-lg transition font-medium text-sm shadow-sm"                          onClick={() => {
                             setForm({
                               parkingId: "",
                               chunkName: "",
@@ -676,6 +776,7 @@ export default function PurchaseParkingChunk() {
                               validFrom: "",
                               validTo: "",
                               remarks: "",
+                              vehicleType: "car", // Reset to default vehicle type
                             });
                             setStep(1);
                             setSubmitted(false);
@@ -697,6 +798,17 @@ export default function PurchaseParkingChunk() {
                   Live Summary
                 </div>
                 <div className="space-y-5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                      {form.vehicleType === 'car' && <Car className="text-green-900 dark:text-green-400" size={16} />}
+                      {form.vehicleType === 'bicycle' && <Bike className="text-green-900 dark:text-green-400" size={16} />}
+                      {form.vehicleType === 'truck' && <Truck className="text-green-900 dark:text-green-400" size={16} />}
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Vehicle Type</div>
+                      <div className="font-medium capitalize">{form.vehicleType}</div>
+                    </div>
+                  </div>
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
                       <MapPin className="text-green-900 dark:text-green-400" size={16} />
@@ -747,15 +859,14 @@ export default function PurchaseParkingChunk() {
                 </div>
                 {form.parkingId && form.company && form.totalSpots > 0 && (
                   <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
-                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">                      <div className="flex items-center justify-between">
                         <div className="text-sm font-medium">Total Price</div>
                         <div className="text-xl font-bold text-green-900 dark:text-green-400">
-                          ${(form.totalSpots * 25).toLocaleString()}
+                          ${((parking?.pricePerDay || 0) * form.totalSpots).toLocaleString()}
                         </div>
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        $25 per spot
+                        ${parking?.pricePerDay || 0} per spot/day
                       </div>
                     </div>
                   </div>

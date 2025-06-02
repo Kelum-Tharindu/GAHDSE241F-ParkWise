@@ -33,19 +33,35 @@ exports.createBulkBookingChunk = async (req, res) => {
   try {
     const {
       user, // user id
-      purchaseDate,
-      parkingName,
+      parkingId,
       chunkName,
       company,
       totalSpots,
-      usedSpots,
-      availableSpots,
       validFrom,
       validTo,
-      status,
       remarks,
-      vehicleType
+      vehicleType = 'car' // Default to car if not provided
     } = req.body;
+
+    // Set default values
+    const purchaseDate = new Date();
+    const usedSpots = 0;
+    const availableSpots = totalSpots;
+    const status = 'Active';
+
+    // Fetch parking name from parkingId
+    let parkingName = '';
+    try {
+      const Parking = require('../models/parkingmodel');
+      const parking = await Parking.findById(parkingId);
+      if (parking) {
+        parkingName = parking.name;
+      } else {
+        return res.status(404).json({ message: 'Parking not found' });
+      }
+    } catch (error) {
+      return res.status(500).json({ message: 'Error fetching parking details', error: error.message });
+    }
 
     // Create the chunk first (without qrImage)
     const chunk = new BulkBookingChunk({
