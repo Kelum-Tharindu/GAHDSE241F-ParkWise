@@ -20,6 +20,7 @@ const cookieParser = require('cookie-parser');
 const transactionRoutes = require('./routes/transactionRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const bulkbookingRoutes = require('./routes/bulkbooking');
+const parkingPaymentRoutes = require('./routes/parkingPaymentRoutes');
 
 // -------------------- GET LOCAL IP --------------------
 const getLocalIP = () => {
@@ -104,6 +105,7 @@ app.use('/api/landowners', landownerRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/bulkbooking', bulkbookingRoutes);
+app.use('/api/parking-payments', parkingPaymentRoutes);
 
 // -------------------- TEST ROUTE --------------------
 app.get('/', (req, res) => {
