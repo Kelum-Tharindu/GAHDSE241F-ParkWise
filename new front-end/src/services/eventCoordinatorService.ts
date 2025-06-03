@@ -51,6 +51,48 @@ export interface TransactionDetail {
   parkingName?: string;
 }
 
+// Sub Bulk Booking Interfaces
+export interface SubBulkBooking {
+  _id: string;
+  bulkBookingId: {
+    _id: string;
+    parkingName: string;
+    chunkName: string;
+    totalSpots?: number;
+  } | string;
+  ownerId: string;
+  customerId: {
+    _id: string;
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  } | string;
+  customerName: string;
+  customerEmail: string;
+  assignedSpots: number;
+  validFrom: string;
+  validTo: string;
+  qrCode: string;
+  lastAccessDate?: string;
+  usageTime: number;
+  status: 'Active' | 'Expired' | 'Suspended';
+  parkingLocation: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSubBulkBookingRequest {
+  bulkBookingId: string;
+  ownerId: string;
+  customerId: string;
+  assignedSpots: number;
+  validFrom: string;
+  validTo: string;
+  notes?: string;
+}
+
 // Service class for Event Coordinator APIs
 class EventCoordinatorService {
 
@@ -225,7 +267,100 @@ class EventCoordinatorService {
       };
     } catch (error) {
       console.error('Error fetching dashboard summary:', error);
-      throw new Error('Failed to fetch dashboard data');    }
+      throw new Error('Failed to fetch dashboard data');    }  }
+
+  // Sub Bulk Booking Methods
+
+  // Get sub bulk bookings for owner (Event Coordinator)
+  async getSubBulkBookingsByOwner(ownerId: string): Promise<SubBulkBooking[]> {
+    try {
+      console.log('Fetching sub bulk bookings for owner:', ownerId);
+      const response = await axios.get(
+        `${API_BASE_URL}/sub-bulk-booking/owner/${ownerId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      console.log('Sub bulk bookings data received:', response.data);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching sub bulk bookings:', error);
+      return [];
+    }
+  }
+
+  // Get available bulk bookings for assignment
+  async getAvailableBulkBookings(ownerId: string): Promise<BulkBookingChunk[]> {
+    try {
+      console.log('Fetching available bulk bookings for owner:', ownerId);
+      const response = await axios.get(
+        `${API_BASE_URL}/sub-bulk-booking/available/${ownerId}`,
+        {
+          withCredentials: true,
+        }
+      );
+      console.log('Available bulk bookings data received:', response.data);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error fetching available bulk bookings:', error);
+      return [];
+    }
+  }
+
+  // Create a new sub bulk booking assignment
+  async createSubBulkBooking(subBulkBookingData: CreateSubBulkBookingRequest): Promise<SubBulkBooking | null> {
+    try {
+      console.log('Creating sub bulk booking:', subBulkBookingData);
+      const response = await axios.post(
+        `${API_BASE_URL}/sub-bulk-booking`,
+        subBulkBookingData,
+        {
+          withCredentials: true,
+        }
+      );
+      console.log('Sub bulk booking created:', response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error creating sub bulk booking:', error);
+      throw error;
+    }
+  }
+
+  // Update a sub bulk booking
+  async updateSubBulkBooking(id: string, updates: Partial<CreateSubBulkBookingRequest>): Promise<SubBulkBooking | null> {
+    try {
+      console.log('Updating sub bulk booking:', id, updates);
+      const response = await axios.put(
+        `${API_BASE_URL}/sub-bulk-booking/${id}`,
+        updates,
+        {
+          withCredentials: true,
+        }
+      );
+      console.log('Sub bulk booking updated:', response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error updating sub bulk booking:', error);
+      throw error;
+    }
+  }
+
+  // Delete a sub bulk booking
+  async deleteSubBulkBooking(id: string): Promise<boolean> {
+    try {
+      console.log('Deleting sub bulk booking:', id);
+      await axios.delete(
+        `${API_BASE_URL}/sub-bulk-booking/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      console.log('Sub bulk booking deleted successfully');
+      return true;
+    } catch (error) {
+      console.error('Error deleting sub bulk booking:', error);
+      return false;
+    }
   }
 }
 

@@ -12,11 +12,14 @@ import {
   Users,
   Tag,
   Moon,
-  Sun
+  Sun,
+  LayoutDashboard,
+  UserCheck
 } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import { useUser } from "../../../context/UserContext";
 import eventCoordinatorService from "../../../services/eventCoordinatorService";
+import CustomerAssignments from "../CustomerAssignments/CustomerAssignments";
 
 // Define interface for parking location data (transformed from BulkBookingChunk)
 interface ParkingLocationData {
@@ -71,10 +74,329 @@ interface DashboardData {
   alerts: AlertData[];
 }
 
+// Dashboard Overview Component
+interface DashboardOverviewProps {
+  isDarkMode: boolean;
+  totalPurchasedSpots: number;
+  totalAvailableSpots: number;
+  totalRevenue: number;
+  totalCustomers: number;
+  parkingLocations: ParkingLocationData[];
+  customers: CustomerDisplayData[];
+  recentTransactions: TransactionDisplayData[];
+  alerts: AlertData[];
+}
+
+function DashboardOverview({
+  isDarkMode,
+  totalPurchasedSpots,
+  totalAvailableSpots,
+  totalRevenue,
+  totalCustomers,
+  parkingLocations,
+  customers,
+  recentTransactions,
+  alerts
+}: DashboardOverviewProps) {
+  return (
+    <>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Purchased Spots</p>
+              <h2 className="text-2xl font-bold mt-1">{totalPurchasedSpots}</h2>
+            </div>
+            <div className={`rounded-full ${isDarkMode ? 'bg-blue-900' : 'bg-blue-100'} p-2`}>
+              <Car size={18} className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center">
+            <span className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'} text-sm font-medium flex items-center`}>
+              <TrendingUp size={14} className="mr-1" /> +5%
+            </span>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>from last month</span>
+          </div>
+        </div>
+
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Available to Assign</p>
+              <h2 className="text-2xl font-bold mt-1">{totalAvailableSpots}</h2>
+            </div>
+            <div className={`rounded-full ${isDarkMode ? 'bg-green-900' : 'bg-green-100'} p-2`}>
+              <MapPin size={18} className={`${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center">
+            <div className={`w-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-2`}>
+              <div 
+                className={`${isDarkMode ? 'bg-green-500' : 'bg-green-600'} h-2 rounded-full`} 
+                style={{ width: `${totalPurchasedSpots > 0 ? (totalAvailableSpots / totalPurchasedSpots) * 100 : 0}%` }}
+              ></div>
+            </div>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>
+              {totalPurchasedSpots > 0 ? Math.round((totalAvailableSpots / totalPurchasedSpots) * 100) : 0}%
+            </span>
+          </div>
+        </div>
+
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Monthly Cost</p>
+              <h2 className="text-2xl font-bold mt-1">${totalRevenue}</h2>
+            </div>
+            <div className={`rounded-full ${isDarkMode ? 'bg-purple-900' : 'bg-purple-100'} p-2`}>
+              <DollarSign size={18} className={`${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`} />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center">
+            <span className={`${isDarkMode ? 'text-purple-400' : 'text-purple-600'} text-sm font-medium flex items-center`}>
+              <TrendingUp size={14} className="mr-1" /> +12%
+            </span>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>from last month</span>
+          </div>
+        </div>
+
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Active Customers</p>
+              <h2 className="text-2xl font-bold mt-1">{totalCustomers}</h2>
+            </div>
+            <div className={`rounded-full ${isDarkMode ? 'bg-amber-900' : 'bg-amber-100'} p-2`}>
+              <Users size={18} className={`${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`} />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center">
+            <span className={`${isDarkMode ? 'text-amber-400' : 'text-amber-600'} text-sm font-medium`}>3 active now</span>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>using spots</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Customers and Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm p-6 lg:col-span-2 border`}>
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="font-semibold text-lg">Recent Customer Activity</h3>
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Overview of customer parking activity</p>
+            </div>
+          </div>
+          
+          <div className={`mt-4 overflow-x-auto ${isDarkMode ? 'bg-gray-750 border-gray-700' : 'bg-white border-gray-200'} rounded-lg border`}>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Customer</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Assigned Spots</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Last Activity</th>
+                </tr>
+              </thead>
+              <tbody className={`${isDarkMode ? 'divide-y divide-gray-700' : 'divide-y divide-gray-200'}`}>
+                {customers.map((customer: CustomerDisplayData) => (
+                  <tr key={customer.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-blue-900' : 'bg-blue-100'}`}>
+                          <span className={`text-lg font-medium ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>{customer.name.charAt(0)}</span>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium">{customer.name}</div>
+                          <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{customer.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isDarkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'}`}>
+                        {customer.assignedSpots} spots
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {customer.lastActivity}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm p-6 border`}>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-lg">Alerts & Notifications</h3>
+            <span className={`text-sm ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline`}>View All</span>
+          </div>
+          <div className="space-y-4">
+            {alerts.map((alert: AlertData) => (
+              <div 
+                key={alert.id} 
+                className={`${
+                  alert.severity === 'high' 
+                    ? isDarkMode 
+                      ? 'border-l-4 border-red-500 bg-red-900/20' 
+                      : 'border-l-4 border-red-500 bg-red-50'
+                    : isDarkMode 
+                      ? 'border-l-4 border-amber-500 bg-amber-900/20' 
+                      : 'border-l-4 border-amber-500 bg-amber-50'
+                } p-4 rounded-lg`}
+              >
+                <div className="flex items-start">
+                  <AlertTriangle 
+                    size={18} 
+                    className={alert.severity === 'high' ? 'text-red-500 mr-2 mt-0.5' : 'text-amber-500 mr-2 mt-0.5'} 
+                  />
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>{alert.message}</p>
+                      <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{alert.time}</span>
+                    </div>
+                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+                      {alert.severity === 'high' ? 'Requires immediate attention' : 'Please review soon'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {alerts.length < 3 && (
+              <div className={`p-4 rounded-lg border border-dashed ${isDarkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-300 bg-gray-50'} text-center`}>
+                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>No more alerts</p>
+                <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} mt-1`}>You're all caught up!</p>
+              </div>
+            )}
+          </div>
+          <button className={`mt-4 w-full ${isDarkMode ? 'bg-[#013220]/30 text-[#013220] hover:bg-[#013220]/50' : 'bg-[#013220]/20 text-[#013220] hover:bg-[#013220]/40'} py-2 rounded-lg transition-colors`}>
+            Mark All as Read
+          </button>
+        </div>
+      </div>
+
+      {/* Parking Locations and Recent Transactions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm border`}>
+          <div className={`p-6 ${isDarkMode ? 'border-b border-gray-700' : 'border-b'}`}>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-semibold text-lg">Your Parking Inventory</h3>
+                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Manage your parking locations</p>
+              </div>
+              <button className={`${isDarkMode ? 'bg-[#013220] hover:bg-[#013220]/90' : 'bg-[#013220] hover:bg-[#013220]/80'} text-white px-4 py-2 rounded-lg text-sm transition-colors shadow-sm`}>
+                Purchase More
+              </button>
+            </div>
+          </div>
+          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
+            {parkingLocations.map((location: ParkingLocationData) => (
+              <div key={location.id} className={`p-4 ${isDarkMode ? 'hover:bg-gray-750' : 'hover:bg-gray-50'} transition-colors`}>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-start">
+                    <div className={`rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} p-3 mr-3`}>
+                      <MapPin size={20} className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{location.name}</h4>
+                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{location.address}</p>
+                      <div className="flex items-center mt-1">
+                        <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mr-2`}>
+                          ${location.pricePerHour}/hr
+                        </span>
+                        <span className={`text-xs ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                          {location.availableSpots} available
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">{location.purchasedSpots} spots</p>
+                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+                      purchased
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={`p-4 text-center ${isDarkMode ? 'border-t border-gray-700' : 'border-t'}`}>
+            <button className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'} font-medium hover:underline flex items-center justify-center w-full`}>
+              View All Locations
+              <ChevronRight size={16} className="ml-1" />
+            </button>
+          </div>
+        </div>
+
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm border`}>
+          <div className={`p-6 ${isDarkMode ? 'border-b border-gray-700' : 'border-b'}`}>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-semibold text-lg">Recent Transactions</h3>
+                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Latest customer payments</p>
+              </div>
+              <button className={`${isDarkMode ? 'text-gray-300 hover:text-gray-100 bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-100'} p-2 rounded-lg`}>
+                <FileText size={18} />
+              </button>
+            </div>
+          </div>
+          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
+            {recentTransactions.map((transaction: TransactionDisplayData) => (
+              <div key={transaction.id} className={`p-4 ${isDarkMode ? 'hover:bg-gray-750' : 'hover:bg-gray-50'} transition-colors`}>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className={`rounded-full p-2 ${
+                      transaction.duration === '1 Month' ? isDarkMode ? 'bg-purple-900 text-purple-400' : 'bg-purple-100 text-purple-600' :
+                      transaction.duration === '1 Week' ? isDarkMode ? 'bg-blue-900 text-blue-400' : 'bg-blue-100 text-blue-600' :
+                      isDarkMode ? 'bg-green-900 text-green-400' : 'bg-green-100 text-green-600'
+                    }`}>
+                      {transaction.duration === '1 Month' ? <Calendar size={16} /> :
+                       transaction.duration === '1 Week' ? <Clock size={16} /> :
+                       <Clock size={16} />
+                      }
+                    </div>
+                    <div className="ml-3">
+                      <h4 className="font-medium">{transaction.customer}</h4>
+                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {transaction.date} • {transaction.location}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <p className="font-semibold">${transaction.amount}</p>
+                    <span className={`text-xs ml-2 py-1 px-2 rounded-full ${
+                      transaction.status === 'completed' ? isDarkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-600' : 
+                      transaction.status === 'pending' ? isDarkMode ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-600' :
+                      isDarkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-600'
+                    }`}>
+                      {transaction.status === 'completed' ? 'Paid' : transaction.status === 'pending' ? 'Pending' : 'Cancelled'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={`p-4 text-center ${isDarkMode ? 'border-t border-gray-700' : 'border-t'}`}>
+            <button className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'} font-medium hover:underline flex items-center justify-center w-full`}>
+              View All Transactions
+              <ChevronRight size={16} className="ml-1" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function CoordinatorDashboard() {
   const { theme, toggleTheme } = useTheme();
   const { user, loading: userLoading } = useUser();
-  const isDarkMode = theme === "dark";  // Dashboard state
+  const isDarkMode = theme === "dark";
+  
+  // Tab navigation state
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'assignments'>('dashboard');
+  
+  // Dashboard state
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,7 +471,6 @@ export default function CoordinatorDashboard() {
       </div>
     );
   }
-
   return (
     <div className={`flex-1 overflow-y-auto p-4 sm:p-6 ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900'} transition-colors duration-300`}>
       {/* Theme toggle button */}
@@ -178,293 +499,63 @@ export default function CoordinatorDashboard() {
           </div>
         </div>
       </div>
-      
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
-          <div className="flex justify-between items-start">
-            <div>
-              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Purchased Spots</p>
-              <h2 className="text-2xl font-bold mt-1">{totalPurchasedSpots}</h2>
-            </div>
-            <div className={`rounded-full ${isDarkMode ? 'bg-blue-900' : 'bg-blue-100'} p-2`}>
-              <Car size={18} className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center">
-            <span className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'} text-sm font-medium flex items-center`}>
-              <TrendingUp size={14} className="mr-1" /> +5%
-            </span>
-            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>from last month</span>
-          </div>
-        </div>
 
-        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
-          <div className="flex justify-between items-start">
-            <div>
-              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Available to Assign</p>
-              <h2 className="text-2xl font-bold mt-1">{totalAvailableSpots}</h2>
-            </div>
-            <div className={`rounded-full ${isDarkMode ? 'bg-green-900' : 'bg-green-100'} p-2`}>
-              <MapPin size={18} className={`${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
-            </div>
-          </div>          <div className="mt-4 flex items-center">
-            <div className={`w-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-2`}>
-              <div 
-                className={`${isDarkMode ? 'bg-green-500' : 'bg-green-600'} h-2 rounded-full`} 
-                style={{ width: `${totalPurchasedSpots > 0 ? (totalAvailableSpots / totalPurchasedSpots) * 100 : 0}%` }}
-              ></div>
-            </div>
-            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>
-              {totalPurchasedSpots > 0 ? Math.round((totalAvailableSpots / totalPurchasedSpots) * 100) : 0}%
-            </span>
-          </div>
-        </div>
-
-        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
-          <div className="flex justify-between items-start">
-            <div>
-              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Monthly Cost</p>
-              <h2 className="text-2xl font-bold mt-1">${totalRevenue}</h2>
-            </div>
-            <div className={`rounded-full ${isDarkMode ? 'bg-purple-900' : 'bg-purple-100'} p-2`}>
-              <DollarSign size={18} className={`${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center">
-            <span className={`${isDarkMode ? 'text-purple-400' : 'text-purple-600'} text-sm font-medium flex items-center`}>
-              <TrendingUp size={14} className="mr-1" /> +12%
-            </span>
-            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>from last month</span>
-          </div>
-        </div>
-
-        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
-          <div className="flex justify-between items-start">
-            <div>
-              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Active Customers</p>
-              <h2 className="text-2xl font-bold mt-1">{totalCustomers}</h2>
-            </div>
-            <div className={`rounded-full ${isDarkMode ? 'bg-amber-900' : 'bg-amber-100'} p-2`}>
-              <Users size={18} className={`${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center">
-            <span className={`${isDarkMode ? 'text-amber-400' : 'text-amber-600'} text-sm font-medium`}>3 active now</span>
-            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>using spots</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Customers and Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm p-6 lg:col-span-2 border`}>
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h3 className="font-semibold text-lg">Customer Assignments</h3>
-              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Manage your customer parking allocations</p>
-            </div>
-            <button className={`${isDarkMode ? 'bg-[#013220] hover:bg-[#013220]/90' : 'bg-[#013220] hover:bg-[#013220]/80'} text-white px-4 py-2 rounded-lg text-sm transition-colors shadow-sm`}>
-              Assign Spots
+      {/* Tab Navigation */}
+      <div className="mb-6">
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg border shadow-sm`}>
+          <div className="flex">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex-1 px-6 py-3 text-sm font-medium rounded-l-lg transition-colors ${
+                activeTab === 'dashboard'
+                  ? isDarkMode
+                    ? 'bg-[#013220] text-white'
+                    : 'bg-[#013220] text-white'
+                  : isDarkMode
+                    ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <LayoutDashboard size={18} className="inline mr-2" />
+              Dashboard Overview
             </button>
-          </div>
-          
-          <div className={`mt-4 overflow-x-auto ${isDarkMode ? 'bg-gray-750 border-gray-700' : 'bg-white border-gray-200'} rounded-lg border`}>
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Customer</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Assigned Spots</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Last Activity</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>              <tbody className={`${isDarkMode ? 'divide-y divide-gray-700' : 'divide-y divide-gray-200'}`}>
-                {customers.map((customer: CustomerDisplayData) => (
-                  <tr key={customer.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-blue-900' : 'bg-blue-100'}`}>
-                          <span className={`text-lg font-medium ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>{customer.name.charAt(0)}</span>
-                        </div>                        <div className="ml-4">
-                          <div className="text-sm font-medium">{customer.name}</div>
-                          <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{customer.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isDarkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'}`}>
-                        {customer.assignedSpots} spots
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {customer.lastActivity}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button className={`${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-900'} mr-3`}>Edit</button>
-                      <button className={`${isDarkMode ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-900'}`}>Remove</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm p-6 border`}>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-lg">Alerts & Notifications</h3>
-            <span className={`text-sm ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline`}>View All</span>
-          </div>          <div className="space-y-4">
-            {alerts.map((alert: AlertData) => (
-              <div 
-                key={alert.id} 
-                className={`${
-                  alert.severity === 'high' 
-                    ? isDarkMode 
-                      ? 'border-l-4 border-red-500 bg-red-900/20' 
-                      : 'border-l-4 border-red-500 bg-red-50'
-                    : isDarkMode 
-                      ? 'border-l-4 border-amber-500 bg-amber-900/20' 
-                      : 'border-l-4 border-amber-500 bg-amber-50'
-                } p-4 rounded-lg`}
-              >
-                <div className="flex items-start">
-                  <AlertTriangle 
-                    size={18} 
-                    className={alert.severity === 'high' ? 'text-red-500 mr-2 mt-0.5' : 'text-amber-500 mr-2 mt-0.5'} 
-                  />
-                  <div className="flex-1">
-                    <div className="flex justify-between">
-                      <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>{alert.message}</p>
-                      <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{alert.time}</span>
-                    </div>
-                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-                      {alert.severity === 'high' ? 'Requires immediate attention' : 'Please review soon'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {alerts.length < 3 && (
-              <div className={`p-4 rounded-lg border border-dashed ${isDarkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-300 bg-gray-50'} text-center`}>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>No more alerts</p>
-                <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'} mt-1`}>You're all caught up!</p>
-              </div>
-            )}
-          </div>
-          <button className={`mt-4 w-full ${isDarkMode ? 'bg-[#013220]/30 text-[#013220] hover:bg-[#013220]/50' : 'bg-[#013220]/20 text-[#013220] hover:bg-[#013220]/40'} py-2 rounded-lg transition-colors`}>
-            Mark All as Read
-          </button>
-        </div>
-      </div>
-
-      {/* Parking Locations and Recent Transactions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm border`}>
-          <div className={`p-6 ${isDarkMode ? 'border-b border-gray-700' : 'border-b'}`}>
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-semibold text-lg">Your Parking Inventory</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Manage your parking locations</p>
-              </div>
-              <button className={`${isDarkMode ? 'bg-[#013220] hover:bg-[#013220]/90' : 'bg-[#013220] hover:bg-[#013220]/80'} text-white px-4 py-2 rounded-lg text-sm transition-colors shadow-sm`}>
-                Purchase More
-              </button>
-            </div>
-          </div>          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
-            {parkingLocations.map((location: ParkingLocationData) => (
-              <div key={location.id} className={`p-4 ${isDarkMode ? 'hover:bg-gray-750' : 'hover:bg-gray-50'} transition-colors`}>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-start">
-                    <div className={`rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'} p-3 mr-3`}>
-                      <MapPin size={20} className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{location.name}</h4>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{location.address}</p>
-                      <div className="flex items-center mt-1">
-                        <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mr-2`}>
-                          ${location.pricePerHour}/hr
-                        </span>
-                        <span className={`text-xs ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
-                          {location.availableSpots} available
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">{location.purchasedSpots} spots</p>
-                    <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
-                      purchased
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className={`p-4 text-center ${isDarkMode ? 'border-t border-gray-700' : 'border-t'}`}>
-            <button className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'} font-medium hover:underline flex items-center justify-center w-full`}>
-              View All Locations
-              <ChevronRight size={16} className="ml-1" />
-            </button>
-          </div>
-        </div>
-
-        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm border`}>
-          <div className={`p-6 ${isDarkMode ? 'border-b border-gray-700' : 'border-b'}`}>
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-semibold text-lg">Recent Transactions</h3>
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Latest customer payments</p>
-              </div>
-              <button className={`${isDarkMode ? 'text-gray-300 hover:text-gray-100 bg-gray-700' : 'text-gray-600 hover:text-gray-900 bg-gray-100'} p-2 rounded-lg`}>
-                <FileText size={18} />
-              </button>
-            </div>
-          </div>          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
-            {recentTransactions.map((transaction: TransactionDisplayData) => (
-              <div key={transaction.id} className={`p-4 ${isDarkMode ? 'hover:bg-gray-750' : 'hover:bg-gray-50'} transition-colors`}>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div className={`rounded-full p-2 ${
-                      transaction.duration === '1 Month' ? isDarkMode ? 'bg-purple-900 text-purple-400' : 'bg-purple-100 text-purple-600' :
-                      transaction.duration === '1 Week' ? isDarkMode ? 'bg-blue-900 text-blue-400' : 'bg-blue-100 text-blue-600' :
-                      isDarkMode ? 'bg-green-900 text-green-400' : 'bg-green-100 text-green-600'
-                    }`}>
-                      {transaction.duration === '1 Month' ? <Calendar size={16} /> :
-                       transaction.duration === '1 Week' ? <Clock size={16} /> :
-                       <Clock size={16} />
-                      }
-                    </div>
-                    <div className="ml-3">
-                      <h4 className="font-medium">{transaction.customer}</h4>
-                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {transaction.date} • {transaction.location}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <p className="font-semibold">${transaction.amount}</p>
-                    <span className={`text-xs ml-2 py-1 px-2 rounded-full ${
-                      transaction.status === 'completed' ? isDarkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-600' : 
-                      transaction.status === 'pending' ? isDarkMode ? 'bg-amber-900/30 text-amber-400' : 'bg-amber-100 text-amber-600' :
-                      isDarkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-600'
-                    }`}>
-                      {transaction.status === 'completed' ? 'Paid' : transaction.status === 'pending' ? 'Pending' : 'Cancelled'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className={`p-4 text-center ${isDarkMode ? 'border-t border-gray-700' : 'border-t'}`}>
-            <button className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'} font-medium hover:underline flex items-center justify-center w-full`}>
-              View All Transactions
-              <ChevronRight size={16} className="ml-1" />
+            <button
+              onClick={() => setActiveTab('assignments')}
+              className={`flex-1 px-6 py-3 text-sm font-medium rounded-r-lg transition-colors ${
+                activeTab === 'assignments'
+                  ? isDarkMode
+                    ? 'bg-[#013220] text-white'
+                    : 'bg-[#013220] text-white'
+                  : isDarkMode
+                    ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <UserCheck size={18} className="inline mr-2" />
+              Customer Assignments
             </button>
           </div>
         </div>
       </div>
+
+      {/* Conditional Content Rendering */}
+      {activeTab === 'dashboard' ? (
+        // Dashboard Overview Content
+        <DashboardOverview 
+          isDarkMode={isDarkMode}
+          totalPurchasedSpots={totalPurchasedSpots}
+          totalAvailableSpots={totalAvailableSpots}
+          totalRevenue={totalRevenue}
+          totalCustomers={totalCustomers}
+          parkingLocations={parkingLocations}
+          customers={customers}
+          recentTransactions={recentTransactions}
+          alerts={alerts}
+        />
+      ) : (
+        // Customer Assignments Content
+        <CustomerAssignments />
+      )}
     </div>
   );
 }
