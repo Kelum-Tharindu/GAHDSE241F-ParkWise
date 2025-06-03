@@ -3,10 +3,21 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 export type User = {
   _id: string | null;
   username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
   role: string | null;
-  
-
-  // add more fields as needed
+  country: string | null;
+  city: string | null;
+  postalCode: string | null;
+  taxId: string | null;
+  socialLinks: {
+    facebook: string | null;
+    twitter: string | null;
+    linkedin: string | null;
+    instagram: string | null;
+  };
 };
 
 interface UserContextType {

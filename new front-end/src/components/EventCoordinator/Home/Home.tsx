@@ -9,17 +9,18 @@ import {
   AlertTriangle,
   FileText,
   ChevronRight,
-  BarChart3,
   Users,
   Tag,
   Moon,
   Sun
 } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
+import { useUser } from "../../../context/UserContext";
+import eventCoordinatorService from "../../../services/eventCoordinatorService";
 
-// Types
-interface ParkingLocation {
-  id: number;
+// Define interface for parking location data (transformed from BulkBookingChunk)
+interface ParkingLocationData {
+  id: string;
   name: string;
   address: string;
   totalSpots: number;
@@ -28,75 +29,126 @@ interface ParkingLocation {
   purchasedSpots: number;
 }
 
-interface Customer {
-  id: number;
+// Define interface for customer data (transformed from CustomerUser)
+interface CustomerDisplayData {
+  id: string;
   name: string;
   email: string;
   assignedSpots: number;
   lastActivity: string;
 }
 
-interface Transaction {
-  id: number;
-  date: string;
-  amount: number;
-  location: string;
-  customer: string;
-  duration: string;
-  status: 'completed' | 'pending' | 'cancelled';
-}
-
-interface Alert {
+// Define interface for alert data
+interface AlertData {
   id: number;
   message: string;
-  severity: 'high' | 'medium' | 'low';
+  severity: 'low' | 'medium' | 'high';
   time: string;
 }
 
-// Sample data
-const parkingLocations: ParkingLocation[] = [
-  { id: 1, name: 'Downtown Lot', address: '123 Main St', totalSpots: 45, availableSpots: 12, pricePerHour: 5, purchasedSpots: 33 },
-  { id: 2, name: 'City Center', address: '456 Park Ave', totalSpots: 30, availableSpots: 8, pricePerHour: 7, purchasedSpots: 22 },
-  { id: 3, name: 'East Side Plaza', address: '789 East Blvd', totalSpots: 60, availableSpots: 25, pricePerHour: 4, purchasedSpots: 35 },
-];
+// Define interface for transaction display data
+interface TransactionDisplayData {
+  id: string;
+  customer: string;
+  amount: number;
+  date: string;
+  location: string;
+  status: 'completed' | 'pending' | 'cancelled';
+  duration: string;
+}
 
-const customers: Customer[] = [
-  { id: 1, name: 'ABC Corporation', email: 'contact@abccorp.com', assignedSpots: 15, lastActivity: '2 hours ago' },
-  { id: 2, name: 'XYZ Enterprises', email: 'info@xyzent.com', assignedSpots: 8, lastActivity: '1 day ago' },
-  { id: 3, name: 'Metro Hotel', email: 'bookings@metrohotel.com', assignedSpots: 20, lastActivity: '3 hours ago' },
-];
-
-const recentTransactions: Transaction[] = [
-  { id: 1, date: '2025-05-02', amount: 450, location: 'Downtown Lot', customer: 'ABC Corporation', duration: '1 Month', status: 'completed' },
-  { id: 2, date: '2025-05-01', amount: 180, location: 'City Center', customer: 'XYZ Enterprises', duration: '1 Week', status: 'completed' },
-  { id: 3, date: '2025-04-30', amount: 25, location: 'East Side Plaza', customer: 'Metro Hotel', duration: '1 Day', status: 'pending' },
-];
-
-const alerts: Alert[] = [
-  { id: 1, message: 'Downtown Lot reaching capacity (85%)', severity: 'medium', time: '2 hours ago' },
-  { id: 2, message: 'New spot request from Metro Hotel', severity: 'high', time: '1 hour ago' },
-];
+// Define local interfaces for the data returned from the service
+interface DashboardData {
+  metrics: {
+    totalPurchasedSpots: number;
+    totalAvailableSpots: number;
+    totalRevenue: number;
+    totalCustomers: number;
+  };
+  parkingLocations: ParkingLocationData[];
+  customers: CustomerDisplayData[];
+  recentTransactions: TransactionDisplayData[];
+  alerts: AlertData[];
+}
 
 export default function CoordinatorDashboard() {
   const { theme, toggleTheme } = useTheme();
-  const isDarkMode = theme === "dark";
+  const { user, loading: userLoading } = useUser();
+  const isDarkMode = theme === "dark";  // Dashboard state
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Legacy state for backward compatibility
   const [totalPurchasedSpots, setTotalPurchasedSpots] = useState<number>(0);
   const [totalAvailableSpots, setTotalAvailableSpots] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [totalCustomers, setTotalCustomers] = useState<number>(0);
 
   useEffect(() => {
-    // Calculate dashboard metrics
-    const purchasedSpots = parkingLocations.reduce((sum, location) => sum + location.purchasedSpots, 0);
-    const availableSpots = parkingLocations.reduce((sum, location) => sum + location.availableSpots, 0);
-    const revenue = recentTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-    
-    setTotalPurchasedSpots(purchasedSpots);
-    setTotalAvailableSpots(availableSpots);
-    setTotalRevenue(revenue);
-    setTotalCustomers(customers.length);
-  }, []);
+    const fetchDashboardData = async () => {
+      if (!user?._id || userLoading) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await eventCoordinatorService.getDashboardSummary(user._id);
+        setDashboardData(data);
+        
+        // Update legacy state
+        setTotalPurchasedSpots(data.metrics.totalPurchasedSpots);
+        setTotalAvailableSpots(data.metrics.totalAvailableSpots);
+        setTotalRevenue(data.metrics.totalRevenue);
+        setTotalCustomers(data.metrics.totalCustomers);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [user?._id, userLoading]);
+  // Get data from dashboard or fallback to empty arrays
+  const parkingLocations = dashboardData?.parkingLocations || [];
+  const customers = dashboardData?.customers || [];
+  const recentTransactions = dashboardData?.recentTransactions || [];
+  const alerts = dashboardData?.alerts || [];
+
+  // Show loading state
+  if (loading || userLoading) {
+    return (
+      <div className={`flex-1 overflow-y-auto p-4 sm:p-6 ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900'} transition-colors duration-300`}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#013220] mx-auto"></div>
+            <p className="mt-4 text-lg">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className={`flex-1 overflow-y-auto p-4 sm:p-6 ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900'} transition-colors duration-300`}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <p className="text-lg text-red-600 dark:text-red-400 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-[#013220] text-white px-4 py-2 rounded-lg hover:bg-[#013220]/90 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex-1 overflow-y-auto p-4 sm:p-6 ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900'} transition-colors duration-300`}>
@@ -170,7 +222,7 @@ export default function CoordinatorDashboard() {
         <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-100 hover:shadow-md'} rounded-xl shadow-sm p-6 border transition-all`}>
           <div className="flex justify-between items-start">
             <div>
-              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Monthly Revenue</p>
+              <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-sm`}>Monthly Cost</p>
               <h2 className="text-2xl font-bold mt-1">${totalRevenue}</h2>
             </div>
             <div className={`rounded-full ${isDarkMode ? 'bg-purple-900' : 'bg-purple-100'} p-2`}>
@@ -224,16 +276,14 @@ export default function CoordinatorDashboard() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Last Activity</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
                 </tr>
-              </thead>
-              <tbody className={`${isDarkMode ? 'divide-y divide-gray-700' : 'divide-y divide-gray-200'}`}>
-                {customers.map((customer) => (
+              </thead>              <tbody className={`${isDarkMode ? 'divide-y divide-gray-700' : 'divide-y divide-gray-200'}`}>
+                {customers.map((customer: CustomerDisplayData) => (
                   <tr key={customer.id} className={isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-blue-900' : 'bg-blue-100'}`}>
                           <span className={`text-lg font-medium ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>{customer.name.charAt(0)}</span>
-                        </div>
-                        <div className="ml-4">
+                        </div>                        <div className="ml-4">
                           <div className="text-sm font-medium">{customer.name}</div>
                           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{customer.email}</div>
                         </div>
@@ -262,9 +312,8 @@ export default function CoordinatorDashboard() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-lg">Alerts & Notifications</h3>
             <span className={`text-sm ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline`}>View All</span>
-          </div>
-          <div className="space-y-4">
-            {alerts.map(alert => (
+          </div>          <div className="space-y-4">
+            {alerts.map((alert: AlertData) => (
               <div 
                 key={alert.id} 
                 className={`${
@@ -320,9 +369,8 @@ export default function CoordinatorDashboard() {
                 Purchase More
               </button>
             </div>
-          </div>
-          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
-            {parkingLocations.map(location => (
+          </div>          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
+            {parkingLocations.map((location: ParkingLocationData) => (
               <div key={location.id} className={`p-4 ${isDarkMode ? 'hover:bg-gray-750' : 'hover:bg-gray-50'} transition-colors`}>
                 <div className="flex justify-between items-center">
                   <div className="flex items-start">
@@ -371,9 +419,8 @@ export default function CoordinatorDashboard() {
                 <FileText size={18} />
               </button>
             </div>
-          </div>
-          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
-            {recentTransactions.map(transaction => (
+          </div>          <div className={`divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-100'}`}>
+            {recentTransactions.map((transaction: TransactionDisplayData) => (
               <div key={transaction.id} className={`p-4 ${isDarkMode ? 'hover:bg-gray-750' : 'hover:bg-gray-50'} transition-colors`}>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center">
