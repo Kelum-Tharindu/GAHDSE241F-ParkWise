@@ -17,6 +17,7 @@ const CustomerAssignments: React.FC<CustomerAssignmentsProps> = ({ className = '
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<SubBulkBooking | null>(null);
+  const [qrPreview, setQrPreview] = useState<{src: string, name: string} | null>(null);
   // Fetch data
   const fetchData = useCallback(async () => {
     if (!user?._id) return;
@@ -212,6 +213,7 @@ const CustomerAssignments: React.FC<CustomerAssignmentsProps> = ({ className = '
                     <th className="text-left py-4 px-6 font-semibold text-gray-300 text-sm uppercase tracking-wider">Valid Period</th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-300 text-sm uppercase tracking-wider">Status</th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-300 text-sm uppercase tracking-wider">Usage</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-300 text-sm uppercase tracking-wider">QR Code</th>
                     <th className="text-left py-4 px-6 font-semibold text-gray-300 text-sm uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -284,6 +286,19 @@ const CustomerAssignments: React.FC<CustomerAssignmentsProps> = ({ className = '
                         </div>
                       </td>
                       <td className="py-5 px-6">
+                        {assignment.qrCode ? (
+                          <img
+                            src={assignment.qrCode}
+                            alt="QR"
+                            className="w-10 h-10 object-contain border border-gray-700 rounded bg-white dark:bg-gray-900 cursor-pointer hover:scale-110 transition"
+                            style={{ imageRendering: 'pixelated' }}
+                            onClick={() => setQrPreview({ src: assignment.qrCode!, name: getCustomerName(assignment) + '-qr.png' })}
+                          />
+                        ) : (
+                          <span className="text-gray-500 text-xs">No QR</span>
+                        )}
+                      </td>
+                      <td className="py-5 px-6">
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleEditAssignment(assignment)}
@@ -320,6 +335,36 @@ const CustomerAssignments: React.FC<CustomerAssignmentsProps> = ({ className = '
           customers={customers}
           ownerId={user?._id || ''}
         />
+      )}
+
+      {/* QR Preview Modal */}
+      {qrPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="bg-gray-900 rounded-xl shadow-2xl p-8 relative flex flex-col items-center">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-white p-2"
+              onClick={() => setQrPreview(null)}
+              aria-label="Close"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img
+              src={qrPreview.src}
+              alt="QR Large Preview"
+              className="w-64 h-64 object-contain border border-gray-700 rounded bg-white dark:bg-gray-900 mb-6"
+              style={{ imageRendering: 'pixelated' }}
+            />
+            <a
+              href={qrPreview.src}
+              download={qrPreview.name}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition mb-2"
+            >
+              Download QR
+            </a>
+          </div>
+        </div>
       )}
     </div>
   );
