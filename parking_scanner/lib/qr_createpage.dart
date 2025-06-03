@@ -60,7 +60,7 @@ class _QrCreatePageState extends State<QrCreatePage> {
                     data: _textController.text.isEmpty ? ' ' : _textController.text,
                     version: QrVersions.auto,
                     size: 250.0,
-                    backgroundColor: Colors.white,
+                    backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                     padding: const EdgeInsets.all(10),
                     errorStateBuilder: (context, error) {
                       return const Center(

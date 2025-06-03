@@ -38,7 +38,7 @@ class _MainpageState extends State<Mainpage> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Parking Scanner'),
+        title: const Text(' Scanner Pro'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
