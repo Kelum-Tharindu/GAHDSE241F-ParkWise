@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Coordinator Dashboard",
-    path: "/parkingcoordinatorhome",
+    path: "/Parking Coordinator Dashboard",
   },
   {
     icon: <CalenderIcon />,
