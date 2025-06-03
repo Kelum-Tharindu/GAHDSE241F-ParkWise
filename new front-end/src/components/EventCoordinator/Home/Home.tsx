@@ -208,14 +208,16 @@ export default function CoordinatorDashboard() {
             <div className={`rounded-full ${isDarkMode ? 'bg-green-900' : 'bg-green-100'} p-2`}>
               <MapPin size={18} className={`${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
             </div>
-          </div>
-          <div className="mt-4 flex items-center">
+          </div>          <div className="mt-4 flex items-center">
             <div className={`w-full ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-full h-2`}>
               <div 
                 className={`${isDarkMode ? 'bg-green-500' : 'bg-green-600'} h-2 rounded-full`} 
-                style={{ width: `${(totalAvailableSpots / (totalAvailableSpots + totalPurchasedSpots)) * 100}%` }}
+                style={{ width: `${totalPurchasedSpots > 0 ? (totalAvailableSpots / totalPurchasedSpots) * 100 : 0}%` }}
               ></div>
             </div>
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} ml-2`}>
+              {totalPurchasedSpots > 0 ? Math.round((totalAvailableSpots / totalPurchasedSpots) * 100) : 0}%
+            </span>
           </div>
         </div>
 

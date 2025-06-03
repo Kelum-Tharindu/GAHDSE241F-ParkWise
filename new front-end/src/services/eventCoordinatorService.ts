@@ -127,11 +127,22 @@ class EventCoordinatorService {
       // Extract data from settled promises
       const bulkBookingData = bulkBookings.status === 'fulfilled' ? bulkBookings.value : [];
       const customerData = customers.status === 'fulfilled' ? customers.value : [];
-      const transactionData = transactions.status === 'fulfilled' ? transactions.value : [];
-
-      // Calculate summary metrics
+      const transactionData = transactions.status === 'fulfilled' ? transactions.value : [];      // Calculate summary metrics
       const totalPurchasedSpots = bulkBookingData.reduce((sum, booking) => sum + booking.totalSpots, 0);
       const totalAvailableSpots = bulkBookingData.reduce((sum, booking) => sum + booking.availableSpots, 0);
+      
+      console.log('Bulk booking summary:', {
+        totalBookings: bulkBookingData.length,
+        totalPurchasedSpots,
+        totalAvailableSpots,
+        bookingDetails: bulkBookingData.map(b => ({
+          name: b.parkingName,
+          total: b.totalSpots,
+          used: b.usedSpots,
+          available: b.availableSpots,
+          calculated: b.totalSpots - b.usedSpots
+        }))
+      });
       
       // Filter recent transactions (last 30 days) and calculate revenue
       const thirtyDaysAgo = new Date();
@@ -145,17 +156,15 @@ class EventCoordinatorService {
       });
       
       const totalRevenue = recentTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-      const totalCustomers = customerData.length;
-
-      // Transform bulk bookings to match frontend expectations
+      const totalCustomers = customerData.length;      // Transform bulk bookings to match frontend expectations
       const parkingLocations = bulkBookingData.map(booking => ({
         id: booking._id,
         name: booking.parkingName,
         address: booking.chunkName, // Using chunk name as address for now
         totalSpots: booking.totalSpots,
-        availableSpots: booking.availableSpots,
+        availableSpots: booking.availableSpots, // This comes from backend: totalSpots - usedSpots
         pricePerHour: 0, // This would need to be calculated from pricing data
-        purchasedSpots: booking.usedSpots
+        purchasedSpots: booking.usedSpots // usedSpots represents spots that are already assigned/used
       }));
 
       // Transform customers to match frontend expectations
