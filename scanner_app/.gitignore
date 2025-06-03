@@ -8,7 +8,6 @@ build/
 .melos_tool/
 
 # Web related
-lib/generated_plugin_registrant.dart
 
 # IntelliJ related
 *.iml
