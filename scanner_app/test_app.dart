@@ -1,5 +1,4 @@
 // Test script to verify ParkWise Scanner App functionality
-import 'dart:convert';
 
 void main() {
   print('🚀 ParkWise Scanner App - Test Suite');
