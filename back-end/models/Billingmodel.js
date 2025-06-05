@@ -7,7 +7,8 @@ const billingSchema = new mongoose.Schema({
     duration: { type: Number }, // Duration in minutes
     fee: { type: Number }, // Calculated fee based on duration
     billingHash: { type: String, required: true },
-    paymentStatus: { type: String, enum: ["pending", "completed"], default: "pending" }
+    paymentStatus: { type: String, enum: ["pending", "completed"], default: "pending" },
+    qrImage: { type: String } // Data URL or image path for QR code
 });
 
 // Fix for OverwriteModelError in development (prevents redefining model)

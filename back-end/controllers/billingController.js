@@ -6,6 +6,7 @@ exports.createBilling = async (req, res) => {
   try {
     console.log("🛠️ createBilling function called");
     const { parkingID, userID } = req.body;
+    console.log("📥 Received data:", { parkingID, userID });
 
     if (!parkingID || typeof parkingID !== "string" || parkingID.trim() === "") {
       console.error("❌ Validation Error: Missing or invalid parkingID");

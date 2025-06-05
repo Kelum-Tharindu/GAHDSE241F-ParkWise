@@ -1,4 +1,3 @@
-
 const Jimp = require('jimp');
 const jsQR = require('jsqr');
 
@@ -8,9 +7,9 @@ const QRCode = require('qrcode');
 // Function to generate a QR Code with parking ID and name
 const generateQRCode123 = async (parkingID, name) => {
     try {
-
-        // console.log("Generating QR code for:", parkingID, name);
-        const qrCodeData = await QRCode.toDataURL(`${parkingID}:${name}`);
+        // Generate QR code as a JSON string for better compatibility
+        const qrContent = JSON.stringify({ parkingID, name });
+        const qrCodeData = await QRCode.toDataURL(qrContent);
         return qrCodeData;
     } catch (error) {
         throw new Error("Failed to generate QR code");

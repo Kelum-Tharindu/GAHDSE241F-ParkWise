@@ -92,7 +92,7 @@ const loginUser = async (req, res) => {
         maxAge: 60 * 60 * 1000, // 1 hour
       });
       console.log(`[LOGIN][SUCCESS] User logged in: "${username}", userId: ${user._id}`);
-      return res.status(200).json({ message: "Login successful", role: user.role });
+      return res.status(200).json({ message: "Login successful", token,role: user.role ,id: user._id, username: user.username });
     }
   } catch (error) {
     console.error(`[LOGIN][ERROR] Error logging in:`, error);

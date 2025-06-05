@@ -20,7 +20,7 @@ class _ReadPageState extends State<ReadPage> {
 
   void handleDetection(BarcodeCapture capture) async {
     if (scanned) return;
-    if (kDebugMode) print("##=====Scanning started...");
+    print("=== Scanning started...");
 
     final barcodes = capture.barcodes;
     if (barcodes.isEmpty) return;
@@ -31,31 +31,49 @@ class _ReadPageState extends State<ReadPage> {
     try {
       final data = jsonDecode(code);
       if (data is! Map<String, dynamic>) {
-        throw FormatException('Scanned data is not a valid JSON');
+        print('=== Scanned data is not a valid JSON');
+        setState(() {
+          scanned = true;
+          scannedData = code;
+        });
+        controller.stop();
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Invalid QR format")));
+        return;
       }
 
       setState(() {
         scanned = true;
         scannedData = code;
       });
-
+      print('=== QR scanned: $code');
       controller.stop();
 
       final response = await ApiService.sendScannedData(data);
+      print('=== API response: $response');
 
       if (!mounted) return;
 
       if (response != null) {
+        print('=== Navigating to QRPreviewPage');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => QRPreviewPage(qrData: response)),
         );
       } else {
+        print('=== Invalid QR, showing error');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("Invalid QR")));
       }
     } catch (e) {
+      print('=== Exception during scan: $e');
+      setState(() {
+        scanned = true;
+      });
+      controller.stop();
       if (!mounted) return;
 
       if (e is FormatException) {

@@ -55,18 +55,26 @@ class _LoginPageState extends State<LoginPage> {
         }
         final prefs = await SharedPreferences.getInstance();
 
-        // Store all user data
-        await prefs.setString('token', data['token']);
-        await prefs.setString('role', data['role'] ?? '');
-        await prefs.setString('userId', data['userId']?.toString() ?? '');
-        await prefs.setString('userName', data['username'] ?? '');
+        // Save user details if present
+        if (data['token'] != null) {
+          await prefs.setString('token', data['token']);
+        }
+        if (data['role'] != null) {
+          await prefs.setString('role', data['role']);
+        }
+        if (data['username'] != null) {
+          await prefs.setString('userName', data['username']);
+        }
+        if (data['id'] != null) {
+          await prefs.setString('userId', data['id'].toString());
+        }
 
         if (kDebugMode) {
           print('=====Stored User Data:');
-          print('=====Token: ${data['token']}');
-          print('=====Role: ${data['role']}');
-          print('=====User ID: ${data['userId']}');
-          print('=====Username: ${data['username']}');
+          print('=====Token: [32m${prefs.getString('token')}[0m');
+          print('=====Role: ${prefs.getString('role')}');
+          print('=====User ID: ${prefs.getString('userId')}');
+          print('=====Username: ${prefs.getString('userName')}');
         }
 
         // Save username if remember me is checked
