@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 // ignore: unused_import
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart'; // Add this import for date parsing
+import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:convert';
 
 import 'package:parking_app/widgets/glassmorphic_app_bar.dart';
 import 'package:parking_app/widgets/glassmorphic_container.dart';
@@ -560,9 +562,10 @@ class _BookingHistoryState extends State<BookingHistory> {
                     height: 30,
                     width: 1,
                     color: Colors.white.withAlpha(70),
-                  ),
-                  TextButton(
-                    onPressed: () {},
+                  ),                  TextButton(
+                    onPressed: () {
+                      _showBookingDetailsDialog(context, booking, bookingColor);
+                    },
                     child: Row(
                       children: [
                         const Text(
@@ -618,5 +621,250 @@ class _BookingHistoryState extends State<BookingHistory> {
         ),
       ],
     );
+  }
+
+  void _showBookingDetailsDialog(BuildContext context, Map<String, dynamic> booking, Color bookingColor) {
+    // Create QR code data from booking details
+    final qrData = jsonEncode(booking);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF121212),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.5),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Receipt Header
+                  const Text(
+                    "PARKING RECEIPT",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 5),
+                  Text(
+                    booking['location'] ?? 'Unknown Location',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 5),
+                  
+                  // QR Code
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 20),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: QrImageView(
+                      data: qrData,
+                      version: QrVersions.auto,
+                      size: 180,
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                    ),
+                  ),
+                  
+                  // Dashed line separator
+                  _buildDashedDivider(),
+                  
+                  // Booking Details
+                  const SizedBox(height: 15),
+                  _buildReceiptSection(
+                    "Booking Information",
+                    [
+                      {"label": "Booking ID", "value": booking['bookingId'] ?? 'N/A'},
+                      {"label": "Date", "value": booking['date'] ?? 'N/A'},
+                      {"label": "Start Time", "value": booking['startTime'] ?? 'N/A'},
+                      {"label": "End Time", "value": booking['endTime'] ?? 'N/A'},
+                      {"label": "Duration", "value": booking['duration'] ?? 'N/A'},
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 15),
+                  _buildDashedDivider(),
+                  const SizedBox(height: 15),
+                  
+                  // Payment Details
+                  _buildReceiptSection(
+                    "Payment Details",
+                    [
+                      {"label": "Cost", "value": booking['cost'] ?? 'N/A'},
+                      {"label": "Payment Method", "value": booking['paymentMethod'] ?? 'N/A'},
+                      {"label": "Status", "value": booking['status'] ?? 'Pending', "highlight": true},
+                    ],
+                  ),
+                  
+                  // Parking Details
+                  const SizedBox(height: 15),
+                  _buildDashedDivider(),
+                  const SizedBox(height: 15),
+                  
+                  _buildReceiptSection(
+                    "Parking Details",
+                    [
+                      {"label": "Parking Area", "value": booking['location'] ?? 'N/A'},
+                      {"label": "Parking Spot", "value": booking['parkingSpot'] ?? 'N/A'},
+                    ],
+                  ),
+                  
+                  // Vehicle details if available
+                  if (booking['vehicleDetails'] != null) ...[
+                    const SizedBox(height: 15),
+                    _buildDashedDivider(),
+                    const SizedBox(height: 15),
+                    
+                    _buildReceiptSection(
+                      "Vehicle Details",
+                      [
+                        {"label": "Vehicle Type", "value": booking['vehicleDetails']['type'] ?? 'N/A'},
+                        {"label": "License Plate", "value": booking['vehicleDetails']['licensePlate'] ?? 'N/A'},
+                      ],
+                    ),
+                  ],
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Thank you message
+                  const Text(
+                    "Thank you for choosing ParkWise!",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Close button
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: bookingColor.withOpacity(0.8),
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text(
+                      "Close",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Helper method to build a dashed divider
+  Widget _buildDashedDivider() {
+    return Row(
+      children: List.generate(
+        30,
+        (index) => Expanded(
+          child: Container(
+            color: index % 2 == 0 ? Colors.transparent : Colors.white24,
+            height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper method to build a receipt section with title and rows
+  Widget _buildReceiptSection(String title, List<Map<String, dynamic>> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...items.map((item) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${item['label']}:",
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  item['value'].toString(),
+                  style: TextStyle(
+                    color: item['highlight'] == true 
+                        ? _getStatusColor(item['value'].toString())
+                        : Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'active':
+        return Colors.blue;
+      case 'cancelled':
+        return Colors.red;
+      case 'pending':
+        return Colors.orange;
+      default:
+        return Colors.white;
+    }
   }
 }
