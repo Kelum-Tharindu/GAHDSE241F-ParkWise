@@ -56,49 +56,83 @@ class _ProfilePageState extends State<ProfilePage> {
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body)['data'];
+        print('=== Response body: ${response.body}');
+        // The backend returns the user data directly, not wrapped in a 'data' property
+        final data = jsonDecode(response.body);
+        print('=== Decoded response: $data');
+
         if (!mounted) return;
 
         setState(() {
           // Populate all text controllers with user data
-          usernameController.text = data['username'] ?? '';
-          firstNameController.text = data['firstName'] ?? '';
-          lastNameController.text = data['lastName'] ?? '';
-          emailController.text = data['email'] ?? '';
-          phoneController.text = data['phone'] ?? '';
-          countryController.text = data['country'] ?? '';
-          cityController.text = data['city'] ?? '';
-          postalCodeController.text = data['postalCode'] ?? '';
+          try {
+            usernameController.text = data['username']?.toString() ?? '';
+            firstNameController.text = data['firstName']?.toString() ?? '';
+            lastNameController.text = data['lastName']?.toString() ?? '';
+            emailController.text = data['email']?.toString() ?? '';
+            phoneController.text = data['phone']?.toString() ?? '';
+            countryController.text = data['country']?.toString() ?? '';
+            cityController.text = data['city']?.toString() ?? '';
+            postalCodeController.text = data['postalCode']?.toString() ?? '';
 
-          // Populate social media links if available
-          if (data['socialLinks'] != null) {
-            facebookController.text = data['socialLinks']['facebook'] ?? '';
-            twitterController.text = data['socialLinks']['twitter'] ?? '';
-            instagramController.text = data['socialLinks']['instagram'] ?? '';
-          }
+            // Populate social media links if available
+            if (data['socialLinks'] != null && data['socialLinks'] is Map) {
+              final socialLinks = data['socialLinks'] as Map;
+              facebookController.text =
+                  socialLinks['facebook']?.toString() ?? '';
+              twitterController.text = socialLinks['twitter']?.toString() ?? '';
+              instagramController.text =
+                  socialLinks['instagram']?.toString() ?? '';
+            } else {
+              // Reset social media fields if no data
+              facebookController.text = '';
+              twitterController.text = '';
+              instagramController.text = '';
+            }
 
-          // If the user has a profile image URL in the backend response, use it
-          if (data['profileImage'] != null &&
-              data['profileImage'].toString().isNotEmpty) {
-            profileImageUrl = data['profileImage'];
+            // If the user has a profile image URL in the backend response, use it
+            if (data['profileImage'] != null &&
+                data['profileImage'].toString().isNotEmpty) {
+              profileImageUrl = data['profileImage'].toString();
+            }
+          } catch (e) {
+            print('=== Error parsing profile data: $e');
+            // Continue execution, we already have default empty values
           }
         });
         print('=== Profile data loaded successfully');
       } else {
         if (!mounted) return;
         print('=== Failed to fetch profile: ${response.body}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to fetch profile: ${response.statusCode}'),
-          ),
-        );
+        try {
+          final errorJson = jsonDecode(response.body);
+          final errorMessage = errorJson['message'] ?? 'Unknown error occurred';
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $errorMessage')));
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to fetch profile: ${response.statusCode}'),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
       print('=== Error fetching profile: $e');
+      print('=== Error details: ${e.toString()}');
+
+      // Show a more specific error message
+      String errorMessage = 'An error occurred while fetching your profile';
+      if (e.toString().contains('NoSuchMethodError')) {
+        errorMessage =
+            'Server returned unexpected data format. Please try again later.';
+      }
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } finally {
       if (mounted) {
         setState(() {
@@ -148,21 +182,32 @@ class _ProfilePageState extends State<ProfilePage> {
           },
         }),
       );
-
       if (response.statusCode == 200) {
         if (!mounted) return;
         print('=== Profile updated successfully');
+        print('=== Updated profile data: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
+
+        // Refresh the profile data after update
+        fetchProfile();
       } else {
         if (!mounted) return;
         print('=== Failed to update profile: ${response.body}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update profile: ${response.statusCode}'),
-          ),
-        );
+        try {
+          final errorJson = jsonDecode(response.body);
+          final errorMessage = errorJson['message'] ?? 'Unknown error occurred';
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $errorMessage')));
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to update profile: ${response.statusCode}'),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
