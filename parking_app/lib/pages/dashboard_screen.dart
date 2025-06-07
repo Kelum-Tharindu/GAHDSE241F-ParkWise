@@ -17,27 +17,51 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   String userName = '';
+  String userId = '';
+  String userRole = '';
+  String token = '';
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUserData();
   }
 
-  Future<void> _loadUserName() async {
+  Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      userName = prefs.getString('userName') ?? 'User123';
+      // Get user data from SharedPreferences
+      userName = prefs.getString('userName') ?? '';
+      userId = prefs.getString('id') ?? '';
+      userRole = prefs.getString('role') ?? '';
+      token = prefs.getString('token') ?? '';
     });
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    // Clear all stored data
-    await prefs.clear();
-    if (!mounted) return;
-    // Navigate to login page
-    Navigator.pushReplacementNamed(context, '/login');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // Clear all stored data
+      await prefs.clear();
+
+      // Reset state variables
+      setState(() {
+        userName = '';
+        userId = '';
+        userRole = '';
+        token = '';
+      });
+
+      if (!mounted) return;
+      // Navigate to login page
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      // Handle logout errors
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logout failed. Please try again.')),
+      );
+    }
   }
 
   void _showSettingsMenu(BuildContext context) {
@@ -67,7 +91,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     CircleAvatar(
                       backgroundColor: const Color(0xFF15A66E),
                       child: Text(
-                        userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                        userName.isNotEmpty ? userName[0].toUpperCase() : 'G',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -80,16 +104,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            userName,
+                            userName.isNotEmpty ? userName : 'Guest User',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const Text(
-                            'User Account',
-                            style: TextStyle(
+                          Text(
+                            userRole.isNotEmpty ? userRole : 'Standard Account',
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                             ),
@@ -249,7 +273,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                userName,
+                                userName.isEmpty ? 'Guest User' : userName,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,

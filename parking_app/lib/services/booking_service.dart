@@ -78,10 +78,20 @@ class BookingService {
         );
       }
 
+      // Get shared preferences to retrieve auth token
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      final headers = {'Content-Type': 'application/json'};
+
+      // Add auth token if available
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
       // Make POST request to the backend
       final response = await http.post(
         Uri.parse('$bookingsEndpoint/calculate-fee'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode(requestBody),
       );
 
@@ -122,7 +132,6 @@ class BookingService {
   // Method to submit the booking
   static Future<Map<String, dynamic>> confirmBooking({
     required String parkingName,
-    required String userId,
     required DateTime bookingDate,
     required DateTime entryTime,
     required DateTime exitTime,
@@ -132,6 +141,14 @@ class BookingService {
     required String vehicleType,
   }) async {
     try {
+      // Get shared preferences to retrieve user ID
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userId');
+
+      if (userId == null || userId.isEmpty) {
+        throw Exception('User ID not found. Please log in again.');
+      }
+
       final Map<String, dynamic> requestBody = {
         "parkingName": parkingName,
         "userId": userId,
@@ -154,9 +171,18 @@ class BookingService {
         print('==============📝 Request body: ${jsonEncode(requestBody)}');
       }
 
+      // Get auth token
+      final token = prefs.getString('token');
+      final headers = {'Content-Type': 'application/json'};
+
+      // Add auth token if available
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
       final response = await http.post(
         Uri.parse('$bookingsEndpoint/confirm-booking'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode(requestBody),
       );
 
@@ -197,8 +223,18 @@ class BookingService {
         print('===== Starting fetchBookingData method =====');
       }
 
-      // final userId = prefs.getString('userId');
-      final userId = '662b3c9c12c85f01e8d5d679';
+      // Get the shared preferences instance
+      final prefs = await SharedPreferences.getInstance();
+      // Get user ID from SharedPreferences
+      final userId = prefs.getString('userId');
+      if (kDebugMode) {
+        print('===== User id: $userId =====');
+      }
+
+      if (userId == null || userId.isEmpty) {
+        throw Exception('User ID not found. Please log in again.');
+      }
+
       if (kDebugMode) {
         print('===== Retrieved userId: $userId =====');
       }
@@ -207,14 +243,16 @@ class BookingService {
         print('===== Sending GET request to: $url =====');
       }
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-          // Add auth token if needed
-          // 'Authorization': 'Bearer ${prefs.getString('token')}',
-        },
-      );
+      // Get auth token
+      final token = prefs.getString('token');
+      final headers = {'Content-Type': 'application/json'};
+
+      // Add auth token if available
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final response = await http.get(Uri.parse(url), headers: headers);
 
       if (kDebugMode) {
         print(

@@ -22,11 +22,15 @@ const transactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'BulkBookingChunk',
     required: function() { return this.type === 'bulkbooking'; }
-  },
-  LandOwnerID: {
+  },  LandOwnerID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'landowner',
     required: function() { return this.type === 'landowner'; }
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: function() { return this.type === 'booking'; }
   },
   amount: {
     type: Number,

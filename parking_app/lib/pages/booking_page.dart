@@ -352,7 +352,7 @@ class _BookingPageState extends State<BookingPage> {
       try {
         final responseData = await BookingService.confirmBooking(
           parkingName: parkingNameController.text,
-          userId: "662b3c9c12c85f01e8d5d679", // Hardcoded user ID
+          // userId: "662b3c9c12c85f01e8d5d679", // Hardcoded user ID
           bookingDate: DateTime.now(), // Current date as booking date
           entryTime: entryTime!,
           exitTime: exitTime!,

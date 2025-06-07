@@ -78,11 +78,11 @@ const confirmBooking = async (req, res) => {
       vehicleType
     });    const savedBooking = await newBooking.save();
     
-    try {
-      // Create a transaction record for the booking
+    try {      // Create a transaction record for the booking
       const newTransaction = new Transaction({
         type: 'booking',
         bookingId: savedBooking._id,
+        userId: userId, // Add the user ID to the transaction
         amount: fee.totalFee, // assuming fee.totalFee contains the total amount
         method: 'online', // or get from req.body if payment method is provided
         status: paymentStatus === 'paid' ? 'Completed' : 'Pending',
@@ -91,6 +91,12 @@ const confirmBooking = async (req, res) => {
       
       await newTransaction.save();
       console.log('Transaction created successfully:', newTransaction._id);
+      console.log('Transaction details:', {
+        type: newTransaction.type,
+        bookingId: newTransaction.bookingId,
+        userId: newTransaction.userId,
+        amount: newTransaction.amount
+      });
     } catch (transactionError) {
       console.error('Error creating transaction:', transactionError);
       // Continue with the response as the booking was successful
@@ -163,7 +169,7 @@ const getBookingHistoryByUserId = async (req, res) => {
         location: booking.parkingName,
         date: dateFormatted,
         duration: booking.totalDuration || 'N/A',
-        cost: `$${(totalFee / 100).toFixed(2)}`, // Convert cents to dollars with $ prefix
+        cost: `$${(totalFee ).toFixed(2)}`, // Convert cents to dollars with $ prefix
         status: booking.bookingState.charAt(0).toUpperCase() + booking.bookingState.slice(1), // Capitalize first letter
         color: color,
         vehicleType: booking.vehicleType,
@@ -187,7 +193,7 @@ const getBookingHistoryByUserId = async (req, res) => {
     const monthName = new Date().toLocaleString('default', { month: 'long' });
     const totalSpent = currentMonthBookings.reduce((sum, booking) => {
       return sum + (booking.fee?.totalFee || 0);
-    }, 0) / 100;
+    }, 0);
     
     // Calculate total parking duration in minutes
     let totalMinutes = 0;
