@@ -46,7 +46,7 @@ const allowedOrigins = [
   'http://localhost:5173',  // Vite React Dev
   'http://localhost:3000',  // Optional other dev port
   'http://localhost:5500',
-  'http://localhost:58261',  // Flutter Web dev
+  'http://localhost:58004',  // Flutter Web dev
   `http://${localIP}:3000`, // Flutter or React from another device
   `http://${localIP}:5173`, // Vite React from another device
   process.env.FRONTEND_URL  // React Prod
@@ -101,7 +101,7 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userProfileRoutes);
-app.use('/api/users', userRoutes);
+// app.use('/api/users', userRoutes);
 app.use('/api/landowners', landownerRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/dashboard', dashboardRoutes);

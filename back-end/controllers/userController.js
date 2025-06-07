@@ -153,6 +153,7 @@ class UserController {
 
   // Update a user
   async updateUser(req, res) {
+    console.log('[updateUser] Request received');
     const { id } = req.params;
     console.log(`[updateUser] Updating user with ID: ${id}`);
     console.log('[updateUser] Update data:', JSON.stringify(req.body, null, 2));

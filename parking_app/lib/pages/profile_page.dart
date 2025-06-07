@@ -13,8 +13,23 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  // Controllers for all user fields
   final TextEditingController usernameController = TextEditingController();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController countryController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController postalCodeController = TextEditingController();
+
+  // Social media link controllers
+  final TextEditingController facebookController = TextEditingController();
+  final TextEditingController twitterController = TextEditingController();
+  final TextEditingController instagramController = TextEditingController();
+
+  // Demo profile image
+  String profileImageUrl = 'https://via.placeholder.com/150';
   bool isLoading = false;
 
   Future<void> fetchProfile() async {
@@ -40,14 +55,33 @@ class _ProfilePageState extends State<ProfilePage> {
         Uri.parse(ApiConfig.userProfile(userId)),
         headers: {'Authorization': 'Bearer $token'},
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body)['data'];
         if (!mounted) return;
 
         setState(() {
+          // Populate all text controllers with user data
           usernameController.text = data['username'] ?? '';
+          firstNameController.text = data['firstName'] ?? '';
+          lastNameController.text = data['lastName'] ?? '';
           emailController.text = data['email'] ?? '';
+          phoneController.text = data['phone'] ?? '';
+          countryController.text = data['country'] ?? '';
+          cityController.text = data['city'] ?? '';
+          postalCodeController.text = data['postalCode'] ?? '';
+
+          // Populate social media links if available
+          if (data['socialLinks'] != null) {
+            facebookController.text = data['socialLinks']['facebook'] ?? '';
+            twitterController.text = data['socialLinks']['twitter'] ?? '';
+            instagramController.text = data['socialLinks']['instagram'] ?? '';
+          }
+
+          // If the user has a profile image URL in the backend response, use it
+          if (data['profileImage'] != null &&
+              data['profileImage'].toString().isNotEmpty) {
+            profileImageUrl = data['profileImage'];
+          }
         });
         print('=== Profile data loaded successfully');
       } else {
@@ -99,7 +133,19 @@ class _ProfilePageState extends State<ProfilePage> {
         },
         body: jsonEncode({
           'username': usernameController.text,
+          'firstName': firstNameController.text,
+          'lastName': lastNameController.text,
           'email': emailController.text,
+          'phone': phoneController.text,
+          'country': countryController.text,
+          'city': cityController.text, 'postalCode': postalCodeController.text,
+          'profileImage': profileImageUrl,
+          // Social media links properly formatted according to backend controller
+          'socialLinks': {
+            'facebook': facebookController.text,
+            'twitter': twitterController.text,
+            'instagram': instagramController.text,
+          },
         }),
       );
 
@@ -143,28 +189,221 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            const SizedBox(height: 20),
-            isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                  onPressed: updateProfile,
-                  child: const Text('Update Profile'),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Profile picture
+                    Center(
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 60,
+                            backgroundImage: NetworkImage(profileImageUrl),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  width: 4,
+                                  color:
+                                      Theme.of(context).scaffoldBackgroundColor,
+                                ),
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  // For demo, we'll just rotate through 3 demo images
+                                  setState(() {
+                                    final demoImages = [
+                                      'https://via.placeholder.com/150',
+                                      'https://via.placeholder.com/150/0000FF/FFFFFF',
+                                      'https://via.placeholder.com/150/FF0000/FFFFFF',
+                                    ];
+                                    final currentIndex = demoImages.indexOf(
+                                      profileImageUrl,
+                                    );
+                                    final nextIndex =
+                                        (currentIndex + 1) % demoImages.length;
+                                    profileImageUrl = demoImages[nextIndex];
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // User info fields
+                    TextField(
+                      controller: usernameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Username',
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: firstNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'First Name',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: lastNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Last Name',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextField(
+                      controller: emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: Icon(Icons.email),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextField(
+                      controller: phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Phone',
+                        prefixIcon: Icon(Icons.phone),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextField(
+                      controller: countryController,
+                      decoration: const InputDecoration(
+                        labelText: 'Country',
+                        prefixIcon: Icon(Icons.public),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: cityController,
+                            decoration: const InputDecoration(
+                              labelText: 'City',
+                              prefixIcon: Icon(Icons.location_city),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: postalCodeController,
+                            decoration: const InputDecoration(
+                              labelText: 'Postal Code',
+                              prefixIcon: Icon(Icons.local_post_office),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Social Media Links Section
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Social Media Links',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    TextField(
+                      controller: facebookController,
+                      decoration: const InputDecoration(
+                        labelText: 'Facebook',
+                        prefixIcon: Icon(Icons.facebook, color: Colors.blue),
+                        border: OutlineInputBorder(),
+                        hintText: 'Enter your Facebook profile URL',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextField(
+                      controller: twitterController,
+                      decoration: const InputDecoration(
+                        labelText: 'Twitter',
+                        prefixIcon: Icon(
+                          Icons.flutter_dash,
+                          color: Colors.lightBlue,
+                        ),
+                        border: OutlineInputBorder(),
+                        hintText: 'Enter your Twitter profile URL',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    TextField(
+                      controller: instagramController,
+                      decoration: const InputDecoration(
+                        labelText: 'Instagram',
+                        prefixIcon: Icon(Icons.camera_alt, color: Colors.pink),
+                        border: OutlineInputBorder(),
+                        hintText: 'Enter your Instagram profile URL',
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    ElevatedButton(
+                      onPressed: updateProfile,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(50),
+                      ),
+                      child: const Text('Update Profile'),
+                    ),
+                  ],
                 ),
-          ],
-        ),
-      ),
+              ),
       bottomNavigationBar: GlassmorphicBottomNavBar(
         currentIndex: 4, // Profile tab is index 4 according to main.dart
         onTap: (index) {
