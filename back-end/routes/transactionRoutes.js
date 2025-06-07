@@ -14,6 +14,9 @@ router.get('/details-with-info', transactionController.getAllTransactionsWithDet
 // Get simplified transaction details with user/landowner names
 router.get('/details', transactionController.getTransactionDetails);
 
+// Get transactions by user ID
+router.get('/user/:userId', transactionController.getTransactionsByUserId);
+
 // If you implement this function later, uncomment the following line:
 // router.get('/details/all', transactionController.getTransactionDetails);
 

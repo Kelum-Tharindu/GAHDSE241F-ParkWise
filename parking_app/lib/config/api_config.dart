@@ -19,6 +19,11 @@ class ApiConfig {
   // Billing endpoints
   static String billing() => '$baseUrl/billing';
 
+  // Transaction endpoints
+  static String transactions() => '$baseUrl/transactions';
+  static String userTransactions(String userId) =>
+      '${transactions()}/user/$userId';
+
   // QR endpoints
   static String qrGenerate() => '$baseUrl/qr/generate';
   static String qrScan() => '$baseUrl/qr/scan';

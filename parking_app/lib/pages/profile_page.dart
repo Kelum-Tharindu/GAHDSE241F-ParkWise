@@ -446,6 +446,23 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       child: const Text('Update Profile'),
                     ),
+                    const SizedBox(height: 30),
+
+                    // Transaction History Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/transactions');
+                      },
+                      icon: const Icon(Icons.receipt_long),
+                      label: const Text('View Transaction History'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(50),
+                        backgroundColor: Colors.blueGrey,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),

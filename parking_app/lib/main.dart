@@ -12,6 +12,7 @@ import 'package:parking_app/pages/register_page.dart';
 import 'package:parking_app/pages/forget_password_page.dart';
 import 'package:parking_app/pages/rest_password_page.dart';
 import 'package:parking_app/pages/map_page.dart';
+import 'package:parking_app/pages/transaction_history_page.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized
@@ -64,6 +65,7 @@ class MyApp extends StatelessWidget {
         '/enter-parking': (context) => const ReadPage(),
         '/forgot_password': (context) => ForgotPasswordPage(),
         '/map': (context) => const MapPage(),
+        '/transactions': (context) => const TransactionHistoryPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name?.startsWith('/reset_password/') ?? false) {

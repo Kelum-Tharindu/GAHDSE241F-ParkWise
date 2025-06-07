@@ -322,6 +322,126 @@ const getTransactionDetails = async (req, res) => {
   }
 };
 
+// Get transactions by user ID
+const getTransactionsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+    
+    console.log(`[API] GET /api/transactions/user/${userId} called`);
+    
+    // Find all transactions for this user
+    const transactions = await Transaction.find({ userId }).lean();
+    
+    console.log(`[API] Found ${transactions.length} transactions for user ${userId}`);
+    
+    if (transactions.length === 0) {
+      return res.status(200).json({ 
+        transactions: [],
+        summary: {
+          byType: { booking: 0, billing: 0 },
+          total: 0
+        }
+      });
+    }
+    
+    // Populate related data
+    const bookingIds = transactions
+      .filter(t => t.type === 'booking' && t.bookingId)
+      .map(t => t.bookingId);
+      
+    const billingIds = transactions
+      .filter(t => t.type === 'billing' && t.billingId)
+      .map(t => t.billingId);
+    
+    // Fetch booking and billing details if needed
+    let bookings = [];
+    let billings = [];
+    
+    if (bookingIds.length > 0) {
+      bookings = await Booking.find({ _id: { $in: bookingIds } }).lean();
+    }
+    
+    if (billingIds.length > 0) {
+      billings = await Billing.find({ _id: { $in: billingIds } }).lean();
+    }
+    
+    // Create maps for quick lookup
+    const bookingMap = bookings.reduce((map, booking) => {
+      map[booking._id.toString()] = booking;
+      return map;
+    }, {});
+    
+    const billingMap = billings.reduce((map, billing) => {
+      map[billing._id.toString()] = billing;
+      return map;
+    }, {});
+    
+    // Enrich transaction data with related info
+    const enrichedTransactions = transactions.map(transaction => {
+      const enriched = { ...transaction };
+      
+      if (transaction.type === 'booking' && transaction.bookingId) {
+        const bookingId = transaction.bookingId.toString();
+        if (bookingMap[bookingId]) {
+          enriched.bookingDetails = {
+            parkingName: bookingMap[bookingId].parkingName || 'Unknown',
+            startTime: bookingMap[bookingId].startTime,
+            endTime: bookingMap[bookingId].endTime,
+            vehicleNumber: bookingMap[bookingId].vehicleNumber
+          };
+        }
+      } else if (transaction.type === 'billing' && transaction.billingId) {
+        const billingId = transaction.billingId.toString();
+        if (billingMap[billingId]) {
+          enriched.billingDetails = {
+            parkingName: billingMap[billingId].parkingName || 'Unknown',
+            checkInTime: billingMap[billingId].checkInTime,
+            checkOutTime: billingMap[billingId].checkOutTime,
+            vehicleNumber: billingMap[billingId].vehicleNumber
+          };
+        }
+      }
+      
+      return enriched;
+    });
+    
+    // Calculate summary statistics
+    const summary = enrichedTransactions.reduce(
+      (acc, transaction) => {
+        // Update type totals
+        if (!acc.byType[transaction.type]) {
+          acc.byType[transaction.type] = 0;
+        }
+        acc.byType[transaction.type] += transaction.amount;
+        
+        // Update total amount
+        acc.total += transaction.amount;
+        
+        return acc;
+      },
+      { byType: {}, total: 0 }
+    );
+    
+    console.log(`[API] Sending ${enrichedTransactions.length} transactions with summary`);
+    
+    res.status(200).json({
+      transactions: enrichedTransactions,
+      summary
+    });
+    
+  } catch (error) {
+    console.error('Error fetching user transactions:', error);
+    res.status(500).json({ 
+      message: 'Error retrieving transactions', 
+      error: error.message 
+    });
+  }
+};
+
 // Export all functions
 module.exports = {
   createTransaction,
@@ -331,4 +451,5 @@ module.exports = {
   deleteTransaction,
   getAllTransactionsWithDetails,
   getTransactionDetails,
+  getTransactionsByUserId,
 };

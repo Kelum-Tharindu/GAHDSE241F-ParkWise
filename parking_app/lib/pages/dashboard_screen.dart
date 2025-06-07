@@ -190,7 +190,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'route': '/bookingPage',
         'gradient': [accentColor, const Color(0xFF01573A)],
       },
-
       {
         'title': 'Booking History',
         'subtitle': 'View your past bookings',
@@ -198,7 +197,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'route': '/booking-history',
         'gradient': [const Color(0xFF01573A), const Color(0xFF013A25)],
       },
-
+      {
+        'title': 'Transaction History',
+        'subtitle': 'View all your payments',
+        'icon': Icons.receipt_long,
+        'route': '/transactions',
+        'gradient': [const Color(0xFF015030), const Color(0xFF01432A)],
+      },
       {
         'title': 'Nearest Parking',
         'subtitle': 'Find parking spots near you',

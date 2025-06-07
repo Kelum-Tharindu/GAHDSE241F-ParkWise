@@ -10,6 +10,7 @@
     "test:bulk-transactions": "node tests/testBulkBookingTransactions.js",
     "test:bulk-available-spots": "node tests/testBulkBookingAvailableSpots.js",
     "test:sub-bulk-booking": "node tests/testSubBulkBookingAPI.js",
+    "test:user-transactions": "node tests/testUserTransactions.js",
     "fix:bulk-available-spots": "node utils/fixBulkBookingAvailableSpots.js"
   },
   "keywords": [],
