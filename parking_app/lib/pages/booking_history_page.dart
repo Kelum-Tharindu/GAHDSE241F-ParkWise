@@ -562,7 +562,8 @@ class _BookingHistoryState extends State<BookingHistory> {
                     height: 30,
                     width: 1,
                     color: Colors.white.withAlpha(70),
-                  ),                  TextButton(
+                  ),
+                  TextButton(
                     onPressed: () {
                       _showBookingDetailsDialog(context, booking, bookingColor);
                     },
@@ -623,10 +624,14 @@ class _BookingHistoryState extends State<BookingHistory> {
     );
   }
 
-  void _showBookingDetailsDialog(BuildContext context, Map<String, dynamic> booking, Color bookingColor) {
+  void _showBookingDetailsDialog(
+    BuildContext context,
+    Map<String, dynamic> booking,
+    Color bookingColor,
+  ) {
     // Create QR code data from booking details
     final qrData = jsonEncode(booking);
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -663,18 +668,15 @@ class _BookingHistoryState extends State<BookingHistory> {
                       letterSpacing: 1.5,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 5),
                   Text(
                     booking['location'] ?? 'Unknown Location',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 5),
-                  
+
                   // QR Code
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 20),
@@ -691,67 +693,84 @@ class _BookingHistoryState extends State<BookingHistory> {
                       foregroundColor: Colors.black,
                     ),
                   ),
-                  
+
                   // Dashed line separator
                   _buildDashedDivider(),
-                  
+
                   // Booking Details
                   const SizedBox(height: 15),
-                  _buildReceiptSection(
-                    "Booking Information",
-                    [
-                      {"label": "Booking ID", "value": booking['bookingId'] ?? 'N/A'},
-                      {"label": "Date", "value": booking['date'] ?? 'N/A'},
-                      {"label": "Start Time", "value": booking['startTime'] ?? 'N/A'},
-                      {"label": "End Time", "value": booking['endTime'] ?? 'N/A'},
-                      {"label": "Duration", "value": booking['duration'] ?? 'N/A'},
-                    ],
-                  ),
-                  
+                  _buildReceiptSection("Booking Information", [
+                    {
+                      "label": "Booking ID",
+                      "value": booking['bookingId'] ?? 'N/A',
+                    },
+                    {"label": "Date", "value": booking['date'] ?? 'N/A'},
+                    {
+                      "label": "Start Time",
+                      "value": booking['startTime'] ?? 'N/A',
+                    },
+                    {"label": "End Time", "value": booking['endTime'] ?? 'N/A'},
+                    {
+                      "label": "Duration",
+                      "value": booking['duration'] ?? 'N/A',
+                    },
+                  ]),
+
                   const SizedBox(height: 15),
                   _buildDashedDivider(),
                   const SizedBox(height: 15),
-                  
+
                   // Payment Details
-                  _buildReceiptSection(
-                    "Payment Details",
-                    [
-                      {"label": "Cost", "value": booking['cost'] ?? 'N/A'},
-                      {"label": "Payment Method", "value": booking['paymentMethod'] ?? 'N/A'},
-                      {"label": "Status", "value": booking['status'] ?? 'Pending', "highlight": true},
-                    ],
-                  ),
-                  
+                  _buildReceiptSection("Payment Details", [
+                    {"label": "Cost", "value": booking['cost'] ?? 'N/A'},
+                    {
+                      "label": "Payment Method",
+                      "value": booking['paymentMethod'] ?? 'N/A',
+                    },
+                    {
+                      "label": "Status",
+                      "value": booking['status'] ?? 'Pending',
+                      "highlight": true,
+                    },
+                  ]),
+
                   // Parking Details
                   const SizedBox(height: 15),
                   _buildDashedDivider(),
                   const SizedBox(height: 15),
-                  
-                  _buildReceiptSection(
-                    "Parking Details",
-                    [
-                      {"label": "Parking Area", "value": booking['location'] ?? 'N/A'},
-                      {"label": "Parking Spot", "value": booking['parkingSpot'] ?? 'N/A'},
-                    ],
-                  ),
-                  
+
+                  _buildReceiptSection("Parking Details", [
+                    {
+                      "label": "Parking Area",
+                      "value": booking['location'] ?? 'N/A',
+                    },
+                    {
+                      "label": "Parking Spot",
+                      "value": booking['parkingSpot'] ?? 'N/A',
+                    },
+                  ]),
+
                   // Vehicle details if available
                   if (booking['vehicleDetails'] != null) ...[
                     const SizedBox(height: 15),
                     _buildDashedDivider(),
                     const SizedBox(height: 15),
-                    
-                    _buildReceiptSection(
-                      "Vehicle Details",
-                      [
-                        {"label": "Vehicle Type", "value": booking['vehicleDetails']['type'] ?? 'N/A'},
-                        {"label": "License Plate", "value": booking['vehicleDetails']['licensePlate'] ?? 'N/A'},
-                      ],
-                    ),
+
+                    _buildReceiptSection("Vehicle Details", [
+                      {
+                        "label": "Vehicle Type",
+                        "value": booking['vehicleDetails']['type'] ?? 'N/A',
+                      },
+                      {
+                        "label": "License Plate",
+                        "value":
+                            booking['vehicleDetails']['licensePlate'] ?? 'N/A',
+                      },
+                    ]),
                   ],
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Thank you message
                   const Text(
                     "Thank you for choosing ParkWise!",
@@ -762,16 +781,19 @@ class _BookingHistoryState extends State<BookingHistory> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Close button
                   ElevatedButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: bookingColor.withOpacity(0.8),
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -830,17 +852,15 @@ class _BookingHistoryState extends State<BookingHistory> {
               children: [
                 Text(
                   "${item['label']}:",
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 Text(
                   item['value'].toString(),
                   style: TextStyle(
-                    color: item['highlight'] == true 
-                        ? _getStatusColor(item['value'].toString())
-                        : Colors.white,
+                    color:
+                        item['highlight'] == true
+                            ? _getStatusColor(item['value'].toString())
+                            : Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
