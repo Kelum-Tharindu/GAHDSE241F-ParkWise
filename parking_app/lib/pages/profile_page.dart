@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:parking_app/widgets/glassmorphic_bottom_nav_bar.dart';
+import 'package:parking_app/config/api_config.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -34,10 +35,9 @@ class _ProfilePageState extends State<ProfilePage> {
         Navigator.pushReplacementNamed(context, '/login');
         return;
       }
-
       print('=== Fetching profile for user ID: $userId');
       final response = await http.get(
-        Uri.parse('http://192.168.8.145:5000/api/users/$userId/profile'),
+        Uri.parse(ApiConfig.userProfile(userId)),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -90,10 +90,9 @@ class _ProfilePageState extends State<ProfilePage> {
         ).showSnackBar(const SnackBar(content: Text('You are not logged in')));
         return;
       }
-
       print('=== Updating profile for user ID: $userId');
       final response = await http.put(
-        Uri.parse('http://192.168.8.145:5000/api/users/$userId/profile'),
+        Uri.parse(ApiConfig.userProfile(userId)),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

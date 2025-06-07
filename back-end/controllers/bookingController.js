@@ -1,6 +1,7 @@
 const Booking = require('../models/bookingmodel');
 const Parking = require('../models/parkingmodel');
 const User = require('../models/usermodel');
+const Transaction = require('../models/transactionModel');
 const crypto = require('crypto');
 const { generateQR } = require("../utils/qrGenertor");
 
@@ -75,9 +76,27 @@ const confirmBooking = async (req, res) => {
       qrImage,
       totalDuration,
       vehicleType
-    });
-
-    const savedBooking = await newBooking.save();
+    });    const savedBooking = await newBooking.save();
+    
+    try {
+      // Create a transaction record for the booking
+      const newTransaction = new Transaction({
+        type: 'booking',
+        bookingId: savedBooking._id,
+        amount: fee.totalFee, // assuming fee.totalFee contains the total amount
+        method: 'online', // or get from req.body if payment method is provided
+        status: paymentStatus === 'paid' ? 'Completed' : 'Pending',
+        date: new Date()
+      });
+      
+      await newTransaction.save();
+      console.log('Transaction created successfully:', newTransaction._id);
+    } catch (transactionError) {
+      console.error('Error creating transaction:', transactionError);
+      // Continue with the response as the booking was successful
+      // You may want to add transaction error details to the response
+    }
+    
     res.status(201).json(savedBooking);
   } catch (error) {
     console.error('Error confirming booking:', error);

@@ -3,26 +3,23 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 // ignore: unused_import
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:parking_app/config/api_config.dart';
 // For jsonEncode and jsonDecode
 
 class BookingService {
-  // Updated URL with fallback options
-  static const String baseUrl =
-      'http://192.168.8.145:5000/api/bookings'; // For Android emulator pointing to localhost
-  // Alternative URLs to try if the primary fails:
-  // 'http://192.168.8.145:5000/api/bookings'
-  // 'http://localhost:5000/api/bookings';
+  // Using the methods from ApiConfig
+  static String get bookingsEndpoint => ApiConfig.bookings();
 
   // Method to fetch parking names from the backend
   static Future<List<String>> fetchParkingNames() async {
     try {
       if (kDebugMode) {
         print(
-          '=====Attempting to fetch parking names from $baseUrl/parking-names',
+          '=====Attempting to fetch parking names from ${ApiConfig.parkingNames()}',
         );
       }
 
-      final response = await http.get(Uri.parse('$baseUrl/parking-names'));
+      final response = await http.get(Uri.parse(ApiConfig.parkingNames()));
 
       if (response.statusCode == 200) {
         final List<dynamic> names = jsonDecode(response.body);
@@ -72,10 +69,9 @@ class BookingService {
         "entryTime": entryTime.toIso8601String(),
         "exitTime": exitTime.toIso8601String(),
       };
-
       if (kDebugMode) {
         print(
-          '===================🚀 Sending request to $baseUrl/calculate-fee',
+          '===================🚀 Sending request to $bookingsEndpoint/calculate-fee',
         );
         print(
           '=====================📝 Request body: ${jsonEncode(requestBody)}',
@@ -84,7 +80,7 @@ class BookingService {
 
       // Make POST request to the backend
       final response = await http.post(
-        Uri.parse('$baseUrl/calculate-fee'),
+        Uri.parse('$bookingsEndpoint/calculate-fee'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
@@ -151,16 +147,15 @@ class BookingService {
         "bookingState": "active", // Hardcoded value
         "vehicleType": vehicleType,
       };
-
       if (kDebugMode) {
         print(
-          '===================🚀 Sending request to $baseUrl/confirm-booking',
+          '===================🚀 Sending request to $bookingsEndpoint/confirm-booking',
         );
         print('==============📝 Request body: ${jsonEncode(requestBody)}');
       }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/confirm-booking'),
+        Uri.parse('$bookingsEndpoint/confirm-booking'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
@@ -207,8 +202,7 @@ class BookingService {
       if (kDebugMode) {
         print('===== Retrieved userId: $userId =====');
       }
-
-      final url = '$baseUrl/booking-history/$userId';
+      final url = '$bookingsEndpoint/booking-history/$userId';
       if (kDebugMode) {
         print('===== Sending GET request to: $url =====');
       }

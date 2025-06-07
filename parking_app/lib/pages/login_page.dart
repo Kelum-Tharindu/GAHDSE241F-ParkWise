@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:parking_app/config/api_config.dart';
 
 // Import the same widgets used in booking history
 import 'package:parking_app/widgets/glassmorphic_app_bar.dart';
@@ -39,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       final response = await http.post(
         // Uri.parse('http://localhost:5000/api/auth/login'),
-        Uri.parse('http://192.168.8.145:5000/api/auth/login'),
+        Uri.parse(ApiConfig.login()),
 
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:parking_app/config/api_config.dart';
 
 import 'package:parking_app/widgets/glassmorphic_app_bar.dart';
 import 'package:parking_app/widgets/glassmorphic_container.dart';
@@ -47,11 +48,10 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() {
       isLoading = true;
     });
-
     try {
       final response = await http.post(
         // Uri.parse('http://localhost:5000/api/auth/register'),
-        Uri.parse('http://192.168.8.145:5000/api/auth/register'),
+        Uri.parse(ApiConfig.register()),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'username': usernameController.text,

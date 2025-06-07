@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:parking_app/config/api_config.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.8.145:5000/api/billing";
+  static String get billingEndpoint => ApiConfig.billing();
 
   static Future<Map<String, dynamic>?> sendScannedData(
     Map<String, dynamic> data,
@@ -20,7 +21,7 @@ class ApiService {
         return null;
       }
       final response = await http.post(
-        Uri.parse(baseUrl),
+        Uri.parse(billingEndpoint),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"parkingID": data['parkingID'], "userID": userId}),
       );
