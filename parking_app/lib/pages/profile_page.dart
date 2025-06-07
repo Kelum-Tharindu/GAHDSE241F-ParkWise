@@ -24,25 +24,44 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
+      final userId = prefs.getString('userId');
 
+      if (token == null || userId == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('You are not logged in')));
+        // Navigate to login page
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+
+      print('=== Fetching profile for user ID: $userId');
       final response = await http.get(
-        Uri.parse('http://localhost:5000/api/auth/profile'),
+        Uri.parse('http://192.168.8.145:5000/api/users/$userId/profile'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(response.body)['data'];
         if (!mounted) return;
-        usernameController.text = data['username'];
-        emailController.text = data['email'];
+
+        setState(() {
+          usernameController.text = data['username'] ?? '';
+          emailController.text = data['email'] ?? '';
+        });
+        print('=== Profile data loaded successfully');
       } else {
         if (!mounted) return;
+        print('=== Failed to fetch profile: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to fetch profile: ${response.body}')),
+          SnackBar(
+            content: Text('Failed to fetch profile: ${response.statusCode}'),
+          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
+      print('=== Error fetching profile: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -63,9 +82,18 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
+      final userId = prefs.getString('userId');
 
+      if (token == null || userId == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('You are not logged in')));
+        return;
+      }
+
+      print('=== Updating profile for user ID: $userId');
       final response = await http.put(
-        Uri.parse('http://localhost:5000/api/auth/profile'),
+        Uri.parse('http://192.168.8.145:5000/api/users/$userId/profile'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -78,17 +106,22 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (response.statusCode == 200) {
         if (!mounted) return;
+        print('=== Profile updated successfully');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
       } else {
         if (!mounted) return;
+        print('=== Failed to update profile: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update profile: ${response.body}')),
+          SnackBar(
+            content: Text('Failed to update profile: ${response.statusCode}'),
+          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
+      print('=== Error updating profile: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));
