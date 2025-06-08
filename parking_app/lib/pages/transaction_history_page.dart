@@ -107,7 +107,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                   Container(
                     color: Theme.of(
                       context,
-                    ).colorScheme.surfaceVariant.withOpacity(0.3),
+                    ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                     child: TabBar(
                       controller: _tabController,
                       onTap: (index) {

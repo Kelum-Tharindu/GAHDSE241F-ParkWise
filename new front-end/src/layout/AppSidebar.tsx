@@ -67,13 +67,13 @@ const navItems: NavItem[] = [
       { name: "Land Owners Managements", path: "/landowner-management", pro: false },
       { name: "Admins Management", path: "/admin-management", pro: false },
       { name: "Parking Coordinator Management", path: "/bulkmanager-management", pro: false },],
-  },
-  {    name: "Financial & Analytics",
+  },  {    name: "Financial & Analytics",
     icon: <PageIcon />,
     subItems: [
       { name: "Payments", path: "/payments", pro: false },
       { name: "Reports", path: "/reports", pro: false },
       { name: "Target Management", path: "/target-management", pro: false },
+      { name: "Prediction Dashboard", path: "/prediction-dashboard", pro: false },
     ],
   },
   {

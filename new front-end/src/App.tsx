@@ -39,6 +39,7 @@ import ParkingChunkPayment from "./pages/EventCoordinator/Payments/spotsChunkPay
 import LandownerHome from "./pages/Landowner/Home/Home";
 import ParkingCoordinatorHome from "./pages/EventCoordinator/Home/Home";
 import TargetManagementPage from "./pages/Dashboard/TargetManagement";
+import PredictionDashboard from "./pages/PredictionDashboard";
 
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
@@ -85,9 +86,11 @@ export default function App() {
           <Route path="/images" element={<Images />} />
           <Route path="/videos" element={<Videos />} />
 
-          {/* Charts */}
-          <Route path="/line-chart" element={<LineChart />} />
+          {/* Charts */}          <Route path="/line-chart" element={<LineChart />} />
           <Route path="/bar-chart" element={<BarChart />} />
+          
+          {/* Prediction Dashboard */}
+          <Route path="/prediction-dashboard" element={<PredictionDashboard />} />
 
           {/* Support Page */}
           <Route path="/support" element={<FAQ />} />

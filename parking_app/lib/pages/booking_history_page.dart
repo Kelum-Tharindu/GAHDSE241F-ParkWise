@@ -868,7 +868,7 @@ class _BookingHistoryState extends State<BookingHistory> {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

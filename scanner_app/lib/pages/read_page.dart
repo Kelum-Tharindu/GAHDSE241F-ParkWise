@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:go_router/go_router.dart';
 import '../services/api_service.dart';
-import 'qr_preview_page.dart';
 
 class ReadPage extends StatefulWidget {
   const ReadPage({super.key});
