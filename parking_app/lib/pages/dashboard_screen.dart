@@ -169,13 +169,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'route': '/enter-parking',
         'gradient': [const Color(0xFF016747), const Color(0xFF01996D)],
       },
-      {
-        'title': 'Ongoing',
-        'subtitle': 'Track active parking sessions',
-        'icon': Icons.directions_car,
-        'route': '/reset_password',
-        'gradient': [const Color(0xFF025939), const Color(0xFF017455)],
-      },
+      // {
+      //   'title': 'Ongoing',
+      //   'subtitle': 'Track active parking sessions',
+      //   'icon': Icons.directions_car,
+      //   'route': '/reset_password',
+      //   'gradient': [const Color(0xFF025939), const Color(0xFF017455)],
+      // },
       {
         'title': 'My Profile',
         'subtitle': 'Manage your account details',

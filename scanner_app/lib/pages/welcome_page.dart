@@ -12,128 +12,78 @@ class WelcomePage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+            colors: [Color(0xFF013220), Color(0xFF025940)],
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo/Icon
+                // Logo placeholder
                 Container(
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(60),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
                   ),
                   child: const Icon(
                     Icons.qr_code_scanner,
-                    size: 60,
-                    color: Color(0xFF667eea),
+                    size: 70,
+                    color: Color(0xFF013220),
                   ),
                 ),
 
                 const SizedBox(height: 40),
 
-                // Welcome Text
-                const Text(
-                  'Welcome to',
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
+                // App name
                 const Text(
                   'ParkWise Scanner',
                   style: TextStyle(
-                    fontSize: 32,
-                    color: Colors.white,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
 
                 const SizedBox(height: 16),
 
+                // Description
                 const Text(
-                  'Scan QR codes to manage parking bookings efficiently',
+                  'Scan parking QR codes quickly and efficiently to verify parking status.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    height: 1.5,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
                 ),
 
                 const SizedBox(height: 60),
 
-                // Features
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildFeature(Icons.camera_alt, 'Scan QR'),
-                    _buildFeature(Icons.local_parking, 'Manage Parking'),
-                    _buildFeature(Icons.security, 'Secure'),
-                  ],
-                ),
-
-                const SizedBox(height: 80),
-
-                // Get Started Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.go('/login');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF667eea),
-                      elevation: 8,
-                      shadowColor: Colors.black.withOpacity(0.3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
+                // Login button
+                ElevatedButton(
+                  onPressed: () => context.go('/login'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF013220),
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      'Get Started',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  ),
+                  child: const Text(
+                    'Login',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Skip Button
+                // Skip login for demo
                 TextButton(
-                  onPressed: () {
-                    context.go('/scanner');
-                  },
+                  onPressed: () => context.go('/scanner'),
                   child: const Text(
-                    'Skip for now',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                      decoration: TextDecoration.underline,
-                      decorationColor: Colors.white70,
-                    ),
+                    'Continue as Guest',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ],
@@ -141,31 +91,6 @@ class WelcomePage extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildFeature(IconData icon, String label) {
-    return Column(
-      children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Icon(icon, color: Colors.white, size: 30),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 }
