@@ -1,4 +1,5 @@
 // Test script to verify ParkWise Scanner App functionality
+// ignore_for_file: avoid_print
 
 void main() {
   print('🚀 ParkWise Scanner App - Test Suite');
@@ -30,7 +31,6 @@ void testQRDataModel() {
     'status': 'confirmed',
     'amount': '25.00',
   };
-
   print('   ✓ Sample QR JSON structure valid');
   print('   ✓ Contains all required fields');
   print('   ✓ Booking ID: ${sampleQRJson['bookingId']}');

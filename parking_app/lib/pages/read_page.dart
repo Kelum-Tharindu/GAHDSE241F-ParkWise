@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../services/api_service.dart';
@@ -19,7 +20,9 @@ class _ReadPageState extends State<ReadPage> {
 
   void handleDetection(BarcodeCapture capture) async {
     if (scanned) return;
-    print("=== Scanning started...");
+    if (kDebugMode) {
+      print("=== Scanning started...");
+    }
 
     final barcodes = capture.barcodes;
     if (barcodes.isEmpty) return;
@@ -30,7 +33,9 @@ class _ReadPageState extends State<ReadPage> {
     try {
       final data = jsonDecode(code);
       if (data is! Map<String, dynamic>) {
-        print('=== Scanned data is not a valid JSON');
+        if (kDebugMode) {
+          print('=== Scanned data is not a valid JSON');
+        }
         setState(() {
           scanned = true;
           scannedData = code;
@@ -47,28 +52,38 @@ class _ReadPageState extends State<ReadPage> {
         scanned = true;
         scannedData = code;
       });
-      print('=== QR scanned: $code');
+      if (kDebugMode) {
+        print('=== QR scanned: $code');
+      }
       controller.stop();
 
       final response = await ApiService.sendScannedData(data);
-      print('=== API response: $response');
+      if (kDebugMode) {
+        print('=== API response: $response');
+      }
 
       if (!mounted) return;
 
       if (response != null) {
-        print('=== Navigating to QRPreviewPage');
+        if (kDebugMode) {
+          print('=== Navigating to QRPreviewPage');
+        }
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => QRPreviewPage(qrData: response)),
         );
       } else {
-        print('=== Invalid QR, showing error');
+        if (kDebugMode) {
+          print('=== Invalid QR, showing error');
+        }
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("Invalid QR")));
       }
     } catch (e) {
-      print('=== Exception during scan: $e');
+      if (kDebugMode) {
+        print('=== Exception during scan: $e');
+      }
       setState(() {
         scanned = true;
       });

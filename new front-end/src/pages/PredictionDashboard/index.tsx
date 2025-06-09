@@ -58,22 +58,23 @@ export default function PredictionDashboard() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
+    setIsLoading(true);    try {
       switch (predictionType) {
-        case 'availability':
+        case 'availability': {
           const availabilityResult = await predictParkingAvailability(parkingAvailabilityForm);
           setParkingAvailabilityResult(availabilityResult);
           break;
-        case 'rushHour':
-          const rushHourResult = await predictRushHour(rushHourForm);
-          setRushHourResult(rushHourResult);
+        }
+        case 'rushHour': {
+          const rushHourResponse = await predictRushHour(rushHourForm);
+          setRushHourResult(rushHourResponse);
           break;
-        case 'demand':
+        }
+        case 'demand': {
           const demandResult = await predictDemandClassification(demandForm);
           setDemandResult(demandResult);
           break;
+        }
       }
       toast.success('Prediction completed successfully!');
     } catch (error) {

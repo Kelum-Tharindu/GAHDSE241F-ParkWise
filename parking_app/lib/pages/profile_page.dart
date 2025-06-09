@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -96,14 +97,20 @@ class _ProfilePageState extends State<ProfilePage> {
               profileImageUrl = data['profileImage'].toString();
             }
           } catch (e) {
-            print('=== Error parsing profile data: $e');
+            if (kDebugMode) {
+              print('=== Error parsing profile data: $e');
+            }
             // Continue execution, we already have default empty values
           }
         });
-        print('=== Profile data loaded successfully');
+        if (kDebugMode) {
+          print('=== Profile data loaded successfully');
+        }
       } else {
         if (!mounted) return;
-        print('=== Failed to fetch profile: ${response.body}');
+        if (kDebugMode) {
+          print('=== Failed to fetch profile: ${response.body}');
+        }
         try {
           final errorJson = jsonDecode(response.body);
           final errorMessage = errorJson['message'] ?? 'Unknown error occurred';
@@ -120,8 +127,12 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       if (!mounted) return;
-      print('=== Error fetching profile: $e');
-      print('=== Error details: ${e.toString()}');
+      if (kDebugMode) {
+        print('=== Error fetching profile: $e');
+      }
+      if (kDebugMode) {
+        print('=== Error details: ${e.toString()}');
+      }
 
       // Show a more specific error message
       String errorMessage = 'An error occurred while fetching your profile';
@@ -194,7 +205,9 @@ class _ProfilePageState extends State<ProfilePage> {
         fetchProfile();
       } else {
         if (!mounted) return;
-        print('=== Failed to update profile: ${response.body}');
+        if (kDebugMode) {
+          print('=== Failed to update profile: ${response.body}');
+        }
         try {
           final errorJson = jsonDecode(response.body);
           final errorMessage = errorJson['message'] ?? 'Unknown error occurred';
@@ -211,7 +224,9 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       if (!mounted) return;
-      print('=== Error updating profile: $e');
+      if (kDebugMode) {
+        print('=== Error updating profile: $e');
+      }
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error: $e')));

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -19,11 +20,15 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        print('API Error: ${response.statusCode} - ${response.body}');
+        if (kDebugMode) {
+          print('API Error: ${response.statusCode} - ${response.body}');
+        }
         return null;
       }
     } catch (e) {
-      print('Exception during API call: $e');
+      if (kDebugMode) {
+        print('Exception during API call: $e');
+      }
       return null;
     }
   }
