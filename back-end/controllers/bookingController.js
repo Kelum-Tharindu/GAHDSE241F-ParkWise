@@ -53,17 +53,23 @@ const confirmBooking = async (req, res) => {
       paymentStatus,
       bookingState,
       vehicleType
-    } = req.body;
-
-    // Generate unique billingHash and qrImage
+    } = req.body;    // Generate unique billingHash and qrImage
     const hashData = `${parkingName}${userId}${Date.now()}`;
     const billingHash = crypto.createHash('sha256').update(hashData).digest('hex');
-    const qrImage = await generateQR(billingHash);
+    
+    // Create QR data with type and billing hash in JSON format
+    const qrData = {
+      type: "booking",
+      billingHash: billingHash,
+      parkingName: parkingName,
+      userId: userId
+    };
+    
+    // Generate QR code with structured data
+    const qrImage = await generateQR(qrData);
 
     const totalMinutes = calculateMinutes(entryTime, exitTime);
-    const totalDuration = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
-
-    const newBooking = new Booking({
+    const totalDuration = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;    const newBooking = new Booking({
       parkingName,
       userId,
       bookingDate,

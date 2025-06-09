@@ -24,8 +24,22 @@ const generateQRCode123 = async (parkingID, name) => {
 
 async function generateQR(data) {
     try {
-        return await QRCode.toDataURL(JSON.stringify(data));
+        // If data is a string, assume it's already formatted correctly
+        // Otherwise, format it as a JSON object with type and billingHash
+        const qrContent = typeof data === 'string' 
+            ? data 
+            : JSON.stringify({
+                type: data.type || 'booking',
+                billingHash: data.billingHash || data,
+                parkingName: data.parkingName,
+                userId: data.userId,
+                EntryTime: new Date().toISOString()
+              });
+              
+        console.log('Generating QR with data:', qrContent);
+        return await QRCode.toDataURL(qrContent);
     } catch (error) {
+        console.error("QR Generation Error:", error);
         throw new Error("QR Code Generation Failed");
     }
 }
