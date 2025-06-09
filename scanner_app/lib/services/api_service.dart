@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -64,6 +63,98 @@ class ApiService {
             Uri.parse(alternativeUrl),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(data),
+          );
+
+          if (kDebugMode) {
+            print('===Alternative API Request: ${response.request?.url}');
+            print(
+              '===Alternative API Response: ${response.statusCode} - ${response.body}',
+            );
+          }
+
+          if (response.statusCode == 200) {
+            // Update the base URL to the working one for future requests
+            baseUrl = _possibleBaseUrls[i];
+            return jsonDecode(response.body);
+          }
+        } catch (alternativeError) {
+          if (kDebugMode) {
+            print('Exception with alternative URL: $alternativeError');
+          }
+        }
+      }
+
+      return null;
+    }
+  }
+
+  // Method to confirm payment
+  static Future<Map<String, dynamic>?> confirmPayment({
+    required String billingId,
+    required String exitTime,
+    required double fee,
+    required int duration,
+    required String paymentMethod,
+  }) async {
+    if (kDebugMode) {
+      print('===Confirming payment for billing: $billingId');
+      print(
+        '===Fee: $fee, Duration: $duration, Payment Method: $paymentMethod',
+      );
+    }
+
+    final String requestUrl = '$baseUrl/scanner/confirm-payment';
+    final Map<String, dynamic> requestData = {
+      'billingId': billingId,
+      'exitTime': exitTime,
+      'fee': fee,
+      'duration': duration,
+      'paymentMethod': paymentMethod,
+    };
+
+    if (kDebugMode) {
+      print('===Request URL: $requestUrl');
+      print('===Request Body: ${jsonEncode(requestData)}');
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(requestUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestData),
+      );
+
+      if (kDebugMode) {
+        print('===API Request: ${response.request?.url}');
+        print('===API Response: ${response.statusCode} - ${response.body}');
+      }
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        if (kDebugMode) {
+          print('API Error: ${response.statusCode} - ${response.body}');
+        }
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Exception during API call: $e');
+      }
+
+      // Try alternative base URLs if the first one fails
+      for (int i = 1; i < _possibleBaseUrls.length; i++) {
+        try {
+          if (kDebugMode) {
+            print('Trying alternative base URL: ${_possibleBaseUrls[i]}');
+          }
+
+          final alternativeUrl =
+              '${_possibleBaseUrls[i]}/scanner/confirm-payment';
+          final response = await http.post(
+            Uri.parse(alternativeUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(requestData),
           );
 
           if (kDebugMode) {

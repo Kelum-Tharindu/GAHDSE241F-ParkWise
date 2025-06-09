@@ -9,4 +9,11 @@ const scannerController = require("../controllers/scannerController");
  */
 router.post("/scan", scannerController.processScan);
 
+/**
+ * @route   POST /api/scanner/confirm-payment
+ * @desc    Confirm payment for billing - updates billing and transaction records
+ * @access  Public
+ */
+router.post("/confirm-payment", scannerController.confirmBillingPayment);
+
 module.exports = router;

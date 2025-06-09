@@ -1,6 +1,7 @@
 const { response } = require("express");
 const Billing = require("../models/Billingmodel");
 const Parking = require("../models/parkingmodel");
+const Transaction = require("../models/transactionModel");
 
 /**
  * Scanner controller for handling scanner app requests
@@ -32,6 +33,106 @@ const scannerController = {
         } catch (error) {
             console.error("Error processing scan:", error);
             return res.status(500).json({ success: false, message: "Server error", error: error.message });
+        }
+    },
+    
+    /**
+     * Confirm billing payment and update transaction
+     * @param {Object} req - Request object with billing ID, exit time, fee, duration and payment method
+     * @param {Object} res - Response object
+     */
+    confirmBillingPayment: async (req, res) => {
+        try {
+            const { billingId, exitTime, fee, duration, paymentMethod } = req.body;
+            
+            console.log(`Confirming payment for billing: ${billingId}`);
+            console.log(`Fee: ${fee}, Duration: ${duration}, Payment Method: ${paymentMethod}`);
+            
+            if (!billingId || !exitTime || fee === undefined || duration === undefined || !paymentMethod) {
+                console.log("Missing required parameters for payment confirmation");
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "billingId, exitTime, fee, duration, and paymentMethod are required" 
+                });
+            }
+            
+            // Find the billing document
+            const billing = await Billing.findById(billingId);
+            
+            if (!billing) {
+                console.log(`No billing found with ID: ${billingId}`);
+                return res.status(404).json({ success: false, message: "Billing not found" });
+            }
+            
+            console.log(`Found billing: ${billing._id} for user: ${billing.userID}`);
+            
+            // Check payment status before proceeding
+            if (billing.paymentStatus === "completed") {
+                console.log(`Billing ${billing._id} has already been paid`);
+                return res.status(200).json({
+                    success: false,
+                    message: "This billing has already been paid",
+                });
+            }
+            
+            // Find or create transaction if it doesn't exist
+            let transaction;
+            
+            if (billing.transactionId) {
+                transaction = await Transaction.findById(billing.transactionId);
+                console.log(`Found existing transaction: ${transaction._id}`);
+            } else {
+                // Create a new transaction
+                transaction = new Transaction({
+                    type: 'billing',
+                    billingId: billing._id,
+                    userId: billing.userID,
+                    amount: 0, // Will be updated with the fee
+                    method: paymentMethod,
+                    status: 'Pending'
+                });
+                console.log(`Created new transaction for billing: ${billing._id}`);
+            }
+            
+            // Update transaction with payment details
+            transaction.amount = fee;
+            transaction.method = paymentMethod;
+            transaction.status = 'Completed';
+            transaction.date = new Date();
+            
+            // Save transaction first
+            await transaction.save();
+            console.log(`Updated transaction: ${transaction._id}`);
+            
+            // Update billing with transaction ID if it doesn't have one
+            if (!billing.transactionId) {
+                billing.transactionId = transaction._id;
+            }
+            
+            // Update billing with exit time, fee, duration, and status
+            billing.exitTime = new Date(exitTime);
+            billing.fee = fee;
+            billing.duration = duration;
+            billing.paymentStatus = "completed";
+            
+            await billing.save();
+            console.log(`Updated billing: ${billing._id}`);
+            
+            return res.status(200).json({
+                success: true,
+                message: "Payment confirmed successfully",
+                data: {
+                    billing: billing,
+                    transaction: transaction
+                }
+            });
+        } catch (error) {
+            console.error("Error confirming payment:", error);
+            return res.status(500).json({ 
+                success: false, 
+                message: "Server error", 
+                error: error.message 
+            });
         }
     }
 };
@@ -103,8 +204,7 @@ const processBillingScan = async (billingHash, res) => {
             duration: durationInMinutes,
             fee: totalFee
         };
-        
-        // Return the calculated information without updating the database
+          // Return the calculated information without updating the database
         return res.status(200).json({
             success: true,
             message: "Billing information calculated",

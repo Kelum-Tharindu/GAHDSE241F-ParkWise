@@ -117,70 +117,6 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
             ),
 
             // Additional details can be added here
-            const SizedBox(height: 24),
-
-            // Payment Method Selection
-            const Text(
-              'Payment Method',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF013220),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Payment method selection card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    // Cash option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.money, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Cash Payment'),
-                        ],
-                      ),
-                      value: 'cash',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                    // Card option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.credit_card, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Card Payment'),
-                        ],
-                      ),
-                      value: 'card',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
             const Spacer(),
 
             // Action buttons
@@ -484,12 +420,7 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                                 } else {
                                   exitTimeStr =
                                       DateTime.now().toIso8601String();
-                                }
-
-                                // Store context mounted state before async gap
-                                final bool wasContextMounted = mounted;
-
-                                // Send confirmation to the backend
+                                } // Send confirmation to the backend
                                 final result = await ApiService.confirmPayment(
                                   billingId: billingId,
                                   exitTime: exitTimeStr,
@@ -499,7 +430,7 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                                 );
 
                                 // Check if context is still mounted after async operation
-                                if (!wasContextMounted || !mounted) return;
+                                if (!mounted) return;
 
                                 setState(() {
                                   isProcessing = false;

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart'; // For date formatting
-import 'package:scanner_app/services/api_service.dart'; // Import ApiService
 
 class QRPreviewPage extends StatefulWidget {
   final Map<String, dynamic> qrData;
@@ -117,70 +116,6 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
             ),
 
             // Additional details can be added here
-            const SizedBox(height: 24),
-
-            // Payment Method Selection
-            const Text(
-              'Payment Method',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF013220),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Payment method selection card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    // Cash option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.money, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Cash Payment'),
-                        ],
-                      ),
-                      value: 'cash',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                    // Card option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.credit_card, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Card Payment'),
-                        ],
-                      ),
-                      value: 'card',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
             const Spacer(),
 
             // Action buttons
@@ -358,70 +293,6 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                   '${dateFormat.format(exitTime)} at ${timeFormat.format(exitTime)}',
             ),
 
-            const SizedBox(height: 24),
-
-            // Payment Method Selection
-            const Text(
-              'Payment Method',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF013220),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Payment method selection card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    // Cash option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.money, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Cash Payment'),
-                        ],
-                      ),
-                      value: 'cash',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                    // Card option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.credit_card, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Card Payment'),
-                        ],
-                      ),
-                      value: 'card',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
             const Spacer(),
 
             // Action Buttons - Row with cancel and confirm
@@ -446,107 +317,17 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                 // Confirm button
                 Expanded(
                   child: ElevatedButton(
-                    onPressed:
-                        isProcessing
-                            ? null
-                            : () async {
-                              setState(() {
-                                isProcessing = true;
-                              });
-
-                              // Show loading indicator
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Processing payment...'),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
-
-                              try {
-                                // Get all the required data from the QR response
-                                final billingData =
-                                    widget.qrData['data']?['billing'] ?? {};
-                                final String billingId =
-                                    billingData['_id'] ?? '';
-                                final double calculatedFee =
-                                    (widget.qrData['data']?['calculatedFee'] ??
-                                            0)
-                                        .toDouble();
-                                final int duration =
-                                    widget.qrData['data']?['duration'] ?? 0;
-
-                                String exitTimeStr;
-                                if (widget.qrData['data']?['exitTime'] !=
-                                    null) {
-                                  exitTimeStr =
-                                      widget.qrData['data']!['exitTime']
-                                          .toString();
-                                } else {
-                                  exitTimeStr =
-                                      DateTime.now().toIso8601String();
-                                }
-
-                                // Store context mounted state before async gap
-                                final bool wasContextMounted = mounted;
-
-                                // Send confirmation to the backend
-                                final result = await ApiService.confirmPayment(
-                                  billingId: billingId,
-                                  exitTime: exitTimeStr,
-                                  fee: calculatedFee,
-                                  duration: duration,
-                                  paymentMethod: selectedPaymentMethod,
-                                );
-
-                                // Check if context is still mounted after async operation
-                                if (!wasContextMounted || !mounted) return;
-
-                                setState(() {
-                                  isProcessing = false;
-                                });
-
-                                if (result != null &&
-                                    result['success'] == true) {
-                                  // Show success message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Payment confirmed successfully!',
-                                      ),
-                                      backgroundColor: Color(0xFF013220),
-                                    ),
-                                  );
-                                  // Navigate back to scanner
-                                  context.go('/scanner');
-                                } else {
-                                  // Show error message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        result?['message'] ??
-                                            'Failed to confirm payment',
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                // Check if context is still mounted before using it
-                                if (!mounted) return;
-
-                                setState(() {
-                                  isProcessing = false;
-                                });
-
-                                // Show error message
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Error: ${e.toString()}'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            },
+                    onPressed: () {
+                      // Show confirmation message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Payment confirmed!'),
+                          backgroundColor: Color(0xFF013220),
+                        ),
+                      );
+                      // Navigate back to scanner
+                      context.go('/scanner');
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF013220),
                       foregroundColor: Colors.white,
@@ -554,19 +335,8 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      disabledBackgroundColor: Colors.grey,
                     ),
-                    child:
-                        isProcessing
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text('Confirm'),
+                    child: const Text('Confirm'),
                   ),
                 ),
               ],
