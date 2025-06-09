@@ -210,13 +210,7 @@ export default function PredictionDashboard() {
       <div className={`space-y-6 ${styles.predictionDashboard} ${isDarkMode ? 'dark' : ''}`}>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Parking Prediction Dashboard</h1>
-          <button 
-            className={`p-2 rounded-md transition-colors ${styles.themeToggle}`}
-            onClick={() => setIsDarkMode(prev => !prev)}
-            aria-label="Toggle theme"
-          >
-            {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-          </button>
+         
         </div>{/* Model Selection */}
         <Card className={`p-6 ${styles.customCard}`}>
           <h2 className="text-xl font-medium mb-4">Select Prediction Model</h2>
@@ -295,8 +289,8 @@ export default function PredictionDashboard() {
                       onChange={handleParkingAvailabilityChange}
                       required
                     >
-                      <option value={0}>No Event (0)</option>
-                      <option value={1}>Event (1)</option>
+                      <option value={0}>No Event</option>
+                      <option value={1}>Event</option>
                     </select>
                   </div>
                   <div>
@@ -309,8 +303,8 @@ export default function PredictionDashboard() {
                       onChange={handleParkingAvailabilityChange}
                       required
                     >
-                      <option value={0}>Not Holiday (0)</option>
-                      <option value={1}>Holiday (1)</option>
+                      <option value={0}>Not Holiday </option>
+                      <option value={1}>Holiday </option>
                     </select>
                   </div>
                   <div>
