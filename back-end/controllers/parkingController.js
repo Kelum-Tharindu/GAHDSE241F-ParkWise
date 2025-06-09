@@ -227,6 +227,69 @@ const getParkingByOwnerIdOrName = async (req, res) => {
     }
 };
 
+// Get All Parking Details for Frontend (without sensitive info)
+const getAllParkingForFrontend = async (req, res) => {
+    try {
+        console.log('===REQUEST=== Fetching all parking locations for frontend');
+        const parkingList = await Parking.find();
+        
+        if (!parkingList || parkingList.length === 0) {
+            console.log('===RESPONSE=== No parking locations found');
+            return res.status(404).json({ message: "No parking locations found" });
+        }
+
+        const transformedParkingList = parkingList.map(parking => ({
+            id: parking._id.toString(),
+            name: parking.name,
+            slotDetails: {
+                car: {
+                    totalSlot: parking.slotDetails.car.totalSlot,
+                    bookingSlot: parking.slotDetails.car.bookingSlot,
+                    bookingAvailableSlot: parking.slotDetails.car.bookingAvailableSlot,
+                    withoutBookingSlot: parking.slotDetails.car.withoutBookingSlot,
+                    withoutBookingAvailableSlot: parking.slotDetails.car.withoutBookingAvailableSlot,
+                    perPrice30Min: parking.slotDetails.car.perPrice30Min,
+                    perDayPrice: parking.slotDetails.car.perDayPrice
+                },
+                bicycle: {
+                    totalSlot: parking.slotDetails.bicycle.totalSlot,
+                    bookingSlot: parking.slotDetails.bicycle.bookingSlot,
+                    bookingAvailableSlot: parking.slotDetails.bicycle.bookingAvailableSlot,
+                    withoutBookingSlot: parking.slotDetails.bicycle.withoutBookingSlot,
+                    withoutBookingAvailableSlot: parking.slotDetails.bicycle.withoutBookingAvailableSlot,
+                    perPrice30Min: parking.slotDetails.bicycle.perPrice30Min,
+                    perDayPrice: parking.slotDetails.bicycle.perDayPrice
+                },
+                truck: {
+                    totalSlot: parking.slotDetails.truck.totalSlot,
+                    bookingSlot: parking.slotDetails.truck.bookingSlot,
+                    bookingAvailableSlot: parking.slotDetails.truck.bookingAvailableSlot,
+                    withoutBookingSlot: parking.slotDetails.truck.withoutBookingSlot,
+                    withoutBookingAvailableSlot: parking.slotDetails.truck.withoutBookingAvailableSlot,
+                    perPrice30Min: parking.slotDetails.truck.perPrice30Min,
+                    perDayPrice: parking.slotDetails.truck.perDayPrice
+                }
+            },
+            location: {
+                latitude: parking.location.latitude,
+                longitude: parking.location.longitude,
+                address: {
+                    street: parking.location.address.street,
+                    city: parking.location.address.city,
+                    province: parking.location.address.province,
+                    country: parking.location.address.country
+                }
+            }
+        }));
+
+        console.log(`===RESPONSE=== Sending ${transformedParkingList.length} parking locations to frontend`);
+        res.status(200).json(transformedParkingList);
+    } catch (error) {
+        console.error('===ERROR=== Error retrieving parking list for frontend:', error);
+        res.status(500).json({ message: "Error retrieving parking list.", error: error.message });
+    }
+};
+
 // Update Parking Details
 const updateParking = async (req, res) => {
     try {
@@ -315,6 +378,7 @@ module.exports = {
     getAllParkingNames,
     getParkingByIdOrName,
     getParkingByOwnerIdOrName,
+    getAllParkingForFrontend,
     updateParking,
     deleteParking,
 };
