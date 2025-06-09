@@ -3,6 +3,7 @@ const BulkBookingChunk = require('../models/bulkbooking');
 const User = require('../models/usermodel');
 const crypto = require('crypto');
 const { generateQR } = require('../utils/qrGenertor');
+const { time } = require('console');
 
 // Get all sub bulk bookings for a specific owner (Event Coordinator)
 exports.getSubBulkBookingsByOwner = async (req, res) => {
@@ -140,18 +141,20 @@ exports.createSubBulkBooking = async (req, res) => {
       validTo: subValidTo,
       parkingLocation: bulkBooking.parkingName,
       notes: notes || ''
-    });
-
-    // Generate QR code
+    });    // Generate QR code
     const qrPayload = JSON.stringify({
       id: subBulkBooking._id.toString(),
       type: 'subbulkbooking',
       customerId: customerId,
-      bulkBookingId: bulkBookingId
+      bulkBookingId: bulkBookingId,
+      time: Date.now()
     });
     const encryptedCode = crypto.createHash('sha256').update(qrPayload).digest('hex');
     const qrImage = await generateQR(encryptedCode);
+    
+    // Store both QR code and hash value
     subBulkBooking.qrCode = qrImage;
+    subBulkBooking.hash = encryptedCode; // Store the hash value in the database
 
     await subBulkBooking.save();
 

@@ -52,12 +52,17 @@ const SubBulkBookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Active', 'Expired', 'Suspended'],
+    enum: ['Active', 'Expired', 'Suspended', 'FullyUsed'],
     default: 'Active'
   },
   parkingLocation: {
     type: String,
     required: true
+  },
+  hash: {
+    type: String,
+    default: '',
+    comment: 'Hash value for data verification and security'
   },
   notes: {
     type: String,
