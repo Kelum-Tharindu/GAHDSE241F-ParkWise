@@ -63,7 +63,10 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                           side: BorderSide(
-                            color: isValid ? Colors.green.shade300 : Colors.red.shade300,
+                            color:
+                                isValid
+                                    ? Colors.green.shade300
+                                    : Colors.red.shade300,
                             width: 2,
                           ),
                         ),
@@ -91,7 +94,10 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                               const SizedBox(height: 8),
                               Text(
                                 status,
-                                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ],
                           ),
@@ -169,7 +175,10 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                               RadioListTile<String>(
                                 title: const Row(
                                   children: [
-                                    Icon(Icons.credit_card, color: Color(0xFF013220)),
+                                    Icon(
+                                      Icons.credit_card,
+                                      color: Color(0xFF013220),
+                                    ),
                                     SizedBox(width: 8),
                                     Text('Card Payment'),
                                   ],
@@ -187,7 +196,7 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                           ),
                         ),
                       ),
-                      
+
                       // Add bottom padding for scrolling comfort
                       const SizedBox(height: 20),
                     ],
@@ -293,7 +302,10 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                         elevation: 4,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.green.shade300, width: 2),
+                          side: BorderSide(
+                            color: Colors.green.shade300,
+                            width: 2,
+                          ),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
@@ -423,7 +435,10 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                               RadioListTile<String>(
                                 title: const Row(
                                   children: [
-                                    Icon(Icons.credit_card, color: Color(0xFF013220)),
+                                    Icon(
+                                      Icons.credit_card,
+                                      color: Color(0xFF013220),
+                                    ),
                                     SizedBox(width: 8),
                                     Text('Card Payment'),
                                   ],
@@ -441,7 +456,7 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                           ),
                         ),
                       ),
-                      
+
                       // Add some bottom padding to ensure the content doesn't end right at the buttons
                       const SizedBox(height: 20),
                     ],
@@ -515,13 +530,14 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                                   final bool wasContextMounted = mounted;
 
                                   // Send confirmation to the backend
-                                  final result = await ApiService.confirmPayment(
-                                    billingId: billingId,
-                                    exitTime: exitTimeStr,
-                                    fee: calculatedFee,
-                                    duration: duration,
-                                    paymentMethod: selectedPaymentMethod,
-                                  );
+                                  final result =
+                                      await ApiService.confirmPayment(
+                                        billingId: billingId,
+                                        exitTime: exitTimeStr,
+                                        fee: calculatedFee,
+                                        duration: duration,
+                                        paymentMethod: selectedPaymentMethod,
+                                      );
 
                                   // Check if context is still mounted after async operation
                                   if (!wasContextMounted || !mounted) return;
@@ -638,13 +654,20 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                         elevation: 4,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.red.shade300, width: 2),
+                          side: BorderSide(
+                            color: Colors.red.shade300,
+                            width: 2,
+                          ),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
                           child: Column(
                             children: [
-                              Icon(Icons.cancel, color: Colors.red.shade700, size: 64),
+                              Icon(
+                                Icons.cancel,
+                                color: Colors.red.shade700,
+                                size: 64,
+                              ),
                               const SizedBox(height: 16),
                               const Text(
                                 'Invalid QR Code',
@@ -658,7 +681,10 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                               Text(
                                 message,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ],
                           ),
@@ -668,7 +694,7 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
                   ),
                 ),
               ),
-              
+
               // Back to scanner button
               ElevatedButton(
                 onPressed: () => context.go('/scanner'),
