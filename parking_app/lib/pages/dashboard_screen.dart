@@ -198,6 +198,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'gradient': [const Color(0xFF01573A), const Color(0xFF013A25)],
       },
       {
+        'title': 'Billing History',
+        'subtitle': 'View your parking sessions',
+        'icon': Icons.receipt,
+        'route': '/billing-history',
+        'gradient': [const Color(0xFF013F28), const Color(0xFF012A1A)],
+      },
+      {
         'title': 'Transaction History',
         'subtitle': 'View all your payments',
         'icon': Icons.receipt_long,
@@ -306,11 +313,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     title: 'Quick Access',
                     trailing: TextButton(
                       onPressed: () {},
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStateProperty.all(
+                      style: ButtonStyle(                        backgroundColor: MaterialStateProperty.all(
                           Colors.white.withAlpha(20),
                         ),
-                        shape: WidgetStateProperty.all(
+                        shape: MaterialStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                             side: BorderSide(color: Colors.white.withAlpha(50)),

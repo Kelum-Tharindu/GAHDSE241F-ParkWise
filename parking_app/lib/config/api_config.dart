@@ -15,9 +15,9 @@ class ApiConfig {
   static String confirmBooking() => '${bookings()}/confirm-booking';
   static String bookingHistory(String userId) =>
       '${bookings()}/booking-history/$userId';
-
   // Billing endpoints
   static String billing() => '$baseUrl/billing';
+  static String userBillings(String userId) => '${billing()}/user/$userId';
 
   // Transaction endpoints
   static String transactions() => '$baseUrl/transactions';

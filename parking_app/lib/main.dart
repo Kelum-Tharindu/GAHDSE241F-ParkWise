@@ -13,6 +13,7 @@ import 'package:parking_app/pages/forget_password_page.dart';
 import 'package:parking_app/pages/rest_password_page.dart';
 import 'package:parking_app/pages/map_page.dart';
 import 'package:parking_app/pages/transaction_history_page.dart';
+import 'package:parking_app/pages/billing_history_page.dart';
 
 void main() {
   // Ensure Flutter bindings are initialized
@@ -61,6 +62,7 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => const ProfilePage(),
         '/bookingPage': (context) => const BookingPage(),
         '/booking-history': (context) => const BookingHistory(),
+        '/billing-history': (context) => const BillingHistoryPage(),
         '/ongoing': (context) => const Placeholder(),
         '/enter-parking': (context) => const ReadPage(),
         '/forgot_password': (context) => ForgotPasswordPage(),

@@ -110,3 +110,47 @@ exports.createBilling = async (req, res) => {  try {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+exports.getUserBillings = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    console.log("📥 Fetching billings for user:", userId);
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      console.error("❌ Validation Error: Invalid userId");
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+
+    const billings = await Billing.find({ userID: userId })
+      .populate('parkingID', 'name location slotDetails')
+      .populate('transactionId', 'amount method status')
+      .sort({ entryTime: -1 }); // Sort by entry time, newest first
+    
+    if (!billings || billings.length === 0) {
+      console.log("🔍 No billings found for user:", userId);
+      return res.status(404).json({ message: "No billings found for this user" });
+    }
+
+    // Transform the data to include necessary details with QR
+    const formattedBillings = billings.map(billing => {
+      return {
+        id: billing._id,
+        entryTime: billing.entryTime,
+        exitTime: billing.exitTime,
+        billingHash: billing.billingHash,
+        paymentStatus: billing.paymentStatus,
+        vehicleType: billing.vehicleType,
+        duration: billing.duration,
+        fee: billing.fee,
+        qrImage: billing.qrImage,
+        parkingName: billing.parkingID ? billing.parkingID.name : "Unknown Parking",
+       
+      };
+    });
+
+    console.log(`📊 Found ${billings.length} billings for user ${userId}`);
+    res.status(200).json(formattedBillings);
+  } catch (err) {
+    console.error("❌ Error in getUserBillings:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
