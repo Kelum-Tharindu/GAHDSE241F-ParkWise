@@ -141,16 +141,26 @@ exports.createSubBulkBooking = async (req, res) => {
       validTo: subValidTo,
       parkingLocation: bulkBooking.parkingName,
       notes: notes || ''
-    });    // Generate QR code
-    const qrPayload = JSON.stringify({
+    });    // Generate initial payload for hashing
+    const initialPayload = {
       id: subBulkBooking._id.toString(),
       type: 'subbulkbooking',
       customerId: customerId,
       bulkBookingId: bulkBookingId,
       time: Date.now()
+    };
+    
+    // Generate hash from initial payload
+    const encryptedCode = crypto.createHash('sha256').update(JSON.stringify(initialPayload)).digest('hex');
+    
+    // Create final QR payload that includes the hash
+    const qrPayload = JSON.stringify({
+      ...initialPayload,
+      hash: encryptedCode
     });
-    const encryptedCode = crypto.createHash('sha256').update(qrPayload).digest('hex');
-    const qrImage = await generateQR(encryptedCode);
+    
+    // Generate QR code using the complete payload
+    const qrImage = await generateQR(qrPayload);
     
     // Store both QR code and hash value
     subBulkBooking.qrCode = qrImage;
