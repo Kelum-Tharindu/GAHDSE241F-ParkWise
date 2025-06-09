@@ -5,6 +5,9 @@ layer(base);
 
 @import "tw-animate-css";
 
+/* Import custom color scheme */
+@import "./styles/colors.css";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {

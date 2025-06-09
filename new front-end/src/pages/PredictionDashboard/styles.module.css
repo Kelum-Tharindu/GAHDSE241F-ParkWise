@@ -1,0 +1,158 @@
+/* Custom styles for PredictionDashboard component */
+.predictionDashboard {
+  /* Default light mode variables */
+  --card-bg: var(--color-background-light);
+  --card-border: var(--color-border-light);
+  --primary-btn: var(--color-primary-light);
+  --primary-btn-hover: var(--color-accent-light);
+  --highlight-btn: var(--color-highlight-light);
+  --text-color: var(--color-text-light);
+  --input-bg: var(--color-input-bg-light);
+  --input-border: var(--color-border-light);
+  --input-focus-border: var(--color-accent-light);
+  --input-focus-ring: var(--color-accent-light);
+  --input-text: var(--color-text-light);
+  --status-success-bg: var(--color-accent-light);
+  --status-success-text: white;
+  --status-warning-bg: #E57373; /* Red for warnings/alerts */
+  --status-warning-text: white;
+  --shadow-color: rgba(2, 89, 57, 0.1); /* Using primary color for shadows */
+}
+
+/* Dark mode overrides using the built-in dark class */
+:global(.dark) .predictionDashboard {
+  --card-bg: var(--color-background-dark);
+  --card-border: var(--color-border-dark);
+  --primary-btn: var(--color-primary-dark);
+  --primary-btn-hover: var(--color-accent-dark);
+  --highlight-btn: var(--color-highlight-dark);
+  --text-color: var(--color-text-dark);
+  --input-bg: var(--color-input-bg-dark);
+  --input-border: var(--color-border-dark);
+  --input-focus-border: var(--color-highlight-dark);
+  --input-focus-ring: var(--color-highlight-dark);
+  --input-text: var(--color-text-dark);
+  --status-success-bg: var(--color-highlight-dark);
+  --status-success-text: white;
+  --status-warning-bg: #C62828; /* Darker red for dark mode */
+  --status-warning-text: white;
+  --shadow-color: rgba(1, 50, 32, 0.4); /* Darker shadow for dark mode */
+}
+
+/* Apply custom styles to all Cards in the dashboard */
+.customCard {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-color) !important;
+}
+
+.customCard h1, 
+.customCard h2, 
+.customCard h3, 
+.customCard h4, 
+.customCard label, 
+.customCard p {
+  color: var(--text-color) !important;
+}
+
+/* Button styles */
+.primaryButton {
+  background-color: var(--primary-btn) !important;
+  color: var(--text-color) !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background-color: var(--primary-btn-hover) !important;
+}
+
+.primaryButton:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--input-focus-ring) !important;
+}
+
+/* Model selection buttons */
+.modelButton {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--text-color) !important;
+  transition: all 0.3s ease !important;
+}
+
+.modelButtonActive {
+  background-color: var(--primary-btn) !important;
+  color: var(--text-color) !important;
+}
+
+.modelButton:hover {
+  background-color: var(--primary-btn-hover) !important;
+}
+
+/* Input styles */
+.customInput {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+.customInput:focus {
+  border-color: var(--input-focus-border) !important;
+  box-shadow: 0 0 0 2px var(--input-focus-ring) !important;
+}
+
+/* Select styles */
+.customSelect {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--input-text) !important;
+}
+
+.customSelect:focus {
+  border-color: var(--input-focus-border) !important;
+  box-shadow: 0 0 0 2px var(--input-focus-ring) !important;
+}
+
+/* Result cards */
+.resultCard {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text-color) !important;
+  box-shadow: 0 4px 6px var(--shadow-color) !important;
+}
+
+/* Status indicators */
+.statusSuccess {
+  background-color: var(--status-success-bg) !important;
+  color: var(--status-success-text) !important;
+}
+
+.statusWarning {
+  background-color: var(--status-warning-bg) !important;
+  color: var(--status-warning-text) !important;
+}
+
+/* Override Flatpickr for dark mode */
+.flatpickrDark {
+  color: var(--text-color) !important;
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+}
+
+/* Theme toggle button */
+.themeToggle {
+  background-color: var(--primary-btn) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--card-border) !important;
+  transition: all 0.3s ease !important;
+  padding: 0.5rem 1rem !important;
+  font-weight: 500 !important;
+}
+
+.themeToggle:hover {
+  background-color: var(--primary-btn-hover) !important;
+  transform: translateY(-2px) !important;
+}
+
+.themeToggle:active {
+  transform: translateY(0) !important;
+}

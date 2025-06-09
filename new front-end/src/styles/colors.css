@@ -1,0 +1,19 @@
+:root {
+  /* Light mode theme colors */
+  --color-background-light: #FFFFFF;
+  --color-primary-light: #025939;    /* Green */
+  --color-accent-light: #15A66E;     /* Lighter green */
+  --color-highlight-light: #013220;  /* Dark green */
+  --color-text-light: #333333;       /* Dark gray */
+  --color-border-light: #d1d5db;     /* Light gray */
+  --color-input-bg-light: #F3F4F6;   /* Light background for inputs */
+  
+  /* Dark mode theme colors */
+  --color-background-dark: #000000;
+  --color-primary-dark: #013220;     /* Dark green */
+  --color-accent-dark: #025939;      /* Slightly lighter green */
+  --color-highlight-dark: #15A66E;   /* Bright green */
+  --color-text-dark: #FFFFFF;        /* White */
+  --color-border-dark: #374151;      /* Dark border */
+  --color-input-bg-dark: #1F2937;    /* Dark background for inputs */
+}

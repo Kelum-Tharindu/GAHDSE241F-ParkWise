@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PageMeta from '../../components/common/PageMeta';
 import {
   ParkingAvailabilityRequest,
@@ -17,6 +17,8 @@ import toast from 'react-hot-toast';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import 'flatpickr/dist/themes/dark.css'; // For dark mode support
+import '../../styles/colors.css'; // Import custom ParkWise colors
+import styles from './styles.module.css'; // Import component-specific styles
 
 // Prediction types
 type PredictionType = 'availability' | 'rushHour' | 'demand';
@@ -24,6 +26,29 @@ type PredictionType = 'availability' | 'rushHour' | 'demand';
 export default function PredictionDashboard() {
   // State for form selection
   const [predictionType, setPredictionType] = useState<PredictionType>('availability');
+  
+  // State for theme
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // Detect system theme preference on component mount
+  useEffect(() => {
+    // Check if user prefers dark mode
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setIsDarkMode(prefersDark);
+    
+    // Add listener for theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches);
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    
+    // Clean up
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []);
   
   // State for form inputs
   const [parkingAvailabilityForm, setParkingAvailabilityForm] = useState<ParkingAvailabilityRequest>({
@@ -143,7 +168,6 @@ export default function PredictionDashboard() {
       }));
     }
   };
-
   // Handle date change for demand classification form
   const handleDemandDateChange = (selectedDates: Date[]) => {
     if (selectedDates && selectedDates[0]) {
@@ -155,14 +179,6 @@ export default function PredictionDashboard() {
     }
   };
   
-  // Flatpickr options
-  const datePickerOptions = {
-    enableTime: true,
-    dateFormat: 'Y-m-d H:i:S',
-    time_24hr: true,
-    minuteIncrement: 1
-  };
-
   // Render weather options for both models
   const renderWeatherOptions = (weatherFormat: 'format1' | 'format2') => {
     if (weatherFormat === 'format1') {
@@ -184,57 +200,62 @@ export default function PredictionDashboard() {
         </>
       );
     }
-  };
-
-  return (
+  };  return (
     <>
       <PageMeta
         title="Parking Prediction Dashboard | ParkWise"
         description="Smart parking analytics dashboard to predict parking availability, rush hour, and demand classification"
       />
       
-      <div className="space-y-6">
+      <div className={`space-y-6 ${styles.predictionDashboard} ${isDarkMode ? 'dark' : ''}`}>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Parking Prediction Dashboard</h1>
-        </div>        {/* Model Selection */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <h2 className="text-xl font-medium mb-4 dark:text-white">Select Prediction Model</h2>
+          <button 
+            className={`p-2 rounded-md transition-colors ${styles.themeToggle}`}
+            onClick={() => setIsDarkMode(prev => !prev)}
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
+        </div>{/* Model Selection */}
+        <Card className={`p-6 ${styles.customCard}`}>
+          <h2 className="text-xl font-medium mb-4">Select Prediction Model</h2>
           <div className="grid grid-cols-3 gap-4">
             <button 
-              className={`p-4 rounded-lg border transition-colors ${predictionType === 'availability' 
-                ? 'bg-primary text-white dark:bg-primary/90' 
-                : 'bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'}`}
+              className={`p-4 rounded-lg border transition-colors ${styles.modelButton} ${predictionType === 'availability' 
+                ? styles.modelButtonActive
+                : ''}`}
               onClick={() => setPredictionType('availability')}
             >
               Parking Availability
             </button>
             <button 
-              className={`p-4 rounded-lg border transition-colors ${predictionType === 'rushHour' 
-                ? 'bg-primary text-white dark:bg-primary/90' 
-                : 'bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'}`}
+              className={`p-4 rounded-lg border transition-colors ${styles.modelButton} ${predictionType === 'rushHour' 
+                ? styles.modelButtonActive
+                : ''}`}
               onClick={() => setPredictionType('rushHour')}
             >
               Rush Hour Prediction
             </button>
             <button 
-              className={`p-4 rounded-lg border transition-colors ${predictionType === 'demand' 
-                ? 'bg-primary text-white dark:bg-primary/90' 
-                : 'bg-white dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'}`}
+              className={`p-4 rounded-lg border transition-colors ${styles.modelButton} ${predictionType === 'demand' 
+                ? styles.modelButtonActive
+                : ''}`}
               onClick={() => setPredictionType('demand')}
             >
               Demand Classification
             </button>
           </div>
         </Card>        {/* Input Form */}
-        <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-          <h2 className="text-xl font-medium mb-4 dark:text-white">Prediction Input Parameters</h2>
+        <Card className={`p-6 ${styles.customCard}`}>
+          <h2 className="text-xl font-medium mb-4">Prediction Input Parameters</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             
             {/* Parking Availability Form */}
             {predictionType === 'availability' && (
               <div className="space-y-4">                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="timestamp" className="dark:text-gray-300">Timestamp</Label>
+                    <Label htmlFor="timestamp" className={styles.customLabel}>Timestamp</Label>
                     <div className="relative">
                       <Flatpickr
                         value={parkingAvailabilityForm.timestamp}
@@ -245,23 +266,19 @@ export default function PredictionDashboard() {
                           time_24hr: true,
                           minuteIncrement: 1
                         }}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                          focus:border-primary focus:ring-primary dark:bg-gray-700 
-                          dark:border-gray-600 dark:text-white"
+                        className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput} ${styles.flatpickrDark}`}
                         placeholder="Select date and time"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: YYYY-MM-DD HH:MM:SS</p>
+                    <p className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD HH:MM:SS</p>
                   </div>
                   <div>
-                    <Label htmlFor="parking_lot_id" className="dark:text-gray-300">Parking Lot ID</Label>
+                    <Label htmlFor="parking_lot_id" className={styles.customLabel}>Parking Lot ID</Label>
                     <input
                       type="number"
                       id="parking_lot_id"
                       name="parking_lot_id"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput}`}
                       value={parkingAvailabilityForm.parking_lot_id}
                       onChange={handleParkingAvailabilityChange}
                       required
@@ -269,13 +286,11 @@ export default function PredictionDashboard() {
                   </div>
                 </div>                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="event" className="dark:text-gray-300">Event</Label>
+                    <Label htmlFor="event" className={styles.customLabel}>Event</Label>
                     <select
                       id="event"
                       name="event"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customSelect}`}
                       value={parkingAvailabilityForm.event}
                       onChange={handleParkingAvailabilityChange}
                       required
@@ -285,13 +300,11 @@ export default function PredictionDashboard() {
                     </select>
                   </div>
                   <div>
-                    <Label htmlFor="holiday" className="dark:text-gray-300">Holiday</Label>
+                    <Label htmlFor="holiday" className={styles.customLabel}>Holiday</Label>
                     <select
                       id="holiday"
                       name="holiday"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customSelect}`}
                       value={parkingAvailabilityForm.holiday}
                       onChange={handleParkingAvailabilityChange}
                       required
@@ -301,13 +314,11 @@ export default function PredictionDashboard() {
                     </select>
                   </div>
                   <div>
-                    <Label htmlFor="weather" className="dark:text-gray-300">Weather</Label>
+                    <Label htmlFor="weather" className={styles.customLabel}>Weather</Label>
                     <select
                       id="weather"
                       name="weather"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customSelect}`}
                       value={parkingAvailabilityForm.weather}
                       onChange={handleParkingAvailabilityChange}
                       required
@@ -317,13 +328,11 @@ export default function PredictionDashboard() {
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Rush Hour Prediction Form */}
+            )}            {/* Rush Hour Prediction Form */}
             {predictionType === 'rushHour' && (
               <div className="space-y-4">                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="timestamp" className="dark:text-gray-300">Timestamp</Label>
+                    <Label htmlFor="timestamp" className={styles.customLabel}>Timestamp</Label>
                     <div className="relative">
                       <Flatpickr
                         value={rushHourForm.timestamp}
@@ -334,23 +343,19 @@ export default function PredictionDashboard() {
                           time_24hr: true,
                           minuteIncrement: 1
                         }}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                          focus:border-primary focus:ring-primary dark:bg-gray-700 
-                          dark:border-gray-600 dark:text-white"
+                        className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput} ${styles.flatpickrDark}`}
                         placeholder="Select date and time"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: YYYY-MM-DD HH:MM:SS</p>
+                    <p className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD HH:MM:SS</p>
                   </div>
                   <div>
-                    <Label htmlFor="parking_lot_id" className="dark:text-gray-300">Parking Lot ID</Label>
+                    <Label htmlFor="parking_lot_id" className={styles.customLabel}>Parking Lot ID</Label>
                     <input
                       type="number"
                       id="parking_lot_id"
                       name="parking_lot_id"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput}`}
                       value={rushHourForm.parking_lot_id}
                       onChange={handleRushHourChange}
                       required
@@ -358,13 +363,11 @@ export default function PredictionDashboard() {
                   </div>
                 </div>                <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <Label htmlFor="weather" className="dark:text-gray-300">Weather</Label>
+                    <Label htmlFor="weather" className={styles.customLabel}>Weather</Label>
                     <select
                       id="weather"
                       name="weather"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customSelect}`}
                       value={rushHourForm.weather}
                       onChange={handleRushHourChange}
                       required
@@ -376,42 +379,36 @@ export default function PredictionDashboard() {
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="avg_entry_15min" className="dark:text-gray-300">Avg. Entry (15min)</Label>
+                    <Label htmlFor="avg_entry_15min" className={styles.customLabel}>Avg. Entry (15min)</Label>
                     <input
                       type="number"
                       id="avg_entry_15min"
                       name="avg_entry_15min"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput}`}
                       value={rushHourForm.avg_entry_15min}
                       onChange={handleRushHourChange}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="avg_exit_15min" className="dark:text-gray-300">Avg. Exit (15min)</Label>
+                    <Label htmlFor="avg_exit_15min" className={styles.customLabel}>Avg. Exit (15min)</Label>
                     <input
                       type="number"
                       id="avg_exit_15min"
                       name="avg_exit_15min"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput}`}
                       value={rushHourForm.avg_exit_15min}
                       onChange={handleRushHourChange}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="avg_waiting_time" className="dark:text-gray-300">Avg. Waiting Time</Label>
+                    <Label htmlFor="avg_waiting_time" className={styles.customLabel}>Avg. Waiting Time</Label>
                     <input
                       type="number"
                       id="avg_waiting_time"
                       name="avg_waiting_time"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput}`}
                       value={rushHourForm.avg_waiting_time}
                       onChange={handleRushHourChange}
                       required
@@ -419,13 +416,11 @@ export default function PredictionDashboard() {
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Demand Classification Form */}
+            )}            {/* Demand Classification Form */}
             {predictionType === 'demand' && (
               <div className="space-y-4">                <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <Label htmlFor="timestamp" className="dark:text-gray-300">Timestamp</Label>
+                    <Label htmlFor="timestamp" className={styles.customLabel}>Timestamp</Label>
                     <div className="relative">
                       <Flatpickr
                         value={demandForm.timestamp}
@@ -436,53 +431,45 @@ export default function PredictionDashboard() {
                           time_24hr: true,
                           minuteIncrement: 1
                         }}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                          focus:border-primary focus:ring-primary dark:bg-gray-700 
-                          dark:border-gray-600 dark:text-white"
+                        className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput} ${styles.flatpickrDark}`}
                         placeholder="Select date and time"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Format: YYYY-MM-DD HH:MM:SS</p>
+                    <p className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD HH:MM:SS</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="total_used_slots" className="dark:text-gray-300">Total Used Slots</Label>
+                    <Label htmlFor="total_used_slots" className={styles.customLabel}>Total Used Slots</Label>
                     <input
                       type="number"
                       id="total_used_slots"
                       name="total_used_slots"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput}`}
                       value={demandForm.total_used_slots}
                       onChange={handleDemandChange}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="total_booking_count" className="dark:text-gray-300">Total Booking Count</Label>
+                    <Label htmlFor="total_booking_count" className={styles.customLabel}>Total Booking Count</Label>
                     <input
                       type="number"
                       id="total_booking_count"
                       name="total_booking_count"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customInput}`}
                       value={demandForm.total_booking_count}
                       onChange={handleDemandChange}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="weather" className="dark:text-gray-300">Weather</Label>
+                    <Label htmlFor="weather" className={styles.customLabel}>Weather</Label>
                     <select
                       id="weather"
                       name="weather"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm 
-                        focus:border-primary focus:ring-primary dark:bg-gray-700 
-                        dark:border-gray-600 dark:text-white"
+                      className={`mt-1 block w-full rounded-md shadow-sm ${styles.customSelect}`}
                       value={demandForm.weather}
                       onChange={handleDemandChange}
                       required
@@ -495,10 +482,8 @@ export default function PredictionDashboard() {
             )}            <div className="pt-4">
               <button
                 type="submit"
-                className="w-full rounded-md bg-primary py-3 px-4 text-white hover:bg-primary/90 
-                  focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
-                  dark:bg-primary/90 dark:hover:bg-primary 
-                  dark:focus:ring-offset-gray-800 transition-colors"
+                className={`w-full rounded-md py-3 px-4 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                  transition-colors ${styles.primaryButton}`}
                 disabled={isLoading}
               >
                 {isLoading ? 'Processing...' : 'Generate Prediction'}
@@ -507,64 +492,62 @@ export default function PredictionDashboard() {
           </form>
         </Card>        {/* Results Section */}
         {(parkingAvailabilityResult || rushHourResult || demandResult) && (
-          <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
-            <h2 className="text-xl font-medium mb-4 dark:text-white">Prediction Results</h2>
+          <Card className={`p-6 ${styles.customCard}`}>
+            <h2 className="text-xl font-medium mb-4">Prediction Results</h2>
             
             {/* Parking Availability Results */}
             {parkingAvailabilityResult && predictionType === 'availability' && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow border dark:border-gray-600">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300">Available Car Spots</h3>
-                  <p className="text-2xl font-semibold mt-1 dark:text-white">{parkingAvailabilityResult.available_car_spots}</p>
+                <div className={`p-4 rounded-lg shadow border ${styles.resultCard}`}>
+                  <h3 className="text-sm font-medium">Available Car Spots</h3>
+                  <p className="text-2xl font-semibold mt-1">{parkingAvailabilityResult.available_car_spots}</p>
                 </div>
-                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow border dark:border-gray-600">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300">Available Van Spots</h3>
-                  <p className="text-2xl font-semibold mt-1 dark:text-white">{parkingAvailabilityResult.available_van_spots}</p>
+                <div className={`p-4 rounded-lg shadow border ${styles.resultCard}`}>
+                  <h3 className="text-sm font-medium">Available Van Spots</h3>
+                  <p className="text-2xl font-semibold mt-1">{parkingAvailabilityResult.available_van_spots}</p>
                 </div>
-                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow border dark:border-gray-600">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300">Available Truck Spots</h3>
-                  <p className="text-2xl font-semibold mt-1 dark:text-white">{parkingAvailabilityResult.available_truck_spots}</p>
+                <div className={`p-4 rounded-lg shadow border ${styles.resultCard}`}>
+                  <h3 className="text-sm font-medium">Available Truck Spots</h3>
+                  <p className="text-2xl font-semibold mt-1">{parkingAvailabilityResult.available_truck_spots}</p>
                 </div>
-                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow border dark:border-gray-600">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300">Available Motorcycle Spots</h3>
-                  <p className="text-2xl font-semibold mt-1 dark:text-white">{parkingAvailabilityResult.available_motorcycle_spots}</p>
+                <div className={`p-4 rounded-lg shadow border ${styles.resultCard}`}>
+                  <h3 className="text-sm font-medium">Available Motorcycle Spots</h3>
+                  <p className="text-2xl font-semibold mt-1">{parkingAvailabilityResult.available_motorcycle_spots}</p>
                 </div>
               </div>
-            )}
-              {/* Rush Hour Results */}
+            )}              {/* Rush Hour Results */}
             {rushHourResult && predictionType === 'rushHour' && (
-              <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow border dark:border-gray-600">
-                <h3 className="text-lg font-medium mb-2 dark:text-white">Rush Hour Prediction</h3>
+              <div className={`p-6 rounded-lg shadow border ${styles.resultCard}`}>
+                <h3 className="text-lg font-medium mb-2">Rush Hour Prediction</h3>
                 <div className="flex items-center justify-center p-4">
                   <div className={`text-2xl font-bold p-4 rounded-full ${
                     rushHourResult.rush_hour_prediction === 1 
-                    ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
-                    : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                    ? styles.statusWarning
+                    : styles.statusSuccess
                   }`}>
                     {rushHourResult.rush_hour_prediction === 1 
                       ? 'Rush Hour Detected ⚠️' 
                       : 'No Rush Hour 👍'}
                   </div>
                 </div>
-                <p className="text-center text-gray-600 dark:text-gray-300 mt-2">
+                <p className="text-center mt-2">
                   {rushHourResult.rush_hour_prediction === 1 
                     ? 'Expect congestion and longer waiting times.' 
                     : 'Traffic flow is normal.'}
                 </p>
               </div>
-            )}
-              {/* Demand Classification Results */}
+            )}              {/* Demand Classification Results */}
             {demandResult && predictionType === 'demand' && (
-              <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow border dark:border-gray-600">
-                <h3 className="text-lg font-medium mb-2 dark:text-white">Demand Classification Result</h3>
+              <div className={`p-6 rounded-lg shadow border ${styles.resultCard}`}>
+                <h3 className="text-lg font-medium mb-2">Demand Classification Result</h3>
                 <div className="flex items-center justify-center p-4">
-                  <div className="text-3xl font-bold bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 p-6 rounded-full">
+                  <div className={`text-3xl font-bold p-6 rounded-full ${styles.statusSuccess}`}>
                     Cluster #{demandResult.prediction}
                   </div>
                 </div>
                 <div className="mt-4">
-                  <h4 className="font-medium dark:text-white">Demand Group Interpretation:</h4>
-                  <ul className="list-disc list-inside mt-2 space-y-1 text-gray-600 dark:text-gray-300">
+                  <h4 className="font-medium">Demand Group Interpretation:</h4>
+                  <ul className="list-disc list-inside mt-2 space-y-1">
                     {demandResult.prediction === 0 && (
                       <>
                         <li>Low demand cluster</li>
