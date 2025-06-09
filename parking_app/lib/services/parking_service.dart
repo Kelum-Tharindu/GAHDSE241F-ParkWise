@@ -6,100 +6,51 @@ class ParkingService {
   static const String baseUrl =
       // 'http://your-backend-url/parking'; // Replace with your actual backend URL
       'http://192.168.8.145:5000/parking';
-
   Future<List<Map<String, dynamic>>> getAllParkingLocations() async {
     if (kDebugMode) {
-      print("=== Sending request to get parking locations ===");
-      print("=== Request URL: $baseUrl/all ===");
+      print("===REQUEST=== Fetching parking locations");
+      print("===REQUEST URL=== $baseUrl/frontend");
     }
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/all'),
+        Uri.parse('$baseUrl/frontend'),
         headers: {'Content-Type': 'application/json'},
       );
 
       if (kDebugMode) {
-        print("=== Response status code: ${response.statusCode} ===");
-        print("=== Response headers: ${response.headers} ===");
-        print("=== Raw response body: ${response.body} ===");
+        print("===RESPONSE=== Status code: ${response.statusCode}");
+        if (response.body.length > 300) {
+          print(
+            "===RESPONSE BODY PREVIEW=== ${response.body.substring(0, 300)}...",
+          );
+        } else {
+          print("===RESPONSE BODY=== ${response.body}");
+        }
       }
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
 
         if (kDebugMode) {
-          print("=== Received ${data.length} parking locations ===");
-          print("=== Decoded response data: ${json.encode(data)} ===");
+          print("===RECEIVED DATA=== Found ${data.length} parking locations");
         }
 
-        final List<Map<String, dynamic>> transformedData =
-            data.map((parking) {
-              return {
-                'id': parking['id']?.toString() ?? '',
-                'name': parking['name']?.toString() ?? '',
-                'latitude': parking['latitude']?.toDouble() ?? 0.0,
-                'longitude': parking['longitude']?.toDouble() ?? 0.0,
-                'address': {
-                  'street': parking['address']['street']?.toString() ?? '',
-                  'city': parking['address']['city']?.toString() ?? '',
-                },
-                'slotDetails': {
-                  'car': {
-                    'availableSlot':
-                        parking['slotDetails']['car']['availableSlot']
-                            ?.toInt() ??
-                        0,
-                    'perPrice30Min':
-                        parking['slotDetails']['car']['perPrice30Min']
-                            ?.toInt() ??
-                        0,
-                    'perDayPrice':
-                        parking['slotDetails']['car']['perDayPrice']?.toInt() ??
-                        0,
-                  },
-                  'bicycle': {
-                    'availableSlot':
-                        parking['slotDetails']['bicycle']['availableSlot']
-                            ?.toInt() ??
-                        0,
-                    'perPrice30Min':
-                        parking['slotDetails']['bicycle']['perPrice30Min']
-                            ?.toInt() ??
-                        0,
-                    'perDayPrice':
-                        parking['slotDetails']['bicycle']['perDayPrice']
-                            ?.toInt() ??
-                        0,
-                  },
-                  'truck': {
-                    'availableSlot':
-                        parking['slotDetails']['truck']['availableSlot']
-                            ?.toInt() ??
-                        0,
-                    'perPrice30Min':
-                        parking['slotDetails']['truck']['perPrice30Min']
-                            ?.toInt() ??
-                        0,
-                    'perDayPrice':
-                        parking['slotDetails']['truck']['perDayPrice']
-                            ?.toInt() ??
-                        0,
-                  },
-                },
-              };
-            }).toList();
+        // No need for transformation, return the data as is since our model now matches
+        // the backend response structure
+        final List<Map<String, dynamic>> locations =
+            data.map((item) => item as Map<String, dynamic>).toList();
 
         if (kDebugMode) {
           print(
-            "=== Successfully transformed ${transformedData.length} parking locations ===",
+            "===PROCESSED=== Successfully processed ${locations.length} parking locations",
           );
-          print(
-            "=== Final transformed data: ${json.encode(transformedData)} ===",
-          );
+          if (locations.isNotEmpty) {
+            print("===SAMPLE=== First location: ${locations[0]['name']}");
+          }
         }
 
-        return transformedData;
+        return locations;
       } else {
         if (kDebugMode) {
           print(

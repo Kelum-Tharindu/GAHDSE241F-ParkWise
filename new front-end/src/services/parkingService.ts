@@ -74,9 +74,8 @@ class ParkingService {
       throw this.handleError(error);
     }
   }
-
   // Error handler
-  private handleError(error: any): Error {
+  private handleError(error: unknown): Error {
     let errorMessage = 'An unknown error occurred';
     
     if (axios.isAxiosError(error)) {

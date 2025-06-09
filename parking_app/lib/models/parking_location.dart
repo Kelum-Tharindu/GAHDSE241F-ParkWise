@@ -19,9 +19,17 @@ class ParkingLocation {
     return ParkingLocation(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
-      latitude: json['latitude']?.toDouble() ?? 0.0,
-      longitude: json['longitude']?.toDouble() ?? 0.0,
-      address: Address.fromJson(json['address'] ?? {}),
+      latitude:
+          json['location'] != null
+              ? double.parse(json['location']['latitude'].toString())
+              : 0.0,
+      longitude:
+          json['location'] != null
+              ? double.parse(json['location']['longitude'].toString())
+              : 0.0,
+      address: Address.fromJson(
+        json['location'] != null ? json['location']['address'] : {},
+      ),
       slotDetails: SlotDetails.fromJson(json['slotDetails'] ?? {}),
     );
   }
@@ -41,18 +49,32 @@ class ParkingLocation {
 class Address {
   final String street;
   final String city;
+  final String province;
+  final String country;
 
-  Address({required this.street, required this.city});
+  Address({
+    required this.street,
+    required this.city,
+    required this.province,
+    required this.country,
+  });
 
   factory Address.fromJson(Map<String, dynamic> json) {
     return Address(
       street: json['street']?.toString() ?? '',
       city: json['city']?.toString() ?? '',
+      province: json['province']?.toString() ?? '',
+      country: json['country']?.toString() ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'street': street, 'city': city};
+    return {
+      'street': street,
+      'city': city,
+      'province': province,
+      'country': country,
+    };
   }
 }
 
@@ -81,27 +103,46 @@ class SlotDetails {
 }
 
 class VehicleSlots {
-  final int availableSlot;
+  final int totalSlot;
+  final int bookingSlot;
+  final int bookingAvailableSlot;
+  final int withoutBookingSlot;
+  final int withoutBookingAvailableSlot;
   final int perPrice30Min;
   final int perDayPrice;
 
   VehicleSlots({
-    required this.availableSlot,
+    required this.totalSlot,
+    required this.bookingSlot,
+    required this.bookingAvailableSlot,
+    required this.withoutBookingSlot,
+    required this.withoutBookingAvailableSlot,
     required this.perPrice30Min,
     required this.perDayPrice,
   });
 
+  // For backwards compatibility
+  int get availableSlot => bookingAvailableSlot + withoutBookingAvailableSlot;
+
   factory VehicleSlots.fromJson(Map<String, dynamic> json) {
     return VehicleSlots(
-      availableSlot: json['availableSlot']?.toInt() ?? 0,
+      totalSlot: json['totalSlot']?.toInt() ?? 0,
+      bookingSlot: json['bookingSlot']?.toInt() ?? 0,
+      bookingAvailableSlot: json['bookingAvailableSlot']?.toInt() ?? 0,
+      withoutBookingSlot: json['withoutBookingSlot']?.toInt() ?? 0,
+      withoutBookingAvailableSlot:
+          json['withoutBookingAvailableSlot']?.toInt() ?? 0,
       perPrice30Min: json['perPrice30Min']?.toInt() ?? 0,
       perDayPrice: json['perDayPrice']?.toInt() ?? 0,
     );
   }
-
   Map<String, dynamic> toJson() {
     return {
-      'availableSlot': availableSlot,
+      'totalSlot': totalSlot,
+      'bookingSlot': bookingSlot,
+      'bookingAvailableSlot': bookingAvailableSlot,
+      'withoutBookingSlot': withoutBookingSlot,
+      'withoutBookingAvailableSlot': withoutBookingAvailableSlot,
       'perPrice30Min': perPrice30Min,
       'perDayPrice': perDayPrice,
     };

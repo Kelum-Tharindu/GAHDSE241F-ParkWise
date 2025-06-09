@@ -40,7 +40,18 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _loadParkingLocations() async {
     try {
+      if (kDebugMode) {
+        print('===LOADING=== Fetching parking locations from backend');
+      }
+
       final locations = await _parkingService.getAllParkingLocations();
+
+      if (kDebugMode) {
+        print(
+          '===RECEIVED=== ${locations.length} parking locations from backend',
+        );
+      }
+
       if (!mounted) return;
 
       setState(() {
@@ -48,18 +59,40 @@ class _MapPageState extends State<MapPage> {
         _parkingLocations.addAll(
           locations.map((data) => ParkingLocation.fromJson(data)).toList(),
         );
+
+        if (kDebugMode) {
+          print('===PARSED=== ${_parkingLocations.length} parking locations');
+          if (_parkingLocations.isNotEmpty) {
+            print(
+              '===SAMPLE LOCATION=== Name: ${_parkingLocations[0].name}, '
+              'Position: (${_parkingLocations[0].latitude}, ${_parkingLocations[0].longitude})',
+            );
+          }
+        }
+
         _updateMarkers();
       });
     } catch (e) {
       if (kDebugMode) {
-        print('Error loading parking locations: $e');
+        print('===ERROR=== Error loading parking locations: $e');
       }
     }
   }
 
   Future<void> _getCurrentLocation() async {
     try {
+      if (kDebugMode) {
+        print('===LOCATION=== Getting current device location');
+      }
+
       final location = await _location.getLocation();
+
+      if (kDebugMode) {
+        print(
+          '===LOCATION RECEIVED=== Lat: ${location.latitude}, Lng: ${location.longitude}',
+        );
+      }
+
       if (!mounted) return;
 
       setState(() {
@@ -73,7 +106,7 @@ class _MapPageState extends State<MapPage> {
       _updateMarkers();
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting location: $e');
+        print('===ERROR=== Error getting location: $e');
       }
       if (!mounted) return;
       setState(() {
@@ -84,6 +117,16 @@ class _MapPageState extends State<MapPage> {
 
   void _updateMarkers() {
     if (!mounted) return;
+
+    if (kDebugMode) {
+      print('===MARKERS=== Updating map markers');
+      print(
+        '===MARKERS INFO=== Current location: ${_currentLocation.latitude}, ${_currentLocation.longitude}',
+      );
+      print(
+        '===MARKERS INFO=== Parking locations count: ${_parkingLocations.length}',
+      );
+    }
 
     final Set<Marker> newMarkers = {};
 
@@ -99,6 +142,12 @@ class _MapPageState extends State<MapPage> {
 
     // Add parking location markers
     for (var parking in _parkingLocations) {
+      if (kDebugMode) {
+        print(
+          '===MARKER ADDED=== ${parking.name} at (${parking.latitude}, ${parking.longitude})',
+        );
+      }
+
       newMarkers.add(
         Marker(
           markerId: MarkerId(parking.id),
