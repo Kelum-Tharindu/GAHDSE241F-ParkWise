@@ -118,6 +118,36 @@ const scannerController = {
             await billing.save();
             console.log(`Updated billing: ${billing._id}`);
             
+            // Update parking slot availability - Increment withoutBookingAvailableSlot for the vehicle type
+            try {
+                const parkingId = billing.parkingID;
+                let vehicleType = billing.vehicleType?.toLowerCase() || 'car'; // Default to 'car' if not specified
+                
+                // Validate vehicle type (ensure it's one of the supported types)
+                if (!['car', 'bicycle', 'truck'].includes(vehicleType)) {
+                    console.log(`Unsupported vehicle type: ${vehicleType}, defaulting to 'car'`);
+                    vehicleType = 'car';
+                }
+                
+                // Find the parking and increment withoutBookingAvailableSlot
+                const updateField = `slotDetails.${vehicleType}.withoutBookingAvailableSlot`;
+                
+                const updatedParking = await Parking.findByIdAndUpdate(
+                    parkingId,
+                    { $inc: { [updateField]: 1 } },
+                    { new: true }
+                );
+                
+                if (updatedParking) {
+                    console.log(`Updated ${vehicleType} withoutBookingAvailableSlot for parking ${parkingId} to ${updatedParking.slotDetails[vehicleType].withoutBookingAvailableSlot}`);
+                } else {
+                    console.log(`Could not update parking ${parkingId} - not found`);
+                }
+            } catch (parkingError) {
+                // Just log the error but don't fail the transaction
+                console.error(`Error updating parking slot availability: ${parkingError.message}`);
+            }
+            
             return res.status(200).json({
                 success: true,
                 message: "Payment confirmed successfully",
