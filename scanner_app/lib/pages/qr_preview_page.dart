@@ -45,169 +45,182 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
           onPressed: () => context.go('/scanner'),
         ),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Status Card
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: isValid ? Colors.green.shade300 : Colors.red.shade300,
-                  width: 2,
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    Icon(
-                      isValid ? Icons.check_circle : Icons.cancel,
-                      color: isValid ? Colors.green : Colors.red,
-                      size: 64,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      isValid ? 'Valid QR Code' : 'Invalid QR Code',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color:
-                            isValid
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Scrollable content area
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Status Card
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: isValid ? Colors.green.shade300 : Colors.red.shade300,
+                            width: 2,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Icon(
+                                isValid ? Icons.check_circle : Icons.cancel,
+                                color: isValid ? Colors.green : Colors.red,
+                                size: 64,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                isValid ? 'Valid QR Code' : 'Invalid QR Code',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isValid
+                                          ? Colors.green.shade700
+                                          : Colors.red.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                status,
+                                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      status,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
 
-            const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-            // Vehicle Details
-            const Text(
-              'Vehicle Details',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF013220),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildDetailCard(
-              icon: Icons.directions_car,
-              title: 'Vehicle Number',
-              value: vehicleNumber,
-            ),
-
-            const SizedBox(height: 16),
-            _buildDetailCard(
-              icon: Icons.local_parking,
-              title: 'Parking Slot',
-              value: parkingSlot,
-            ),
-
-            // Additional details can be added here
-            const SizedBox(height: 24),
-
-            // Payment Method Selection
-            const Text(
-              'Payment Method',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF013220),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Payment method selection card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    // Cash option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.money, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Cash Payment'),
-                        ],
+                      // Vehicle Details
+                      const Text(
+                        'Vehicle Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF013220),
+                        ),
                       ),
-                      value: 'cash',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                    // Card option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.credit_card, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Card Payment'),
-                        ],
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.directions_car,
+                        title: 'Vehicle Number',
+                        value: vehicleNumber,
                       ),
-                      value: 'card',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                  ],
+
+                      const SizedBox(height: 16),
+                      _buildDetailCard(
+                        icon: Icons.local_parking,
+                        title: 'Parking Slot',
+                        value: parkingSlot,
+                      ),
+
+                      // Additional details can be added here
+                      const SizedBox(height: 24),
+
+                      // Payment Method Selection
+                      const Text(
+                        'Payment Method',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF013220),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Payment method selection card
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            children: [
+                              // Cash option
+                              RadioListTile<String>(
+                                title: const Row(
+                                  children: [
+                                    Icon(Icons.money, color: Color(0xFF013220)),
+                                    SizedBox(width: 8),
+                                    Text('Cash Payment'),
+                                  ],
+                                ),
+                                value: 'cash',
+                                groupValue: selectedPaymentMethod,
+                                activeColor: const Color(0xFF013220),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedPaymentMethod = value!;
+                                  });
+                                },
+                              ),
+                              // Card option
+                              RadioListTile<String>(
+                                title: const Row(
+                                  children: [
+                                    Icon(Icons.credit_card, color: Color(0xFF013220)),
+                                    SizedBox(width: 8),
+                                    Text('Card Payment'),
+                                  ],
+                                ),
+                                value: 'card',
+                                groupValue: selectedPaymentMethod,
+                                activeColor: const Color(0xFF013220),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedPaymentMethod = value!;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      
+                      // Add bottom padding for scrolling comfort
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            const Spacer(),
-
-            // Action buttons
-            ElevatedButton(
-              onPressed: () {
-                // Handle action based on QR validity
-                if (isValid) {
-                  // For example, mark the parking as verified
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Parking verified successfully'),
-                    ),
-                  );
-                }
-                context.go('/scanner');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF013220),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              // Action buttons
+              ElevatedButton(
+                onPressed: () {
+                  // Handle action based on QR validity
+                  if (isValid) {
+                    // For example, mark the parking as verified
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Parking verified successfully'),
+                      ),
+                    );
+                  }
+                  context.go('/scanner');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF013220),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
+                child: Text(isValid ? 'Confirm Verification' : 'Scan Again'),
               ),
-              child: Text(isValid ? 'Confirm Verification' : 'Scan Again'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -263,315 +276,328 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
           onPressed: () => context.go('/scanner'),
         ),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Receipt Card with fee
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.green.shade300, width: 2),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.receipt_long,
-                      color: Color(0xFF013220),
-                      size: 64,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Parking Fee',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF013220),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Use Expanded with SingleChildScrollView to make content scrollable
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Receipt Card with fee
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.green.shade300, width: 2),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.receipt_long,
+                                color: Color(0xFF013220),
+                                size: 64,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Parking Fee',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF013220),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Rs. ${calculatedFee.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF013220),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                billingData['paymentStatus'] ?? 'pending',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Rs. ${calculatedFee.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF013220),
+
+                      const SizedBox(height: 24),
+
+                      // Parking Details Section
+                      const Text(
+                        'Parking Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF013220),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      billingData['paymentStatus'] ?? 'pending',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 12),
+
+                      _buildDetailCard(
+                        icon: Icons.directions_car,
+                        title: 'Vehicle Type',
+                        value: vehicleType,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
 
-            const SizedBox(height: 24),
-
-            // Parking Details Section
-            const Text(
-              'Parking Details',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF013220),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            _buildDetailCard(
-              icon: Icons.directions_car,
-              title: 'Vehicle Type',
-              value: vehicleType,
-            ),
-
-            const SizedBox(height: 12),
-            _buildDetailCard(
-              icon: Icons.timer,
-              title: 'Duration',
-              value: formattedDuration,
-            ),
-
-            const SizedBox(height: 12),
-            _buildDetailCard(
-              icon: Icons.login,
-              title: 'Entry Time',
-              value:
-                  '${dateFormat.format(entryTime)} at ${timeFormat.format(entryTime)}',
-            ),
-
-            const SizedBox(height: 12),
-            _buildDetailCard(
-              icon: Icons.logout,
-              title: 'Exit Time',
-              value:
-                  '${dateFormat.format(exitTime)} at ${timeFormat.format(exitTime)}',
-            ),
-
-            const SizedBox(height: 24),
-
-            // Payment Method Selection
-            const Text(
-              'Payment Method',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF013220),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Payment method selection card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children: [
-                    // Cash option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.money, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Cash Payment'),
-                        ],
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.timer,
+                        title: 'Duration',
+                        value: formattedDuration,
                       ),
-                      value: 'cash',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                    // Card option
-                    RadioListTile<String>(
-                      title: const Row(
-                        children: [
-                          Icon(Icons.credit_card, color: Color(0xFF013220)),
-                          SizedBox(width: 8),
-                          Text('Card Payment'),
-                        ],
-                      ),
-                      value: 'card',
-                      groupValue: selectedPaymentMethod,
-                      activeColor: const Color(0xFF013220),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
 
-            const Spacer(),
-
-            // Action Buttons - Row with cancel and confirm
-            Row(
-              children: [
-                // Cancel button
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => context.go('/scanner'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade200,
-                      foregroundColor: Colors.black87,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.login,
+                        title: 'Entry Time',
+                        value:
+                            '${dateFormat.format(entryTime)} at ${timeFormat.format(entryTime)}',
                       ),
-                    ),
-                    child: const Text('Cancel'),
+
+                      const SizedBox(height: 12),
+                      _buildDetailCard(
+                        icon: Icons.logout,
+                        title: 'Exit Time',
+                        value:
+                            '${dateFormat.format(exitTime)} at ${timeFormat.format(exitTime)}',
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Payment Method Selection
+                      const Text(
+                        'Payment Method',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF013220),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Payment method selection card
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            children: [
+                              // Cash option
+                              RadioListTile<String>(
+                                title: const Row(
+                                  children: [
+                                    Icon(Icons.money, color: Color(0xFF013220)),
+                                    SizedBox(width: 8),
+                                    Text('Cash Payment'),
+                                  ],
+                                ),
+                                value: 'cash',
+                                groupValue: selectedPaymentMethod,
+                                activeColor: const Color(0xFF013220),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedPaymentMethod = value!;
+                                  });
+                                },
+                              ),
+                              // Card option
+                              RadioListTile<String>(
+                                title: const Row(
+                                  children: [
+                                    Icon(Icons.credit_card, color: Color(0xFF013220)),
+                                    SizedBox(width: 8),
+                                    Text('Card Payment'),
+                                  ],
+                                ),
+                                value: 'card',
+                                groupValue: selectedPaymentMethod,
+                                activeColor: const Color(0xFF013220),
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedPaymentMethod = value!;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      
+                      // Add some bottom padding to ensure the content doesn't end right at the buttons
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 16),
-                // Confirm button
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed:
-                        isProcessing
-                            ? null
-                            : () async {
-                              setState(() {
-                                isProcessing = true;
-                              });
+              ),
 
-                              // Show loading indicator
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Processing payment...'),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
-
-                              try {
-                                // Get all the required data from the QR response
-                                final billingData =
-                                    widget.qrData['data']?['billing'] ?? {};
-                                final String billingId =
-                                    billingData['_id'] ?? '';
-                                final double calculatedFee =
-                                    (widget.qrData['data']?['calculatedFee'] ??
-                                            0)
-                                        .toDouble();
-                                final int duration =
-                                    widget.qrData['data']?['duration'] ?? 0;
-
-                                String exitTimeStr;
-                                if (widget.qrData['data']?['exitTime'] !=
-                                    null) {
-                                  exitTimeStr =
-                                      widget.qrData['data']!['exitTime']
-                                          .toString();
-                                } else {
-                                  exitTimeStr =
-                                      DateTime.now().toIso8601String();
-                                }
-
-                                // Store context mounted state before async gap
-                                final bool wasContextMounted = mounted;
-
-                                // Send confirmation to the backend
-                                final result = await ApiService.confirmPayment(
-                                  billingId: billingId,
-                                  exitTime: exitTimeStr,
-                                  fee: calculatedFee,
-                                  duration: duration,
-                                  paymentMethod: selectedPaymentMethod,
-                                );
-
-                                // Check if context is still mounted after async operation
-                                if (!wasContextMounted || !mounted) return;
-
+              // Action Buttons - Row with cancel and confirm
+              Row(
+                children: [
+                  // Cancel button
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => context.go('/scanner'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade200,
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Confirm button
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed:
+                          isProcessing
+                              ? null
+                              : () async {
                                 setState(() {
-                                  isProcessing = false;
+                                  isProcessing = true;
                                 });
 
-                                if (result != null &&
-                                    result['success'] == true) {
-                                  // Show success message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Payment confirmed successfully!',
-                                      ),
-                                      backgroundColor: Color(0xFF013220),
-                                    ),
+                                // Show loading indicator
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Processing payment...'),
+                                    duration: Duration(seconds: 1),
+                                  ),
+                                );
+
+                                try {
+                                  // Get all the required data from the QR response
+                                  final billingData =
+                                      widget.qrData['data']?['billing'] ?? {};
+                                  final String billingId =
+                                      billingData['_id'] ?? '';
+                                  final double calculatedFee =
+                                      (widget.qrData['data']?['calculatedFee'] ??
+                                              0)
+                                          .toDouble();
+                                  final int duration =
+                                      widget.qrData['data']?['duration'] ?? 0;
+
+                                  String exitTimeStr;
+                                  if (widget.qrData['data']?['exitTime'] !=
+                                      null) {
+                                    exitTimeStr =
+                                        widget.qrData['data']!['exitTime']
+                                            .toString();
+                                  } else {
+                                    exitTimeStr =
+                                        DateTime.now().toIso8601String();
+                                  }
+
+                                  // Store context mounted state before async gap
+                                  final bool wasContextMounted = mounted;
+
+                                  // Send confirmation to the backend
+                                  final result = await ApiService.confirmPayment(
+                                    billingId: billingId,
+                                    exitTime: exitTimeStr,
+                                    fee: calculatedFee,
+                                    duration: duration,
+                                    paymentMethod: selectedPaymentMethod,
                                   );
-                                  // Navigate back to scanner
-                                  context.go('/scanner');
-                                } else {
+
+                                  // Check if context is still mounted after async operation
+                                  if (!wasContextMounted || !mounted) return;
+
+                                  setState(() {
+                                    isProcessing = false;
+                                  });
+
+                                  if (result != null &&
+                                      result['success'] == true) {
+                                    // Show success message
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Payment confirmed successfully!',
+                                        ),
+                                        backgroundColor: Color(0xFF013220),
+                                      ),
+                                    );
+                                    // Navigate back to scanner
+                                    context.go('/scanner');
+                                  } else {
+                                    // Show error message
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          result?['message'] ??
+                                              'Failed to confirm payment',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  // Check if context is still mounted before using it
+                                  if (!mounted) return;
+
+                                  setState(() {
+                                    isProcessing = false;
+                                  });
+
                                   // Show error message
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(
-                                        result?['message'] ??
-                                            'Failed to confirm payment',
-                                      ),
+                                      content: Text('Error: ${e.toString()}'),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
                                 }
-                              } catch (e) {
-                                // Check if context is still mounted before using it
-                                if (!mounted) return;
-
-                                setState(() {
-                                  isProcessing = false;
-                                });
-
-                                // Show error message
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Error: ${e.toString()}'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF013220),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF013220),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        disabledBackgroundColor: Colors.grey,
                       ),
-                      disabledBackgroundColor: Colors.grey,
+                      child:
+                          isProcessing
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : const Text('Confirm'),
                     ),
-                    child:
-                        isProcessing
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                            : const Text('Confirm'),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -595,59 +621,69 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
           onPressed: () => context.go('/scanner'),
         ),
       ),
-      body: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Already Paid Card
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.red.shade300, width: 2),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    Icon(Icons.cancel, color: Colors.red.shade700, size: 64),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Invalid QR Code',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Main content area that can scroll if needed
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Already Paid Card
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.red.shade300, width: 2),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Icon(Icons.cancel, color: Colors.red.shade700, size: 64),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Invalid QR Code',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                message,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      message,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-
-            const Spacer(),
-
-            // Back to scanner button
-            ElevatedButton(
-              onPressed: () => context.go('/scanner'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF013220),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              
+              // Back to scanner button
+              ElevatedButton(
+                onPressed: () => context.go('/scanner'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF013220),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
+                child: const Text('Back to Scanner'),
               ),
-              child: const Text('Back to Scanner'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
