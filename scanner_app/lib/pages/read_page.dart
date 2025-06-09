@@ -44,7 +44,6 @@ class _ReadPageState extends State<ReadPage> {
       });
       return;
     }
-
     try {
       final data = jsonDecode(code);
       if (data is! Map<String, dynamic>) {
@@ -73,7 +72,70 @@ class _ReadPageState extends State<ReadPage> {
       }
       controller.stop();
 
-      final response = await ApiService.sendScannedData(data);
+      // Prepare data for API - format depends on QR type
+      Map<String, dynamic> apiData = {}; // If it's a billing QR code
+      //print data
+
+      if ((data['type'] == 'billing' || data['type'] == 'booking') &&
+          data['billingHash'] != null) {
+        apiData = {'type': data['type'], 'hash': data['billingHash']};
+        if (kDebugMode) {
+          print('=== Preparing API request: $apiData');
+        }
+      } else {
+        // For other types, send the original data
+        //print error
+        if (kDebugMode) {
+          print('=== ###type or billingHash not found in QR data');
+        }
+
+        setState(() {
+          isProcessing = false;
+        });
+
+        // Show error dialog with back button
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder:
+                (context) => AlertDialog(
+                  title: const Text('Invalid QR Code'),
+                  content: const Text(
+                    'The scanned QR code is not a valid parking QR code.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        setState(() {
+                          scanned = false;
+                        });
+                        controller.start(); // Start scanning again
+                      },
+                      child: const Text('Try Again'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        context.go('/'); // Go back to home/main page
+                      },
+                      child: const Text('Back'),
+                    ),
+                  ],
+                ),
+          );
+        }
+
+        return;
+      }
+
+      if (kDebugMode) {
+        print('=== About to send API request with data: $apiData');
+        print('=== API URL will be: ${ApiService.baseUrl}/scanner/scan');
+      }
+
+      final response = await ApiService.sendScannedData(apiData);
       setState(() {
         isProcessing = false;
       });
@@ -93,19 +155,38 @@ class _ReadPageState extends State<ReadPage> {
         if (kDebugMode) {
           print('=== Invalid QR, showing error');
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Invalid QR")));
 
-        // Reset scan state after error
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            setState(() {
-              scanned = false;
-            });
-            controller.start();
-          }
-        });
+        // Show error dialog with options
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Connection Error'),
+                content: const Text(
+                  'Could not connect to the server. Please check your internet connection.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      setState(() {
+                        scanned = false;
+                      });
+                      controller.start(); // Try scanning again
+                    },
+                    child: const Text('Try Again'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.go('/'); // Go back to home/main page
+                    },
+                    child: const Text('Back'),
+                  ),
+                ],
+              ),
+        );
       }
     } catch (e) {
       if (kDebugMode) {
@@ -118,24 +199,47 @@ class _ReadPageState extends State<ReadPage> {
       controller.stop();
       if (!mounted) return;
 
-      String errorMessage = "An error occurred";
+      String errorTitle = "Error";
+      String errorMessage = "An error occurred while processing the QR code.";
+
       if (e is FormatException) {
-        errorMessage = "Invalid QR format";
+        errorTitle = "Invalid QR Format";
+        errorMessage = "The scanned code is not in a valid format.";
+      } else if (e.toString().contains('connect')) {
+        errorTitle = "Connection Error";
+        errorMessage =
+            "Failed to connect to the server. Please check your internet connection.";
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
-
-      // Reset scan state after error
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            scanned = false;
-          });
-          controller.start();
-        }
-      });
+      // Show error dialog with options
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (context) => AlertDialog(
+              title: Text(errorTitle),
+              content: Text(errorMessage),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      scanned = false;
+                    });
+                    controller.start(); // Try scanning again
+                  },
+                  child: const Text('Try Again'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.go('/'); // Go back to home/main page
+                  },
+                  child: const Text('Back'),
+                ),
+              ],
+            ),
+      );
     }
   }
 
@@ -153,6 +257,12 @@ class _ReadPageState extends State<ReadPage> {
         title: const Text('Scan QR Code'),
         backgroundColor: const Color(0xFF013220),
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/'); // Navigate back to home or main page
+          },
+        ),
       ),
       body: Stack(
         children: [

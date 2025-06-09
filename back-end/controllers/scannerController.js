@@ -22,9 +22,8 @@ const scannerController = {
                 console.log("Missing required parameters: type or hash");
                 return res.status(400).json({ success: false, message: "Type and hash are required" });
             }
-            
-            // Handle different scan types
-            if (type === "billing") {
+              // Handle different scan types
+            if (type === "billing" || type === "booking") {
                 return await processBillingScan(hash, res);
             } else {
                 console.log(`Unsupported scan type: ${type}`);
@@ -55,6 +54,16 @@ const processBillingScan = async (billingHash, res) => {
         }
         
         console.log(`Found billing: ${billing._id} for user: ${billing.userID}`);
+        
+        // Check payment status before proceeding
+        if (billing.paymentStatus === "completed") {
+            console.log(`Billing ${billing._id} has already been used and payment is completed`);
+            return res.status(200).json({
+                success: false,
+                message: "This QR code has already been used for payment",
+                response_Code: "ALREADY_PAID"
+            });
+        }
         
         // Get current time for exit time
         const exitTime = new Date();
