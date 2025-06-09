@@ -31,12 +31,14 @@ exports.createBilling = async (req, res) => {  try {
     const sriLankaOffset = 5.5 * 60 * 60 * 1000;
     const entryTime = new Date(nowUTC.getTime() + sriLankaOffset);
     console.log("🕒 Entry time (SLST):", entryTime.toISOString());    // Create a JSON object for hash source
+    const randomString = crypto.randomBytes(16).toString("hex");
     const hashData = {
       type: "billing",
       parkingID: parkingID,
       userID: userID,
       vehicleType: vehicleType || "car",
-      entryTime: entryTime.toISOString()
+      entryTime: entryTime.toISOString(),
+      random: randomString
     };
     
     // Convert to JSON string for hashing

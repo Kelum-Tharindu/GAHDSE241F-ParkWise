@@ -2,6 +2,33 @@ const { response } = require("express");
 const Billing = require("../models/Billingmodel");
 const Parking = require("../models/parkingmodel");
 const Transaction = require("../models/transactionModel");
+const crypto = require('crypto');
+
+// Define Sri Lanka time offset (UTC+5:30 = 5.5 hours = 330 minutes = 19800000 milliseconds)
+const SRI_LANKA_OFFSET = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+
+/**
+ * Get current time in Sri Lanka time zone (UTC+5:30)
+ * @returns {Date} Current time in Sri Lanka time zone
+ */
+const getCurrentSriLankaTime = () => {
+    const now = new Date();
+    return new Date(now.getTime() + SRI_LANKA_OFFSET);
+};
+
+/**
+ * Generate a random hash for billing or booking
+ * @param {string} prefix - Optional prefix for the hash (default: 'bil')
+ * @returns {string} A random hash string
+ */
+const generateRandomHash = (prefix = 'bil') => {
+    // Generate a random 8-byte hex string
+    const randomBytes = crypto.randomBytes(8).toString('hex');
+    // Create a timestamp part (in ms)
+    const timestamp = Date.now().toString(36);
+    // Combine parts for a unique hash
+    return `${prefix}_${timestamp}_${randomBytes}`;
+};
 
 /**
  * Scanner controller for handling scanner app requests
@@ -103,14 +130,13 @@ const scannerController = {
             // Save transaction first
             await transaction.save();
             console.log(`Updated transaction: ${transaction._id}`);
-            
-            // Update billing with transaction ID if it doesn't have one
+              // Update billing with transaction ID if it doesn't have one
             if (!billing.transactionId) {
                 billing.transactionId = transaction._id;
             }
             
             // Update billing with exit time, fee, duration, and status
-            billing.exitTime = new Date(exitTime);
+            billing.exitTime = getCurrentSriLankaTime();
             billing.fee = fee;
             billing.duration = duration;
             billing.paymentStatus = "completed";
@@ -193,11 +219,10 @@ const processBillingScan = async (billingHash, res) => {
                 success: false,
                 message: "This QR code has already been used for payment",
                 response_Code: "ALREADY_PAID"
-            });
-        }
+            });        }
         
         // Get current time for exit time
-        const exitTime = new Date();
+        const exitTime = getCurrentSriLankaTime();
         const entryTime = new Date(billing.entryTime);
         
         // Calculate duration in minutes
