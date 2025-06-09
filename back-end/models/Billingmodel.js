@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 const billingSchema = new mongoose.Schema({
-    parkingID: { type: String, required: true },
+    parkingID: { type: mongoose.Schema.Types.ObjectId, ref: 'Parking', required: true }, // Reference to Parking model
+    userID: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User model
     entryTime: { type: Date, required: true },
     exitTime: { type: Date },
     duration: { type: Number }, // Duration in minutes
