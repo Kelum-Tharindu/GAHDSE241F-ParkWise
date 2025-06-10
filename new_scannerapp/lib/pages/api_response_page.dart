@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 class ApiResponsePage extends StatelessWidget {
   final Map<String, dynamic> response;
   const ApiResponsePage({super.key, required this.response});
-
   bool get _isErrorResponse {
     // Check if response code indicates an error
     final code = response['RESPONSE_CODE'];
     return code != null && code.toString().toLowerCase() == 'err';
+  }
+
+  bool get _isBillingResponse {
+    // Check if response code indicates billing calculation
+    final code = response['RESPONSE_CODE'];
+    return code != null && code.toString() == 'BILLING_CALCULATED';
   }
 
   @override
@@ -15,7 +20,13 @@ class ApiResponsePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF013220),
       appBar: AppBar(
-        title: Text(_isErrorResponse ? 'Invalid Scan' : 'Scan Result'),
+        title: Text(
+          _isErrorResponse
+              ? 'Invalid Scan'
+              : _isBillingResponse
+              ? 'Parking Bill'
+              : 'Scan Result',
+        ),
         backgroundColor: _isErrorResponse
             ? const Color(0xFF8B0000)
             : const Color(0xFF025940),
@@ -32,7 +43,11 @@ class ApiResponsePage extends StatelessWidget {
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    _isErrorResponse ? _buildErrorView() : _buildSuccessView(),
+                    _isErrorResponse
+                        ? _buildErrorView()
+                        : _isBillingResponse
+                        ? _buildBillingView()
+                        : _buildSuccessView(),
                     const SizedBox(height: 24),
                     _buildActionButtons(context),
                   ],
@@ -327,9 +342,9 @@ class ApiResponsePage extends StatelessWidget {
             onPressed: () =>
                 Navigator.of(context).popUntil((route) => route.isFirst),
             icon: const Icon(Icons.qr_code_scanner_rounded),
-            label: const Text(
-              'Scan Another Code',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            label: Text(
+              _isBillingResponse ? 'Scan Another Bill' : 'Scan Another Code',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: _isErrorResponse
@@ -344,6 +359,285 @@ class ApiResponsePage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  String _formatDuration(int durationInMinutes) {
+    final hours = durationInMinutes ~/ 60;
+    final minutes = durationInMinutes % 60;
+
+    if (hours > 0 && minutes > 0) {
+      return '${hours}h ${minutes}min';
+    } else if (hours > 0) {
+      return '${hours}h';
+    } else {
+      return '${minutes}min';
+    }
+  }
+
+  String _formatDateTime(String dateTimeStr) {
+    try {
+      final dateTime = DateTime.parse(dateTimeStr);
+      // Do not convert to local, just format as is
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return dateTimeStr;
+    }
+  }
+
+  Widget _buildBillingView() {
+    final data = response['data'] as Map<String, dynamic>? ?? {};
+    final parkingName = data['parkingName']?.toString() ?? 'Unknown Parking';
+    final entryTime = data['entryTime']?.toString() ?? '';
+    final exitTime = data['exitTime']?.toString() ?? '';
+    final duration = data['duration'] as int? ?? 0;
+    final priceFor30Min = data['priceFor30Min'] as num? ?? 0;
+    final totalFee = data['totalFee'] as num? ?? 0;
+    final paymentStatus = data['paymentStatus']?.toString() ?? 'pending';
+    //print exit and entry time
+    print('==++++++++Entry Time: ${_formatDateTime(entryTime)}');
+    print('==+++++++++Exit Time: ${_formatDateTime(exitTime)}');
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header with icon
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: const Color(0xFF025940).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.receipt_long_rounded,
+              color: Color(0xFF025940),
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            parkingName,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: paymentStatus == 'completed'
+                  ? Colors.green.shade50
+                  : Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: paymentStatus == 'completed'
+                    ? Colors.green.shade200
+                    : Colors.orange.shade200,
+              ),
+            ),
+            child: Text(
+              paymentStatus.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: paymentStatus == 'completed'
+                    ? Colors.green.shade700
+                    : Colors.orange.shade700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Parking Duration Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF025940).withOpacity(0.1),
+                  const Color(0xFF013220).withOpacity(0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFF025940).withOpacity(0.2),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.schedule_rounded,
+                      color: Color(0xFF025940),
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Parking Duration',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _formatDuration(duration),
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF025940),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Time Details
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              children: [
+                _buildTimeRow('Entry Time', entryTime, Icons.login_rounded),
+                const SizedBox(height: 12),
+                Divider(color: Colors.grey.shade300, height: 1),
+                const SizedBox(height: 12),
+                _buildTimeRow('Exit Time', exitTime, Icons.logout_rounded),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Billing Details
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.green.shade50, Colors.green.shade100],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.green.shade200),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Rate (30 min)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    Text(
+                      '\$${priceFor30Min.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Divider(color: Colors.green.shade200, thickness: 1),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Total Amount',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      '\$${totalFee.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF025940),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeRow(String label, String time, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: const Color(0xFF025940), size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _formatDateTime(time),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
