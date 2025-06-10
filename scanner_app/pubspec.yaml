@@ -42,7 +42,7 @@ dependencies:
   camera: ^0.10.6
   
   # HTTP requests for API calls
-  http: ^1.2.2
+  http: ^1.4.0
   
   # Shared preferences for storing user data
   shared_preferences: ^2.3.2

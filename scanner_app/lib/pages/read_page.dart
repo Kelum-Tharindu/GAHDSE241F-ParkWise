@@ -73,60 +73,66 @@ class _ReadPageState extends State<ReadPage> {
       controller.stop();
 
       // Prepare data for API - format depends on QR type
-      Map<String, dynamic> apiData = {}; // If it's a billing QR code
-      //print data
-
-      if ((data['type'] == 'billing' || data['type'] == 'booking') &&
-          data['billingHash'] != null) {
-        apiData = {'type': data['type'], 'hash': data['billingHash']};
-        if (kDebugMode) {
-          print('=== Preparing API request: $apiData');
+      Map<String, dynamic> apiData = {};
+      
+      // First check if hash is available
+      if (data['billingHash'] != null) {
+        // Then check and categorize by type
+        if (data['type'] != null) {
+          // Valid types: 'billing', 'booking', 'subbulkbooking'
+          if (data['type'] == 'billing') {
+            apiData = {'type': 'billing', 'hash': data['billingHash']};
+            if (kDebugMode) {
+              print('=== Billing QR Code Detected');
+              print('=== Hash: ${data['billingHash']}');
+              print('=== Type: ${data['type']}');
+            }
+          } else if (data['type'] == 'booking') {
+            apiData = {'type': 'booking', 'hash': data['billingHash']};
+            if (kDebugMode) {
+              print('=== Booking QR Code Detected');
+              print('=== Hash: ${data['billingHash']}');
+              print('=== Type: ${data['type']}');
+            }
+          } else if (data['type'] == 'subbulkbooking') {
+            apiData = {'type': 'subbulkbooking', 'hash': data['billingHash']};
+            if (kDebugMode) {
+              print('=== Sub Bulk Booking QR Code Detected');
+              print('=== Hash: ${data['billingHash']}');
+              print('=== Type: ${data['type']}');
+            }
+          } else {
+            if (kDebugMode) {
+              print('=== Unknown QR Type: ${data['type']}');
+              print('=== Hash: ${data['billingHash']}');
+            }
+            // Show error for unknown type
+            showQRErrorDialog(context, 'Invalid QR Type', 
+              'The QR code type "${data['type']}" is not recognized.');
+            return;
+          }
+        } else {
+          // Missing type
+          if (kDebugMode) {
+            print('=== Error: QR type not found');
+            print('=== Hash is available: ${data['billingHash']}');
+          }
+          showQRErrorDialog(context, 'Invalid QR Code', 
+            'The QR code is missing a type identifier.');
+          return;
         }
       } else {
-        // For other types, send the original data
-        //print error
+        // Missing hash
         if (kDebugMode) {
-          print('=== ###type or billingHash not found in QR data');
+          print('=== Error: QR hash not found');
+          if (data['type'] != null) {
+            print('=== Type is available: ${data['type']}');
+          } else {
+            print('=== Type is also missing');
+          }
         }
-
-        setState(() {
-          isProcessing = false;
-        });
-
-        // Show error dialog with back button
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder:
-                (context) => AlertDialog(
-                  title: const Text('Invalid QR Code'),
-                  content: const Text(
-                    'The scanned QR code is not a valid parking QR code.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        setState(() {
-                          scanned = false;
-                        });
-                        controller.start(); // Start scanning again
-                      },
-                      child: const Text('Try Again'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        context.go('/'); // Go back to home/main page
-                      },
-                      child: const Text('Back'),
-                    ),
-                  ],
-                ),
-          );
-        }
-
+        showQRErrorDialog(context, 'Invalid QR Code', 
+          'The QR code is missing a valid hash.');
         return;
       }
 
@@ -142,9 +148,7 @@ class _ReadPageState extends State<ReadPage> {
 
       if (kDebugMode) {
         print('=== API response: $response');
-      }
-
-      if (!mounted) return;
+      }      if (!mounted) return;
 
       if (response != null) {
         if (kDebugMode) {
@@ -157,38 +161,9 @@ class _ReadPageState extends State<ReadPage> {
         }
 
         // Show error dialog with options
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder:
-              (context) => AlertDialog(
-                title: const Text('Connection Error'),
-                content: const Text(
-                  'Could not connect to the server. Please check your internet connection.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      setState(() {
-                        scanned = false;
-                      });
-                      controller.start(); // Try scanning again
-                    },
-                    child: const Text('Try Again'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      context.go('/'); // Go back to home/main page
-                    },
-                    child: const Text('Back'),
-                  ),
-                ],
-              ),
-        );
-      }
-    } catch (e) {
+        showQRErrorDialog(context, 'Connection Error', 
+          'Could not connect to the server. Please check your internet connection.');
+      }    } catch (e) {
       if (kDebugMode) {
         print('=== Exception during scan: $e');
       }
@@ -211,34 +186,44 @@ class _ReadPageState extends State<ReadPage> {
             "Failed to connect to the server. Please check your internet connection.";
       }
 
-      // Show error dialog with options
+      // Show error dialog using helper method
+      showQRErrorDialog(context, errorTitle, errorMessage);
+    }
+  }
+
+  // Helper method to show QR error dialog
+  void showQRErrorDialog(BuildContext context, String title, String message) {
+    setState(() {
+      isProcessing = false;
+    });
+    
+    if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder:
-            (context) => AlertDialog(
-              title: Text(errorTitle),
-              content: Text(errorMessage),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    setState(() {
-                      scanned = false;
-                    });
-                    controller.start(); // Try scanning again
-                  },
-                  child: const Text('Try Again'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    context.go('/'); // Go back to home/main page
-                  },
-                  child: const Text('Back'),
-                ),
-              ],
+        builder: (context) => AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  scanned = false;
+                });
+                controller.start(); // Start scanning again
+              },
+              child: const Text('Try Again'),
             ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.go('/'); // Go back to home/main page
+              },
+              child: const Text('Back'),
+            ),
+          ],
+        ),
       );
     }
   }

@@ -42,6 +42,9 @@ function formatSriLankaTime(date) {
 const calculateFee = async (req, res) => {
   try {
     const { parkingName, vehicleType, entryTime, exitTime } = req.body;
+    //print entry and exit times
+    console.log('#####Entry Time:', entryTime);
+    console.log('#####Exit Time:', exitTime);
 
     const parking = await Parking.findOne({ name: parkingName });
     if (!parking) return res.status(404).json({ message: 'Parking not found' });

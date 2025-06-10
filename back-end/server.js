@@ -22,7 +22,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const bulkbookingRoutes = require('./routes/bulkbooking');
 const subBulkBookingRoutes = require('./routes/subBulkBookingRoutes');
 const parkingPaymentRoutes = require('./routes/parkingPaymentRoutes');
-const scannerRoutes = require('./routes/scannerRoutes');
+
 
 // -------------------- GET LOCAL IP --------------------
 const getLocalIP = () => {
@@ -109,7 +109,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/bulkbooking', bulkbookingRoutes);
 app.use('/api/sub-bulk-booking', subBulkBookingRoutes);
 app.use('/api/parking-payments', parkingPaymentRoutes);
-app.use('/api/scanner', scannerRoutes);
+
 
 // -------------------- TEST ROUTE --------------------
 app.get('/', (req, res) => {
