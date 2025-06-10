@@ -40,8 +40,7 @@ const calculateExtraBookingFee = async (booking, currentTime) => {
         if (!currentTime) {
             currentTime = getCurrentSriLankaTime();
         }
-        
-        console.log(`Scheduled exit: ${scheduledExitTime}, Current time: ${currentTime}`);
+          console.log(`Scheduled exit: ${scheduledExitTime}, Current time: ${currentTime}`);
         
         // Default to car if not specified
         const vehicleType = booking.vehicleType || "car";
@@ -51,13 +50,13 @@ const calculateExtraBookingFee = async (booking, currentTime) => {
         
         console.log(`Vehicle type: ${vehicleType}, Fee per 30 minutes: ${perPrice30Min}`);
         
-        // Calculate if current time exceeds scheduled exit time
+        // Check if current time exceeds scheduled exit time
         let extraTimeFee = 0;
         let extraTimeMinutes = 0;
         let extraTimePeriods = 0;
         
         if (currentTime > scheduledExitTime) {
-            // Calculate extra time in minutes
+            // Current time has exceeded exit time - calculate extra fees
             const extraTimeMs = currentTime - scheduledExitTime;
             extraTimeMinutes = Math.ceil(extraTimeMs / (1000 * 60));
             
@@ -65,9 +64,15 @@ const calculateExtraBookingFee = async (booking, currentTime) => {
             extraTimePeriods = Math.ceil(extraTimeMinutes / 30);
             extraTimeFee = extraTimePeriods * perPrice30Min;
             
-            console.log(`Extra time: ${extraTimeMinutes} minutes (${extraTimePeriods} periods)`);
+            console.log(`Extra time detected: ${extraTimeMinutes} minutes (${extraTimePeriods} periods)`);
             console.log(`Extra fee: ${extraTimeFee}`);
+        } else {
+            // Current time has not exceeded exit time - set all extra values to 0
+            extraTimeFee = 0;
+            extraTimeMinutes = 0;
+            extraTimePeriods = 0;
             
+            console.log(`No extra time - booking is still within allowed period`);
         }
           // Calculate total duration from entry time to current time
         const totalDurationMs = currentTime - entryTime;

@@ -16,4 +16,11 @@ router.post("/scan", scannerController.processScan);
  */
 router.post("/confirm-payment", scannerController.confirmBillingPayment);
 
+/**
+ * @route   POST /api/scanner/check-extra-fee
+ * @desc    Check ongoing booking for extra time and calculate extra fees
+ * @access  Public
+ */
+router.post("/check-extra-fee", scannerController.checkOngoingBookingExtraFee);
+
 module.exports = router;

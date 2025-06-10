@@ -11,14 +11,7 @@ const { calculateExtraBookingFee, getCurrentSriLankaTime } = require("../utils/f
  * @param {string} prefix - Optional prefix for the hash (default: 'bil')
  * @returns {string} A random hash string
  */
-const generateRandomHash = (prefix = 'bil') => {
-    // Generate a random 8-byte hex string
-    const randomBytes = crypto.randomBytes(8).toString('hex');
-    // Create a timestamp part (in ms)
-    const timestamp = Date.now().toString(36);
-    // Combine parts for a unique hash
-    return `${prefix}_${timestamp}_${randomBytes}`;
-};
+
 
 /**
  * Scanner controller for handling scanner app requests
@@ -45,17 +38,7 @@ const scannerController = {
                 if (type === "billing") {
                     return await processBillingScan(hash, res);
                 } else if (type === "booking") {
-                    // For booking type, check if we're processing entry or exit
-                    const { action } = req.body;
-                    
-                    if (action === "exit" && hash) {
-                        // If action is exit, call processBookingExit function
-                        const { processBookingExit } = require('./bookingExitController');
-                        return await processBookingExit(hash, res);
-                    } else {
-                        // Default to entry processing if no action specified
-                        return await processBookingScan(hash, res);
-                    }
+                    return await processBookingScan(hash, res);
                 }
             } else {
                 console.log(`Unsupported scan type: ${type}`);
@@ -194,6 +177,82 @@ const scannerController = {
                 error: error.message 
             });
         }
+    },
+    
+    /**
+     * Check ongoing booking for extra time and fee
+     * @param {Object} req - Request object with booking hash
+     * @param {Object} res - Response object
+     */
+    checkOngoingBookingExtraFee: async (req, res) => {
+        try {
+            const { hash } = req.body;
+            if (!hash) {
+                return res.status(400).json({ success: false, message: "Booking hash is required" });
+            }
+            // Find the booking by hash
+            const booking = await Booking.findOne({ billingHash: hash });
+            if (!booking) {
+                return res.status(404).json({ success: false, message: "Booking not found" });
+            }
+            if (booking.bookingState !== 'ongoing') {
+                return res.status(400).json({ success: false, message: "Booking is not ongoing" });
+            }            // Get current time
+            const now = getCurrentSriLankaTime();
+            // Calculate extra fee using feeCalculator (works for both cases - with or without extra time)
+            const { calculateExtraBookingFee } = require("../utils/feeCalculator");
+            const extraFeeDetails = await calculateExtraBookingFee(booking, now);
+              // Format times for clearer display
+            const formattedExitTime = new Date(booking.exitTime).toLocaleString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: true
+            });
+            
+            const formattedCurrentTime = now.toLocaleString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: true
+            });
+            
+            const formattedEntryTime = new Date(booking.entryTime).toLocaleString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: true
+            });
+            
+            // Determine if there's extra time
+            const hasExtraTime = now > new Date(booking.exitTime);
+            
+            return res.status(200).json({
+                success: true,
+                message: hasExtraTime ? "Extra time detected. Extra fee calculated." : "Booking is within allowed period.",
+                response_Code: hasExtraTime ? "EXTRA_FEE" : "NO_EXTRA_FEE",
+                data: {
+                    booking: booking,
+                    hasExtraTime: hasExtraTime,
+                    fee: {
+                        originalFee: extraFeeDetails.fee.totalFee,
+                        extraTimeFee: extraFeeDetails.extraTimeFee,
+                        totalPayable: extraFeeDetails.fee.grandTotal,
+                        perPrice30Min: extraFeeDetails.perPrice30Min
+                    },                    time: {
+                        entryTime: formattedEntryTime,
+                        scheduledExitTime: formattedExitTime,
+                        realExitTime: formattedCurrentTime,
+                        currentTime: formattedCurrentTime,
+                        extraTime: extraFeeDetails.extraTime,
+                        extraTimeMinutes: extraFeeDetails.extraTimeMinutes,
+                        totalDuration: extraFeeDetails.totalDuration,
+                        totalDurationMinutes: extraFeeDetails.totalDurationMinutes
+                    },
+                    details: extraFeeDetails
+                }
+            });
+        } catch (error) {
+            console.error("Error checking ongoing booking extra fee:", error);
+            return res.status(500).json({ success: false, message: "Server error", error: error.message });
+        }
     }
 };
 
@@ -298,50 +357,103 @@ const processBookingScan = async (bookingHash, res) => {
             return res.status(404).json({ success: false, message: "Booking not found" });
         }
         
-        console.log(`Found booking: ${booking._id} for user: ${booking.userId}`);
-        
-        // Check booking state before proceeding
-        if (booking.bookingState !== 'active') {
-            console.log(`Booking ${booking._id} is not in active state. Current state: ${booking.bookingState}`);            if (booking.bookingState === 'ongoing') {
-                // If booking is ongoing but not exiting, just provide info
-                return res.status(200).json({
-                    success: true,
-                    message: "This booking is currently active. Use 'exit' action to calculate exit fees.",
-                    response_Code: "BOOKING_ONGOING",
-                    data: {
-                        booking: booking
+        console.log(`Found booking: ${booking._id} for user: ${booking.userId}`);        // Check booking state before proceeding
+        if (booking.bookingState == 'active') {
+            // If booking state is 'active', update state, entry time, and decrement slot
+            booking.bookingState = 'ongoing';
+            booking.entryTime = getCurrentSriLankaTime();
+         
+            await booking.save();
+            console.log(`Updated booking: ${booking._id} state to 'ongoing' and set entry time to ${booking.entryTime}`);
+            return res.status(200).json({
+                success: true,
+                message: `Welcome to ${booking.parkingName}! Your booking is now active.`,
+                response_Code: "BOOKING_ACTIVATED",
+                data: {
+                    booking: booking
+                }
+            });        } else if (booking.bookingState == 'ongoing') {
+            // Calculate current usage fee
+            const entryTime = new Date(booking.entryTime);
+            const now = getCurrentSriLankaTime();
+            const durationInMs = now - entryTime;
+            const durationInMinutes = Math.ceil(durationInMs / (1000 * 60));
+            const durationHours = Math.floor(durationInMinutes / 60);
+            const durationMins = durationInMinutes % 60;
+            const formattedDuration = `${durationHours}h ${durationMins}m`;
+            
+            // Format times for clearer display
+            const formattedEntryTime = entryTime.toLocaleString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: true
+            });
+            
+            const formattedCurrentTime = now.toLocaleString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: true
+            });
+            
+            const formattedExitTime = new Date(booking.exitTime).toLocaleString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: true
+            });
+            
+            // Calculate remaining time
+            const remainingTimeMs = new Date(booking.exitTime) - now;
+            const remainingMinutes = Math.ceil(remainingTimeMs / (1000 * 60));
+            const remainingHours = Math.floor(remainingMinutes / 60);
+            const remainingMins = remainingMinutes % 60;
+            const formattedRemainingTime = `${remainingHours}h ${remainingMins}m`;
+            
+            // Get the parking details to calculate fee
+            const parking = await Parking.findOne({ name: booking.parkingName });
+            const vehicleType = booking.vehicleType || "car";
+            const perPrice30Min = parking?.slotDetails?.[vehicleType]?.perPrice30Min || 0;
+            const periods = Math.ceil(durationInMinutes / 30);
+            const totalFee = periods * perPrice30Min;
+            
+            // Check if there's extra time (exceeding scheduled exit time)
+            const hasExtraTime = now > new Date(booking.exitTime);
+            
+            return res.status(200).json({
+                success: true,
+                message: "This booking is currently active.",
+                response_Code: "BOOKING_ONGOING",
+                data: {
+                    booking: booking,
+                    extraTime: hasExtraTime,
+                    fee: {
+                        calculatedFee: totalFee,
+                        perPrice30Min: perPrice30Min,
+                        periods30Min: periods
+                    },
+                    time: {
+                        entryTime: formattedEntryTime,
+                        currentTime: formattedCurrentTime,
+                        scheduledExitTime: formattedExitTime,
+                        duration: formattedDuration,
+                        durationMinutes: durationInMinutes,
+                        remainingTime: formattedRemainingTime,
+                        remainingMinutes: remainingMinutes
                     }
-                });
-            } else if (booking.bookingState === 'completed') {
-                return res.status(200).json({
-                    success: false,
-                    message: "This booking has already been completed",
-                    response_Code: "ALREADY_COMPLETED"
-                });
-            } else if (booking.bookingState === 'cancelled') {
-                return res.status(200).json({
-                    success: false,
-                    message: "This booking has been cancelled",
-                    response_Code: "CANCELLED_BOOKING"
-                });
-            }
+                }
+            });
+        } else if (booking.bookingState == 'completed') {
+            return res.status(200).json({
+                success: false,
+                message: "This booking has already been completed",
+                response_Code: "ALREADY_COMPLETED"
+            });
+        } else if (booking.bookingState == 'cancelled') {
+            return res.status(200).json({
+                success: false,
+                message: "This booking has been cancelled",
+                response_Code: "CANCELLED_BOOKING"
+            });
         }
-        
-        // Update booking state to 'ongoing' and set entry time to current Sri Lanka time
-        booking.bookingState = 'ongoing';
-        booking.entryTime = getCurrentSriLankaTime();
-        
-        await booking.save();
-        console.log(`Updated booking: ${booking._id} state to 'ongoing' and set entry time to ${booking.entryTime}`);
-        
-        return res.status(200).json({
-            success: true,
-            message: `Welcome to ${booking.parkingName}! Your booking is now active.`,
-            response_Code: "BOOKING_ACTIVATED",
-            data: {
-                booking: booking
-            }
-        });
     } catch (error) {
         console.error("Error processing booking scan:", error);
         return res.status(500).json({ success: false, message: "Server error", error: error.message });
