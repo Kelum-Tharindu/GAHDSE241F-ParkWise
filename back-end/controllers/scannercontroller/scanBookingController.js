@@ -385,10 +385,11 @@ exports.confirmBookingCheckout = async (req, res) => {
         message: "Invalid response code for checkout confirmation",
         RESPONSE_CODE: "err",
       });
-    }
-
-    // Extract necessary data
-    const billingHash = req.body.hash || (req.body.data && req.body.data.hash);
+    } // Extract necessary data
+    const billingHash =
+      req.body.billingHash ||
+      (req.body.data && req.body.data.hash) ||
+      (req.body.data && req.body.data.billingHash);
 
     if (!billingHash) {
       return res.status(400).json({
@@ -439,10 +440,36 @@ exports.confirmBookingCheckout = async (req, res) => {
         extraTimeFee: extraTimeFee,
         exitTime: bookingRecord.exitTime,
       };
-    }
-
-    // Save the updated booking record
+    } // Save the updated booking record
     await bookingRecord.save();
+
+    // Find the parking space and update the bookingAvailableSlot
+    const parkingSpace = await Parking.findOne({
+      name: bookingRecord.parkingName,
+    });
+
+    if (parkingSpace) {
+      // Increment bookingAvailableSlot for the specific vehicle type
+      const vehicleType = bookingRecord.vehicleType; // 'car', 'bicycle', or 'truck'
+
+      if (parkingSpace.slotDetails[vehicleType]) {
+        parkingSpace.slotDetails[vehicleType].bookingAvailableSlot += 1;
+
+        console.log(`Incrementing bookingAvailableSlot for ${vehicleType} at ${bookingRecord.parkingName}. 
+                    New value: ${parkingSpace.slotDetails[vehicleType].bookingAvailableSlot}`);
+
+        // Save the updated parking space
+        await parkingSpace.save();
+      } else {
+        console.error(
+          `Vehicle type '${vehicleType}' not found in slot details for ${bookingRecord.parkingName}`
+        );
+      }
+    } else {
+      console.error(
+        `Parking space with name '${bookingRecord.parkingName}' not found`
+      );
+    }
 
     // Update the transaction if it exists, otherwise create a new one
     let transaction;
@@ -472,9 +499,7 @@ exports.confirmBookingCheckout = async (req, res) => {
       await transaction.save();
       bookingRecord.transactionId = transaction._id;
       await bookingRecord.save();
-    }
-
-    // Return success response
+    } // Return success response
     return res.status(200).json({
       success: true,
       RESPONSE_CODE: "CHECKOUT_CONFIRMED",
@@ -490,6 +515,8 @@ exports.confirmBookingCheckout = async (req, res) => {
         transactionId: transaction._id,
         hasExceededTime: hasExceededTime,
         extraTimeFee: hasExceededTime ? extraTimeFee : 0,
+        vehicleType: bookingRecord.vehicleType,
+        slotUpdated: true,
       },
     });
   } catch (error) {
