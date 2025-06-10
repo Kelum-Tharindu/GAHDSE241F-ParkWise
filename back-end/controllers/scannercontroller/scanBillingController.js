@@ -60,7 +60,10 @@ exports.handleScan = async (req, res) => {
       parkingDetails.slotDetails[vehicleType]?.perPrice30Min || 0;
 
     // Calculate current duration in minutes
-    const exitTime = new Date();
+    const nowUTC = new Date();
+    const sriLankaOffset = 5.5 * 60 * 60 * 1000;
+    const exitTime = new Date(nowUTC.getTime() + sriLankaOffset); // Get current time in Sri Lanka as exit time
+
     const durationInMs = exitTime - new Date(entryTime);
     const durationInMinutes = Math.floor(durationInMs / (1000 * 60));
 
