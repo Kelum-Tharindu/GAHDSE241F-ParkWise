@@ -96,7 +96,7 @@ class ApiService {
       case 'billing':
         return '/scanner/scan-billing';
       case 'booking':
-        return '/booking/verify';
+        return '/scanner/scan-booking';
       case 'subbulkbooking':
         return '/subbulkbooking/verify';
       default:

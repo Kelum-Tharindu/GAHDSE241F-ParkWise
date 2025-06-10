@@ -10,4 +10,10 @@ router.post("/scan-billing", scanBillingController.handleScan);
 // Payment confirmation route
 router.post("/confirm-payment", scanBillingController.confirmPayment);
 
+// Booking scan route
+router.post("/scan-booking", scanBookingController.handleBooking);
+
+// Booking checkout route
+router.post("/booking-checkout", scanBookingController.handleBookingCheckout);
+
 module.exports = router;
