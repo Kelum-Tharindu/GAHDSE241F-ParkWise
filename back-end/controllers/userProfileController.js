@@ -17,7 +17,7 @@ const getUserProfile = async (req, res) => {
       }
   
       const user = await User.findById(id).select(
-        '-password -otpSecret -backupCodes -hashedBackupCodes -resetPasswordToken -resetPasswordExpire -is2FAEnabled -googleId -token -tokenExpiry -createdAt -updatedAt'
+        '-password -otpSecret -backupCodes -hashedBackupCodes -resetPasswordToken -resetPasswordExpire -googleId -token -tokenExpiry -createdAt -updatedAt'
       );
   
       if (!user) {

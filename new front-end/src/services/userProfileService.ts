@@ -19,6 +19,7 @@ export interface UserProfile {
     linkedin: string;
     instagram: string;
   };
+  is2FAEnabled?: boolean; // Added
 }
 
 // API base URL - replace with your actual backend URL
@@ -32,6 +33,7 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile> => 
     console.log('User profile data received:', response.data);
     
     // Transform the data to ensure all required fields are present
+    
     const userData = {
       ...response.data,
       socialLinks: response.data.socialLinks || {
@@ -46,7 +48,8 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile> => 
       country: response.data.country || '',
       city: response.data.city || '',
       postalCode: response.data.postalCode || '',
-      taxId: response.data.taxId || ''
+      taxId: response.data.taxId || '',
+      is2FAEnabled: response.data.is2FAEnabled || false // Ensure is2FAEnabled is always defined  
     };
     
     return userData;

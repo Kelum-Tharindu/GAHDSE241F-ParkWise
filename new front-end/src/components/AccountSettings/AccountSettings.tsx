@@ -1,69 +1,125 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaUser, FaEnvelope, FaLock, FaCheckCircle, FaTimesCircle, FaLanguage, FaBell, FaClock, FaGlobe, FaKey } from "react-icons/fa";
+import axios from "axios";
+import { useUser } from "../../context/UserContext";
+import { fetchUserProfile, UserProfile } from "../../services/userProfileService";
 
 export default function AccountSettings() {
-  // Simulated user data
-  const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    password: "",
-    language: "English",
-    timezone: "Asia/Kolkata",
-    notifications: true,
-    apiToken: "sk-1234-5678-ABCD-EFGH",
-  });
+  const { user: authUser, loading: userLoading, setUser } = useUser();
+
+  // User profile state
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   // 2FA state
-  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [show2FASetup, setShow2FASetup] = useState(false);
   const [otpInput, setOtpInput] = useState("");
   const [otpSecret, setOtpSecret] = useState("");
   const [otpError, setOtpError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [qrCode, setQrCode] = useState<string>("");
+  const [showDisable2FAModal, setShowDisable2FAModal] = useState(false);
+  const [backupCodeInput, setBackupCodeInput] = useState("");
+  const [disable2FAError, setDisable2FAError] = useState("");
 
-  // Simulate 2FA secret and OTP (for demo)
-  const generate2FASecret = () => "JBSWY3DPEHPK3PXP";
+  // Additional settings state
+  const [language, setLanguage] = useState("English");
+  const [timezone, setTimezone] = useState("Asia/Kolkata");
+  const [notifications, setNotifications] = useState(true);
+  const [apiToken, setApiToken] = useState("sk-1234-5678-ABCD-EFGH");
+  const [password, setPassword] = useState("");
 
-  const handle2FAToggle = () => {
+  // Fetch user profile when authUser is available
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!authUser || !authUser._id) return;
+      setProfileLoading(true);
+      try {
+        const data = await fetchUserProfile(authUser._id);
+        setProfile(data);
+        setProfileError(null);
+      } catch (err: any) {
+        setProfileError(err.message || "Failed to load profile");
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    if (!userLoading && authUser && authUser._id) {
+      loadProfile();
+    }
+  }, [authUser, userLoading]);
+
+  const handle2FAToggle = async () => {
     setOtpError("");
     setSuccessMsg("");
-    if (!is2FAEnabled) {
-      setOtpSecret(generate2FASecret());
-      setShow2FASetup(true);
-    } else {
-      if (window.confirm("Are you sure you want to disable 2FA?")) {
-        setIs2FAEnabled(false);
-        setSuccessMsg("Two-factor authentication disabled.");
+    if (!authUser.is2FAEnabled) {
+      try {
+        // Call backend to setup 2FA and get QR code
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/setup-2fa`,
+          { userId: authUser._id }
+        );
+        setQrCode(res.data.qrCode);
+        setOtpSecret(""); // Optionally set secret if returned
+        setShow2FASetup(true);
+      } catch (err: any) {
+        setOtpError(err.response?.data?.message || "Failed to setup 2FA");
       }
+    } else {
+      setShowDisable2FAModal(true);
     }
   };
 
-  const handle2FASetup = (e: React.FormEvent) => {
+  const handle2FASetup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otpInput === "123456") {
-      setIs2FAEnabled(true);
+    setOtpError("");
+    setSuccessMsg("");
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/verify-and-enable-2fa`,
+        { userId: authUser._id, otp: otpInput }
+      );
       setShow2FASetup(false);
       setOtpInput("");
       setSuccessMsg("Two-factor authentication enabled.");
-    } else {
-      setOtpError("Invalid code. Try '123456' for demo.");
+      // Update user context to reflect 2FA enabled
+      setUser(prev => ({ ...prev, is2FAEnabled: true }));
+    } catch (err: any) {
+      setOtpError(err.response?.data?.message || "Invalid code. Please try again.");
     }
   };
 
-  // Additional setting handlers
+  const handleDisable2FA = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDisable2FAError("");
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/disable-2fa`,
+        { userId: authUser._id, backupCode: backupCodeInput }
+      );
+      setShowDisable2FAModal(false);
+      setSuccessMsg("Two-factor authentication disabled.");
+      setBackupCodeInput("");
+      // Update user context to reflect 2FA disabled
+      setUser(prev => ({ ...prev, is2FAEnabled: false }));
+    } catch (err: any) {
+      setDisable2FAError(err.response?.data?.message || "Invalid backup code. Please try again.");
+    }
+  };
+
+  // Additional setting handlers (UI only, not synced to backend)
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setUser({ ...user, language: e.target.value });
+    setLanguage(e.target.value);
     setSuccessMsg("Language updated.");
   };
   const handleTimezoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setUser({ ...user, timezone: e.target.value });
+    setTimezone(e.target.value);
     setSuccessMsg("Timezone updated.");
   };
   const handleNotificationsToggle = () => {
-    setUser({ ...user, notifications: !user.notifications });
-    setSuccessMsg(
-      `Notifications ${!user.notifications ? "enabled" : "disabled"}.`
-    );
+    setNotifications(prev => !prev);
+    setSuccessMsg(`Notifications ${!notifications ? "enabled" : "disabled"}.`);
   };
   const handleApiTokenRegenerate = () => {
     if (
@@ -71,13 +127,21 @@ export default function AccountSettings() {
         "Regenerating your API token will invalidate the old one. Continue?"
       )
     ) {
-      setUser({
-        ...user,
-        apiToken: "sk-" + Math.random().toString(36).substring(2, 10).toUpperCase(),
-      });
+      setApiToken("sk-" + Math.random().toString(36).substring(2, 10).toUpperCase());
       setSuccessMsg("API token regenerated.");
     }
   };
+
+  // If loading, show loading UI
+  if (profileLoading) {
+    return <div className="flex items-center justify-center min-h-screen text-lg">Loading account settings...</div>;
+  }
+  if (profileError) {
+    return <div className="flex items-center justify-center min-h-screen text-lg text-red-500">{profileError}</div>;
+  }
+  if (!profile) {
+    return <div className="flex items-center justify-center min-h-screen text-lg text-red-500">No profile data available</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center py-10 px-2">
@@ -94,7 +158,7 @@ export default function AccountSettings() {
             </label>
             <input
               type="text"
-              value={user.name}
+              value={`${profile.username || ""} ${profile.lastName || ""}`.trim()}
               disabled
               className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 cursor-not-allowed"
             />
@@ -105,7 +169,7 @@ export default function AccountSettings() {
             </label>
             <input
               type="email"
-              value={user.email}
+              value={profile.email || ""}
               disabled
               className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 cursor-not-allowed"
             />
@@ -117,17 +181,17 @@ export default function AccountSettings() {
             <input
               type="password"
               placeholder="••••••••"
-              value={user.password}
-              onChange={e => setUser({ ...user, password: e.target.value })}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
             />
             <button
               type="button"
               className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition"
-              disabled={!user.password}
+              disabled={!password}
               onClick={() => {
                 setSuccessMsg("Password changed!");
-                setUser({ ...user, password: "" });
+                setPassword("");
               }}
             >
               Update Password
@@ -143,7 +207,7 @@ export default function AccountSettings() {
                 Two-Factor Authentication (2FA)
               </span>
               <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                {is2FAEnabled ? (
+                {profile.is2FAEnabled ? (
                   <span className="flex items-center text-green-600 dark:text-green-400">
                     <FaCheckCircle className="mr-1" /> Enabled
                   </span>
@@ -158,16 +222,18 @@ export default function AccountSettings() {
               type="button"
               onClick={handle2FAToggle}
               className={`px-4 py-2 rounded-lg text-xs font-medium transition
-                ${is2FAEnabled
+                ${authUser.is2FAEnabled
                   ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
                   : "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
                 }`}
             >
-              {is2FAEnabled ? "Disable 2FA" : "Enable 2FA"}
+              {profile.is2FAEnabled ? "Disable 2FA" : "Enable 2FA"}
             </button>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Protect your account with an extra layer of security. When enabled, you’ll need to enter a code from your authenticator app at login.
+            {profile.is2FAEnabled
+              ? "2FA is enabled for your account. Use your authenticator app to log in."
+              : "Add an extra layer of security to your account by enabling 2FA."}
           </p>
         </div>
 
@@ -179,7 +245,7 @@ export default function AccountSettings() {
               <FaLanguage className="inline mr-2" /> Language
             </label>
             <select
-              value={user.language}
+              value={language}
               onChange={handleLanguageChange}
               className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
             >
@@ -197,7 +263,7 @@ export default function AccountSettings() {
               <FaClock className="inline mr-2" /> Timezone
             </label>
             <select
-              value={user.timezone}
+              value={timezone}
               onChange={handleTimezoneChange}
               className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
             >
@@ -218,12 +284,12 @@ export default function AccountSettings() {
               type="button"
               onClick={handleNotificationsToggle}
               className={`px-3 py-1 rounded-full text-xs font-medium transition
-                ${user.notifications
+                ${notifications
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                 }`}
             >
-              {user.notifications ? "On" : "Off"}
+              {notifications ? "On" : "Off"}
             </button>
           </div>
         </div>
@@ -243,12 +309,12 @@ export default function AccountSettings() {
             </button>
           </div>
           <div className="flex items-center bg-gray-100 dark:bg-gray-900 rounded px-3 py-2 text-xs font-mono text-gray-700 dark:text-gray-300">
-            <span className="truncate">{user.apiToken}</span>
+            <span className="truncate">{apiToken}</span>
             <button
               type="button"
               className="ml-2 px-2 py-1 bg-gray-300 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-600"
               onClick={() => {
-                navigator.clipboard.writeText(user.apiToken);
+                navigator.clipboard.writeText(apiToken);
                 setSuccessMsg("API token copied to clipboard.");
               }}
             >
@@ -278,10 +344,19 @@ export default function AccountSettings() {
                 Scan this code in your authenticator app or enter the secret manually.
               </p>
               <div className="mb-4">
-                {/* In a real app, show QR code here */}
-                <div className="bg-gray-100 dark:bg-gray-900 rounded p-4 text-center text-xs font-mono mb-2">
-                  Secret: <span className="font-bold">{otpSecret}</span>
-                </div>
+                {qrCode ? (
+                  <img src={qrCode} alt="2FA QR Code" className="mx-auto mb-2" style={{ width: 180, height: 180 }} />
+                ) : (
+                  <div className="bg-gray-100 dark:bg-gray-900 rounded p-4 text-center text-xs font-mono mb-2">
+                    Loading QR code...
+                  </div>
+                )}
+                {/* Optionally show secret if you want */}
+                {otpSecret && (
+                  <div className="bg-gray-100 dark:bg-gray-900 rounded p-4 text-center text-xs font-mono mb-2">
+                    Secret: <span className="font-bold">{otpSecret}</span>
+                  </div>
+                )}
                 <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                   Use Google Authenticator, Authy, etc.
                 </div>
@@ -318,6 +393,48 @@ export default function AccountSettings() {
                 </div>
                 <div className="text-xs text-gray-400 mt-4">
                   <b>Demo:</b> Use <span className="font-mono">123456</span> as code.
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Disable 2FA Modal */}
+        {showDisable2FAModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-sm">
+              <h3 className="text-lg font-bold mb-2 text-gray-800 dark:text-white">
+                Disable Two-Factor Authentication
+              </h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
+                Enter one of your backup codes to disable 2FA.
+              </p>
+              <form onSubmit={handleDisable2FA}>
+                <input
+                  type="text"
+                  value={backupCodeInput}
+                  onChange={e => setBackupCodeInput(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-xs bg-white dark:bg-gray-900 text-gray-900 dark:text-white mb-2"
+                  placeholder="Backup code"
+                  autoFocus
+                />
+                {disable2FAError && (
+                  <div className="text-red-500 text-xs mb-2">{disable2FAError}</div>
+                )}
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700 transition"
+                  >
+                    Disable 2FA
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDisable2FAModal(false)}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-xs hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </form>
             </div>

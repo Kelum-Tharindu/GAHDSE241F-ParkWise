@@ -18,6 +18,7 @@ export type User = {
     linkedin: string | null;
     instagram: string | null;
   };
+  is2FAEnabled?: boolean;
 };
 
 interface UserContextType {
@@ -38,8 +39,22 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User>({
     _id: null,
     username: null,
+    firstName: null,
+    lastName: null,
+    email: null,
+    phone: null,
     role: null,
-   
+    country: null,
+    city: null,
+    postalCode: null,
+    taxId: null,
+    socialLinks: {
+      facebook: null,
+      twitter: null,
+      linkedin: null,
+      instagram: null,
+    },
+    is2FAEnabled: false,
   });
   const [loading, setLoading] = useState(true);
 
@@ -71,6 +86,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             linkedin: null,
             instagram: null,
           },
+          is2FAEnabled: backendUser.is2FAEnabled ?? false,
         });
       } catch {
         setUser({
@@ -91,6 +107,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             linkedin: null,
             instagram: null,
           },
+          is2FAEnabled: false,
         });
       } finally {
         setLoading(false);
