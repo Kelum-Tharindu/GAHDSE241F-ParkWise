@@ -1,3 +1,4 @@
+const { hash } = require("crypto");
 const Booking = require("../../models/bookingmodel");
 const Parking = require("../../models/parkingmodel");
 const Transaction = require("../../models/transactionModel");
@@ -290,6 +291,7 @@ exports.handleBooking = async (req, res) => {
               vehicleType: bookingRecord.vehicleType,
               paymentStatus: bookingRecord.paymentStatus,
               bookingState: bookingRecord.bookingState,
+              hash: bookingRecord.billingHash,
             },
           });
         } else {
@@ -316,6 +318,7 @@ exports.handleBooking = async (req, res) => {
               vehicleType: bookingRecord.vehicleType,
               paymentStatus: bookingRecord.paymentStatus,
               bookingState: bookingRecord.bookingState,
+              hash: bookingRecord.billingHash,
             },
           });
         }
@@ -357,6 +360,143 @@ exports.handleBooking = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error occurred while processing booking",
+      error: error.message,
+      RESPONSE_CODE: "err",
+    });
+  }
+};
+
+/**
+ * Confirm booking checkout and update booking and transaction records
+ * Process payment and update booking state to completed
+ * @param {Object} req - Request object containing checkout data
+ * @param {Object} res - Response object
+ * @returns {Object} - Confirmation response
+ */
+exports.confirmBookingCheckout = async (req, res) => {
+  try {
+    // Extract data from request body
+    const { data, RESPONSE_CODE } = req.body;
+
+    // Validate response code
+    if (RESPONSE_CODE !== "CHECKOUT_CALCULATED") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid response code for checkout confirmation",
+        RESPONSE_CODE: "err",
+      });
+    }
+
+    // Extract necessary data
+    const billingHash = req.body.hash || (req.body.data && req.body.data.hash);
+
+    if (!billingHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Billing hash is required",
+        RESPONSE_CODE: "err",
+      });
+    }
+
+    // Find booking record by hash
+    const bookingRecord = await Booking.findOne({ billingHash });
+
+    if (!bookingRecord) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking record not found",
+        RESPONSE_CODE: "err",
+      });
+    }
+
+    // Get the hasExceededTime and fee data from the request or calculate it
+    const hasExceededTime = data.hasExceededTime || false;
+    const extraTimeFee = data.extraTimeFee || 0;
+    const formattedExtraTime = data.formattedExtraTime || "00:00:00";
+    const totalFee = data.totalFee || bookingRecord.fee.totalFee;
+    const actualExitTime = data.actualExitTime || new Date();
+
+    // Update booking with exit information
+    bookingRecord.bookingState = "completed";
+
+    // Set exit time
+    if (typeof actualExitTime === "string") {
+      bookingRecord.exitTime = new Date(actualExitTime);
+    } else {
+      bookingRecord.exitTime = actualExitTime;
+    }
+
+    // Update fee information if extra time was used
+    if (hasExceededTime) {
+      // Update the fee structure
+      bookingRecord.fee.usageFee =
+        data.updatedUsageFee || bookingRecord.fee.usageFee + extraTimeFee;
+      bookingRecord.fee.totalFee = totalFee;
+
+      // Record the extra time details
+      bookingRecord.exitedBookingTime = {
+        extraTime: formattedExtraTime,
+        extraTimeFee: extraTimeFee,
+        exitTime: bookingRecord.exitTime,
+      };
+    }
+
+    // Save the updated booking record
+    await bookingRecord.save();
+
+    // Update the transaction if it exists, otherwise create a new one
+    let transaction;
+    if (bookingRecord.transactionId) {
+      transaction = await Transaction.findById(bookingRecord.transactionId);
+    }
+
+    if (transaction) {
+      // Update existing transaction
+      transaction.amount = totalFee;
+      transaction.status = "Completed";
+      transaction.date = new Date();
+      await transaction.save();
+    } else {
+      // Create a new transaction record
+      transaction = new Transaction({
+        type: "booking",
+        bookingId: bookingRecord._id,
+        userId: bookingRecord.userId,
+        amount: totalFee,
+        method: "Scanner App",
+        status: "Completed",
+        date: new Date(),
+      });
+
+      // Save the transaction and update the booking with the transaction ID
+      await transaction.save();
+      bookingRecord.transactionId = transaction._id;
+      await bookingRecord.save();
+    }
+
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      RESPONSE_CODE: "CHECKOUT_CONFIRMED",
+      message: "Booking checkout confirmed successfully",
+      data: {
+        parkingName: bookingRecord.parkingName,
+        bookingDate: bookingRecord.bookingDate,
+        entryTime: bookingRecord.entryTime,
+        exitTime: bookingRecord.exitTime,
+        bookingState: bookingRecord.bookingState,
+        paymentStatus: "completed",
+        totalFee: totalFee,
+        transactionId: transaction._id,
+        hasExceededTime: hasExceededTime,
+        extraTimeFee: hasExceededTime ? extraTimeFee : 0,
+      },
+    });
+  } catch (error) {
+    console.error("Error in confirmBookingCheckout:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occurred while confirming booking checkout",
       error: error.message,
       RESPONSE_CODE: "err",
     });

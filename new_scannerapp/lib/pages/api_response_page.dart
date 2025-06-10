@@ -786,8 +786,10 @@ class _ApiResponsePageState extends State<ApiResponsePage> {
         print("======Confirming checkout: ${widget.response}");
       }
 
-      // Use the same confirm service for checkouts
-      final result = await ConfirmService.confirmPayment(widget.response);
+      // Use the specific booking checkout confirmation service
+      final result = await ConfirmService.confirmBookingCheckout(
+        widget.response,
+      );
 
       if (result['success']) {
         setState(() {

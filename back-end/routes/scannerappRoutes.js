@@ -16,4 +16,10 @@ router.post("/scan-booking", scanBookingController.handleBooking);
 // Booking checkout route
 router.post("/booking-checkout", scanBookingController.handleBookingCheckout);
 
+// Booking checkout confirmation route
+router.post(
+  "/confirm-booking-checkout",
+  scanBookingController.confirmBookingCheckout
+);
+
 module.exports = router;
