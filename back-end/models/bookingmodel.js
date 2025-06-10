@@ -28,7 +28,8 @@ const BookingSchema = new mongoose.Schema({
   },
   qrImage: { type: String },
   totalDuration: { type: String },
-  billingHash: { type: String }
+  billingHash: { type: String },
+  transactionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', BookingSchema);

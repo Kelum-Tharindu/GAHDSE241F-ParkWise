@@ -11,6 +11,33 @@ function calculateMinutes(entry, exit) {
   return Math.ceil(diff / (1000 * 60)); // in minutes
 }
 
+// Helper function to get date in Sri Lanka timezone
+function getSriLankaDate() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Colombo' }));
+}
+
+// Format date to Sri Lanka format
+function formatSriLankaDate(date) {
+  if (!date) return 'N/A';
+  return new Date(date).toLocaleString('en-US', { 
+    timeZone: 'Asia/Colombo',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}
+
+// Format time to Sri Lanka format
+function formatSriLankaTime(date) {
+  if (!date) return 'N/A';
+  return new Date(date).toLocaleString('en-US', { 
+    timeZone: 'Asia/Colombo',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
 // Step 1: Calculate and preview fee
 const calculateFee = async (req, res) => {
   try {
@@ -69,7 +96,8 @@ const confirmBooking = async (req, res) => {
     const qrImage = await generateQR(qrData);
 
     const totalMinutes = calculateMinutes(entryTime, exitTime);
-    const totalDuration = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;    const newBooking = new Booking({
+    const totalDuration = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+    const newBooking = new Booking({
       parkingName,
       userId,
       bookingDate,
@@ -82,9 +110,17 @@ const confirmBooking = async (req, res) => {
       qrImage,
       totalDuration,
       vehicleType
-    });    const savedBooking = await newBooking.save();
-    
-    try {      // Create a transaction record for the booking
+    });
+    const savedBooking = await newBooking.save();
+
+    // Decrement bookingAvailableSlot for the related parking and vehicle type
+    await Parking.updateOne(
+      { name: parkingName },
+      { $inc: { [`slotDetails.${vehicleType}.bookingAvailableSlot`]: -1 } }
+    );
+
+    try {
+      // Create a transaction record for the booking
       const newTransaction = new Transaction({
         type: 'booking',
         bookingId: savedBooking._id,
@@ -92,10 +128,15 @@ const confirmBooking = async (req, res) => {
         amount: fee.totalFee, // assuming fee.totalFee contains the total amount
         method: 'online', // or get from req.body if payment method is provided
         status: paymentStatus === 'paid' ? 'Completed' : 'Pending',
-        date: new Date()
+        date: getSriLankaDate() // Store as Date object in Sri Lanka time
       });
-      
+
       await newTransaction.save();
+
+      // Save the transaction ID back to the booking record
+      savedBooking.transactionId = newTransaction._id;
+      await savedBooking.save();
+
       console.log('Transaction created successfully:', newTransaction._id);
       console.log('Transaction details:', {
         type: newTransaction.type,
@@ -103,6 +144,7 @@ const confirmBooking = async (req, res) => {
         userId: newTransaction.userId,
         amount: newTransaction.amount
       });
+      console.log('Updated booking with transaction ID:', newTransaction._id);
     } catch (transactionError) {
       console.error('Error creating transaction:', transactionError);
       // Continue with the response as the booking was successful
@@ -158,15 +200,8 @@ const getBookingHistoryByUserId = async (req, res) => {
         color = { r: 1, g: 50, b: 32, a: 1 }; // primaryColor
       } else {
         color = { r: 2, g: 89, b: 57, a: 1 }; // accentColor for cancelled or other states
-      }
-
-      // Format date to match front-end format (e.g., "Apr 15, 2025")
-      const dateObj = new Date(booking.bookingDate);
-      const dateFormatted = dateObj.toLocaleDateString('en-US', { 
-        month: 'short',
-        day: 'numeric', 
-        year: 'numeric'
-      });
+      }      // Format date to match front-end format (e.g., "Apr 15, 2025")
+      const dateFormatted = formatSriLankaDate(booking.bookingDate);
 
       const totalFee = booking.fee?.totalFee || 0;
 
@@ -177,10 +212,9 @@ const getBookingHistoryByUserId = async (req, res) => {
         duration: booking.totalDuration || 'N/A',
         cost: `$${(totalFee ).toFixed(2)}`, // Convert cents to dollars with $ prefix
         status: booking.bookingState.charAt(0).toUpperCase() + booking.bookingState.slice(1), // Capitalize first letter
-        color: color,
-        vehicleType: booking.vehicleType,
-        entryTime: booking.entryTime,
-        exitTime: booking.exitTime,
+        color: color,        vehicleType: booking.vehicleType,
+        entryTime: booking.entryTime ? formatSriLankaTime(booking.entryTime) : 'N/A',
+        exitTime: booking.exitTime ? formatSriLankaTime(booking.exitTime) : 'N/A',
         paymentStatus: booking.paymentStatus
       };
     });
@@ -275,18 +309,11 @@ const getAllBookings = async (req, res) => {
           break;
         default:
           color = { r: 2, g: 89, b: 57, a: 1 };
-      }
-
-      const dateObj = new Date(booking.bookingDate);
-      const dateFormatted = dateObj.toLocaleDateString('en-US', { 
-        month: 'short',
-        day: 'numeric', 
-        year: 'numeric'
-      });
+      }      const dateFormatted = formatSriLankaDate(booking.bookingDate);
 
       // Format entry and exit times
-      const entryTimeFormatted = booking.entryTime ? new Date(booking.entryTime).toLocaleTimeString() : 'N/A';
-      const exitTimeFormatted = booking.exitTime ? new Date(booking.exitTime).toLocaleTimeString() : 'N/A';
+      const entryTimeFormatted = booking.entryTime ? formatSriLankaTime(booking.entryTime) : 'N/A';
+      const exitTimeFormatted = booking.exitTime ? formatSriLankaTime(booking.exitTime) : 'N/A';
 
       // Calculate extra time fee if exists
       const extraTimeFee = booking.exitedBookingTime?.extraTimeFee || 0;
@@ -312,10 +339,9 @@ const getAllBookings = async (req, res) => {
           bookingFee: `$${((booking.fee?.bookingFee || 0) / 100).toFixed(2)}`,
           totalFee: `$${((booking.fee?.totalFee || 0) / 100).toFixed(2)}`,
           extraTimeFee: `$${(extraTimeFee / 100).toFixed(2)}`
-        },
-        extraTime: extraTime,
-        createdAt: new Date(booking.createdAt).toLocaleString(),
-        updatedAt: new Date(booking.updatedAt).toLocaleString()
+        },        extraTime: extraTime,
+        createdAt: formatSriLankaDate(booking.createdAt) + ' ' + formatSriLankaTime(booking.createdAt),
+        updatedAt: formatSriLankaDate(booking.updatedAt) + ' ' + formatSriLankaTime(booking.updatedAt)
       };
     });
 
@@ -373,11 +399,10 @@ const getBookingDetails = async (req, res) => {
     const result = bookings.map(b => ({
       bookingId: b._id,
       parkingName: parkingNameMap[b.parkingName] || b.parkingName || 'Unknown',
-      userName: userMap[b.userId.toString()] || 'Unknown',
-      vehicleType: b.vehicleType,
+      userName: userMap[b.userId.toString()] || 'Unknown',      vehicleType: b.vehicleType,
       bookingState: b.bookingState,
       totalDuration: b.totalDuration || 'pending',
-      Date:b.bookingDate ? new Date(b.bookingDate).toLocaleDateString() : 'N/A',     
+      Date: b.bookingDate ? formatSriLankaDate(b.bookingDate) : 'N/A',
     }));
 
     res.status(200).json(result);
