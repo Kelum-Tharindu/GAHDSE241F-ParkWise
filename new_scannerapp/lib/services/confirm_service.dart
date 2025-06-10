@@ -13,7 +13,7 @@ class ConfirmService {
       'http://192.168.8.145:5000/api'; // Using the same URL as in the original code
 
   /// Endpoint for payment confirmation
-  static const String confirmEndpoint = '/parking-payment/confirm';
+  static const String confirmEndpoint = '/scanner/confirm-payment';
 
   /// Confirms a payment based on the response data from a billing scan
   ///

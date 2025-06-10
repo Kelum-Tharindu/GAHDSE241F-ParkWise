@@ -1,7 +1,8 @@
-// filepath: c:\Users\Tharindu\Desktop\GAHDSE241F-ParkWise\back-end\controllers\scannercontroller\scanBillingController.js
 const { hash } = require("crypto");
 const Billing = require("../../models/Billingmodel");
 const Parking = require("../../models/parkingmodel");
+const Transaction = require("../../models/transactionModel");
+// const Transaction = require("../../models/Transactionmodel"); // Assuming the transaction model is in this path
 
 /**
  * Handle QR code scanning and retrieve billing information
@@ -97,6 +98,113 @@ exports.handleScan = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error occurred while processing QR scan",
+      error: error.message,
+      RESPONSE_CODE: "err",
+    });
+  }
+};
+
+/**
+ * Confirm payment for a billing record and update transaction status
+ * @param {Object} req - Request object containing billing data
+ * @param {Object} res - Response object
+ * @returns {Object} - Confirmation status and updated billing information
+ */
+exports.confirmPayment = async (req, res) => {
+  try {
+    // Extract billing data from request
+    const { data } = req.body;
+
+    if (!data || !data.hash) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request data. Billing hash is required.",
+        RESPONSE_CODE: "err",
+      });
+    }
+
+    // Find billing record by hash
+    const billingRecord = await Billing.findOne({ billingHash: data.hash });
+
+    if (!billingRecord) {
+      return res.status(404).json({
+        success: false,
+        message: "Billing record not found.",
+        RESPONSE_CODE: "err",
+      });
+    } // Check if payment is already completed
+    if (billingRecord.paymentStatus === "completed") {
+      return res.status(409).json({
+        success: true,
+        message: "Payment has already been processed.",
+        RESPONSE_CODE: "PAYMENT_ALREADY_COMPLETED",
+        data: {
+          parkingName: data.parkingName,
+          totalFee: billingRecord.fee,
+          paymentStatus: "completed",
+        },
+      });
+    }
+
+    // Find existing transaction by ID or create one if it doesn't exist
+    let transaction;
+
+    if (billingRecord.transactionId) {
+      // If there's already a transaction ID in the billing record, use that
+      transaction = await Transaction.findById(billingRecord.transactionId);
+
+      if (transaction) {
+        // Update existing transaction
+        transaction.method = "card"; // Assuming payment method is card
+        transaction.amount = billingRecord.fee;
+        transaction.status = "Completed";
+        transaction.date = new Date();
+        await transaction.save();
+      }
+    }
+
+    // If no transaction found, create a new one
+    if (!transaction) {
+      transaction = new Transaction({
+        type: "billing",
+        billingId: billingRecord._id,
+        userId: billingRecord.userID,
+        amount: billingRecord.fee,
+        method: "scanner_app",
+        status: "Completed",
+        date: new Date(),
+      });
+
+      await transaction.save();
+
+      // Link the transaction to the billing record if it wasn't linked before
+      if (!billingRecord.transactionId) {
+        billingRecord.transactionId = transaction._id;
+      }
+    }
+
+    // Update the billing record payment status
+    billingRecord.paymentStatus = "completed";
+    await billingRecord.save();
+    return res.status(200).json({
+      success: true,
+      RESPONSE_CODE: "PAYMENT_CONFIRMED",
+      message: "Payment confirmed successfully",
+      data: {
+        parkingName: data.parkingName,
+        entryTime: billingRecord.entryTime,
+        exitTime: billingRecord.exitTime,
+        duration: billingRecord.duration,
+        totalFee: billingRecord.fee,
+        paymentStatus: "completed",
+        transactionId: transaction._id,
+      },
+    });
+  } catch (error) {
+    console.error("Error in confirmPayment:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occurred while processing payment confirmation",
       error: error.message,
       RESPONSE_CODE: "err",
     });
