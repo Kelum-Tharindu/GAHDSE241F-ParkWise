@@ -70,8 +70,7 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
   otpSecret: {
-    type: String,
-    select: false
+    type: String
   },
   backupCodes: {
     type: [String],

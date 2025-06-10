@@ -117,8 +117,11 @@ const setup2FA = async (req, res) => {
     }
 
     const secret = speakeasy.generateSecret({ name: `ParkBooking:${user.email}` });
+    console.log(`[2FA SETUP][DEBUG] Secret to be saved: ${secret.base32}`);
     user.otpSecret = secret.base32;
     await user.save();
+    const checkUser = await User.findById(userId);
+    console.log(`[2FA SETUP][DEBUG] Secret in DB after save: ${checkUser.otpSecret}`);
 
     qrcode.toDataURL(secret.otpauth_url, (err, data_url) => {
       if (err) {
@@ -146,12 +149,41 @@ const verifyAndEnable2FA = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Debug logs for secret and OTP
+    console.log(`[2FA VERIFY][DEBUG] Secret from DB: ${user.otpSecret}`);
+    console.log(`[2FA VERIFY][DEBUG] OTP received: ${otp}`);
+    // Log current server time
+    const now = Math.floor(Date.now() / 1000);
+    console.log(`[2FA VERIFY][DEBUG] Server UNIX time: ${now}`);
+    // Generate the current OTP using the secret (for comparison)
+    const serverGeneratedOTP = speakeasy.totp({
+      secret: user.otpSecret,
+      encoding: "base32",
+      time: now
+    });
+    console.log(`[2FA VERIFY][DEBUG] Server-generated OTP for current time: ${serverGeneratedOTP}`);
+    // Also log the OTP for previous and next window (for window=1)
+    const prevOTP = speakeasy.totp({
+      secret: user.otpSecret,
+      encoding: "base32",
+      time: now - 30
+    });
+    const nextOTP = speakeasy.totp({
+      secret: user.otpSecret,
+      encoding: "base32",
+      time: now + 30
+    });
+    console.log(`[2FA VERIFY][DEBUG] Previous window OTP: ${prevOTP}`);
+    console.log(`[2FA VERIFY][DEBUG] Next window OTP: ${nextOTP}`);
+
     const verified = speakeasy.totp.verify({
       secret: user.otpSecret,
       encoding: "base32",
       token: String(otp),
       window: 1,
     });
+
+    console.log(`[2FA VERIFY][DEBUG] Verification result: ${verified}`);
 
     if (!verified) {
       console.log(`[2FA VERIFY][FAIL] Invalid OTP for userId=${userId}`);
@@ -190,7 +222,9 @@ const verifyOTP = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const isBackupCode = user.backupCodes.includes(Buffer.from(otp).toString("base64"));
+    // Ensure backupCodes is always an array
+    const backupCodes = Array.isArray(user.backupCodes) ? user.backupCodes : [];
+    const isBackupCode = backupCodes.includes(Buffer.from(otp).toString("base64"));
 
     if (isBackupCode) {
       user.backupCodes = user.backupCodes.filter((code) => code !== Buffer.from(otp).toString("base64"));
