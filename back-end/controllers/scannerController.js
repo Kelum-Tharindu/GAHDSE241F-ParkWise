@@ -2,6 +2,7 @@ const { response } = require("express");
 const Billing = require("../models/Billingmodel");
 const Parking = require("../models/parkingmodel");
 const Transaction = require("../models/transactionModel");
+const Booking = require("../models/bookingmodel"); // Import Booking model with correct casing
 const crypto = require('crypto');
 
 // Define Sri Lanka time offset (UTC+5:30 = 5.5 hours = 330 minutes = 19800000 milliseconds)
@@ -52,7 +53,12 @@ const scannerController = {
             }
               // Handle different scan types
             if (type === "billing" || type === "booking") {
-                return await processBillingScan(hash, res);
+                if (type === "billing") {
+                    return await processBillingScan(hash, res);
+                }
+                //  else {
+                //     return await processBookingScan(hash, res);
+                // }
             } else {
                 console.log(`Unsupported scan type: ${type}`);
                 return res.status(400).json({ success: false, message: "Unsupported scan type" });
@@ -273,6 +279,71 @@ const processBillingScan = async (billingHash, res) => {
         });
     } catch (error) {
         console.error("Error processing billing scan:", error);
+        return res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+};
+
+/**
+ * Process booking scan - Update booking state to 'ongoing' and set entry time
+ * @param {String} bookingHash - The booking hash to lookup
+ * @param {Object} res - Response object
+ */
+const processBookingScan = async (bookingHash, res) => {
+    try {
+        console.log(`Processing booking scan with hash: ${bookingHash}`);
+        
+        // Find the booking document using the hash
+        const booking = await Booking.findOne({ billingHash: bookingHash });
+        
+        if (!booking) {
+            console.log(`No booking found with hash: ${bookingHash}`);
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+        
+        console.log(`Found booking: ${booking._id} for user: ${booking.userId}`);
+        
+        // Check booking state before proceeding
+        if (booking.bookingState !== 'active') {
+            console.log(`Booking ${booking._id} is not in active state. Current state: ${booking.bookingState}`);
+            
+            if (booking.bookingState === 'ongoing') {
+                return res.status(200).json({
+                    success: false,
+                    message: "This booking is already in use",
+                    response_Code: "ALREADY_IN_USE"
+                });
+            } else if (booking.bookingState === 'completed') {
+                return res.status(200).json({
+                    success: false,
+                    message: "This booking has already been completed",
+                    response_Code: "ALREADY_COMPLETED"
+                });
+            } else if (booking.bookingState === 'cancelled') {
+                return res.status(200).json({
+                    success: false,
+                    message: "This booking has been cancelled",
+                    response_Code: "CANCELLED_BOOKING"
+                });
+            }
+        }
+        
+        // Update booking state to 'ongoing' and set entry time to current Sri Lanka time
+        booking.bookingState = 'ongoing';
+        booking.entryTime = getCurrentSriLankaTime();
+        
+        await booking.save();
+        console.log(`Updated booking: ${booking._id} state to 'ongoing' and set entry time to ${booking.entryTime}`);
+        
+        return res.status(200).json({
+            success: true,
+            message: `Welcome to ${booking.parkingName}! Your booking is now active.`,
+            response_Code: "BOOKING_ACTIVATED",
+            data: {
+                booking: booking
+            }
+        });
+    } catch (error) {
+        console.error("Error processing booking scan:", error);
         return res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 };
