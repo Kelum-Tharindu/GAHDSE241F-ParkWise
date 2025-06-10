@@ -1,21 +1,10 @@
 const { response } = require("express");
 const Billing = require("../models/Billingmodel");
-const Parking = require("../models/parkingmodel");
 const Transaction = require("../models/transactionModel");
-const Booking = require("../models/bookingmodel"); // Import Booking model with correct casing
+const Booking = require("../models/bookingmodel");
+const Parking = require("../models/parkingmodel");
 const crypto = require('crypto');
-
-// Define Sri Lanka time offset (UTC+5:30 = 5.5 hours = 330 minutes = 19800000 milliseconds)
-const SRI_LANKA_OFFSET = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-
-/**
- * Get current time in Sri Lanka time zone (UTC+5:30)
- * @returns {Date} Current time in Sri Lanka time zone
- */
-const getCurrentSriLankaTime = () => {
-    const now = new Date();
-    return new Date(now.getTime() + SRI_LANKA_OFFSET);
-};
+const { calculateExtraBookingFee, getCurrentSriLankaTime } = require("../utils/feeCalculator");
 
 /**
  * Generate a random hash for billing or booking
@@ -55,9 +44,18 @@ const scannerController = {
             if (type === "billing" || type === "booking") {
                 if (type === "billing") {
                     return await processBillingScan(hash, res);
-                }
-                 else {
-                    return await processBookingScan(hash, res);
+                } else if (type === "booking") {
+                    // For booking type, check if we're processing entry or exit
+                    const { action } = req.body;
+                    
+                    if (action === "exit" && hash) {
+                        // If action is exit, call processBookingExit function
+                        const { processBookingExit } = require('./bookingExitController');
+                        return await processBookingExit(hash, res);
+                    } else {
+                        // Default to entry processing if no action specified
+                        return await processBookingScan(hash, res);
+                    }
                 }
             } else {
                 console.log(`Unsupported scan type: ${type}`);
@@ -284,7 +282,7 @@ const processBillingScan = async (billingHash, res) => {
 };
 
 /**
- * Process booking scan - Update booking state to 'ongoing' and set entry time
+ * Process booking scan for entry - Update booking state to 'ongoing' and set entry time
  * @param {String} bookingHash - The booking hash to lookup
  * @param {Object} res - Response object
  */
@@ -304,13 +302,15 @@ const processBookingScan = async (bookingHash, res) => {
         
         // Check booking state before proceeding
         if (booking.bookingState !== 'active') {
-            console.log(`Booking ${booking._id} is not in active state. Current state: ${booking.bookingState}`);
-            
-            if (booking.bookingState === 'ongoing') {
+            console.log(`Booking ${booking._id} is not in active state. Current state: ${booking.bookingState}`);            if (booking.bookingState === 'ongoing') {
+                // If booking is ongoing but not exiting, just provide info
                 return res.status(200).json({
-                    success: false,
-                    message: "This booking currently in use",
-                    response_Code: "Error"
+                    success: true,
+                    message: "This booking is currently active. Use 'exit' action to calculate exit fees.",
+                    response_Code: "BOOKING_ONGOING",
+                    data: {
+                        booking: booking
+                    }
                 });
             } else if (booking.bookingState === 'completed') {
                 return res.status(200).json({
