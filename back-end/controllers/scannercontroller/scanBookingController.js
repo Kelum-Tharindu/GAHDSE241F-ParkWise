@@ -190,6 +190,22 @@ exports.handleBooking = async (req, res) => {
     // Process based on booking state
     switch (bookingRecord.bookingState) {
       case "active":
+        // Check if entry time (current time) is after scheduled exit time
+        if (currentTime > bookingRecord.exitTime) {
+          // Update booking state to cancelled due to expiry
+          bookingRecord.bookingState = "cancelled";
+          await bookingRecord.save();
+          return res.status(400).json({
+            success: false,
+            RESPONSE_CODE: "err",
+            message:
+              "Booking has expired. Entry time is past the scheduled exit time.",
+            // data: {
+            //   parkingName: bookingRecord.parkingName,
+            //   bookingState: "cancelled",
+            // },
+          });
+        }
         // Update booking state to ongoing and set entry time
         bookingRecord.bookingState = "ongoing";
         bookingRecord.entryTime = currentTime;
