@@ -175,12 +175,36 @@ exports.confirmPayment = async (req, res) => {
         date: new Date(),
       });
 
-      await transaction.save();
-
-      // Link the transaction to the billing record if it wasn't linked before
+      await transaction.save(); // Link the transaction to the billing record if it wasn't linked before
       if (!billingRecord.transactionId) {
         billingRecord.transactionId = transaction._id;
       }
+    }
+
+    // Get parking ID and vehicle type from billing record
+    const parkingID = billingRecord.parkingID;
+    const vehicleType = billingRecord.vehicleType;
+
+    // Find the parking space using the parking ID
+    const parkingSpace = await Parking.findById(parkingID);
+
+    if (parkingSpace) {
+      // Increment withoutBookingAvailableSlot for the specific vehicle type
+      if (parkingSpace.slotDetails[vehicleType]) {
+        parkingSpace.slotDetails[vehicleType].withoutBookingAvailableSlot += 1;
+
+        console.log(`Incrementing withoutBookingAvailableSlot for ${vehicleType} at ${parkingSpace.name}. 
+                    New value: ${parkingSpace.slotDetails[vehicleType].withoutBookingAvailableSlot}`);
+
+        // Save the updated parking space
+        await parkingSpace.save();
+      } else {
+        console.error(
+          `Vehicle type '${vehicleType}' not found in slot details for parking ID ${parkingID}`
+        );
+      }
+    } else {
+      console.error(`Parking space with ID '${parkingID}' not found`);
     }
 
     // Update the billing record payment status
@@ -198,6 +222,8 @@ exports.confirmPayment = async (req, res) => {
         totalFee: billingRecord.fee,
         paymentStatus: "completed",
         transactionId: transaction._id,
+        vehicleType: billingRecord.vehicleType,
+        slotUpdated: true,
       },
     });
   } catch (error) {
