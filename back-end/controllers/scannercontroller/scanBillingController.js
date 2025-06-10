@@ -1,4 +1,5 @@
 // filepath: c:\Users\Tharindu\Desktop\GAHDSE241F-ParkWise\back-end\controllers\scannercontroller\scanBillingController.js
+const { hash } = require("crypto");
 const Billing = require("../../models/Billingmodel");
 const Parking = require("../../models/parkingmodel");
 
@@ -88,6 +89,7 @@ exports.handleScan = async (req, res) => {
         priceFor30Min: price30Min,
         totalFee: calculatedFee,
         paymentStatus: billingRecord.paymentStatus,
+        hash: billingRecord.billingHash,
       },
     });
   } catch (error) {

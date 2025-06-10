@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import '../services/confirm_service.dart';
 
 class ApiResponsePage extends StatefulWidget {
   final Map<String, dynamic> response;
@@ -350,6 +349,7 @@ class _ApiResponsePageState extends State<ApiResponsePage> {
     final priceFor30Min = data['priceFor30Min'] as num? ?? 0;
     final totalFee = data['totalFee'] as num? ?? 0;
     final paymentStatus = data['paymentStatus']?.toString() ?? 'pending';
+    final hash = data['hash']?.toString();
 
     return Container(
       width: double.infinity,
@@ -686,13 +686,10 @@ class _ApiResponsePageState extends State<ApiResponsePage> {
     });
 
     try {
-      final response = await http.post(
-        Uri.parse('http://localhost:3000/api/parking-payment/confirm'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(widget.response),
-      );
+      print("======response: ${widget.response}");
+      final result = await ConfirmService.confirmPayment(widget.response);
 
-      if (response.statusCode == 200) {
+      if (result['success']) {
         setState(() {
           _isConfirmed = true;
           _isConfirming = false;
@@ -707,7 +704,7 @@ class _ApiResponsePageState extends State<ApiResponsePage> {
           );
         }
       } else {
-        throw Exception('Failed to confirm payment');
+        throw Exception(result['message']);
       }
     } catch (e) {
       setState(() {
