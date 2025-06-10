@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl =
-      'http://175.157.26.88:5000/api'; // Replace with your actual API base URL
+      'http://192.168.8.145:5000/api'; // Replace with your actual API base URL
   // 175.157.26.88
   // Method to send scanned QR data to the server
   static Future<Map<String, dynamic>?> sendScannedData(
