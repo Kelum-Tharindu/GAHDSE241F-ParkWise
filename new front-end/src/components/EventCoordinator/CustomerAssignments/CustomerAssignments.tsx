@@ -83,21 +83,20 @@ const CustomerAssignments: React.FC<CustomerAssignmentsProps> = ({ className = '
       fetchData();
     }
   };
-
   // Get customer name
   const getCustomerName = (assignment: SubBulkBooking): string => {
-    if (typeof assignment.customerId === 'object') {
+    if (assignment.customerId && typeof assignment.customerId === 'object') {
       return assignment.customerId.username || assignment.customerName;
     }
-    return assignment.customerName;
+    return assignment.customerName || 'Unknown Customer';
   };
 
   // Get bulk booking name
   const getBulkBookingName = (assignment: SubBulkBooking): string => {
-    if (typeof assignment.bulkBookingId === 'object') {
+    if (assignment.bulkBookingId && typeof assignment.bulkBookingId === 'object') {
       return `${assignment.bulkBookingId.parkingName} - ${assignment.bulkBookingId.chunkName}`;
     }
-    return assignment.parkingLocation;
+    return assignment.parkingLocation || 'Unknown Location';
   };
 
   // Format date
