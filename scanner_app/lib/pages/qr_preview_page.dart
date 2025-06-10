@@ -23,7 +23,7 @@ class _QRPreviewPageState extends State<QRPreviewPage> {
 
     if (responseCode == 'BILLING_CALCULATED') {
       return _buildBillingReceipt(context);
-    } else if (responseCode == 'ALREADY_PAID') {
+    } else if (responseCode == 'Error') {
       return _buildAlreadyPaidView(context);
     }
 

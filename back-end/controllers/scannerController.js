@@ -56,9 +56,9 @@ const scannerController = {
                 if (type === "billing") {
                     return await processBillingScan(hash, res);
                 }
-                //  else {
-                //     return await processBookingScan(hash, res);
-                // }
+                 else {
+                    return await processBookingScan(hash, res);
+                }
             } else {
                 console.log(`Unsupported scan type: ${type}`);
                 return res.status(400).json({ success: false, message: "Unsupported scan type" });
@@ -224,7 +224,7 @@ const processBillingScan = async (billingHash, res) => {
             return res.status(200).json({
                 success: false,
                 message: "This QR code has already been used for payment",
-                response_Code: "ALREADY_PAID"
+                response_Code: "Error"
             });        }
         
         // Get current time for exit time
@@ -309,8 +309,8 @@ const processBookingScan = async (bookingHash, res) => {
             if (booking.bookingState === 'ongoing') {
                 return res.status(200).json({
                     success: false,
-                    message: "This booking is already in use",
-                    response_Code: "ALREADY_IN_USE"
+                    message: "This booking currently in use",
+                    response_Code: "Error"
                 });
             } else if (booking.bookingState === 'completed') {
                 return res.status(200).json({
