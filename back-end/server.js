@@ -22,6 +22,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const bulkbookingRoutes = require('./routes/bulkbooking');
 const subBulkBookingRoutes = require('./routes/subBulkBookingRoutes');
 const parkingPaymentRoutes = require('./routes/parkingPaymentRoutes');
+const scannerapp = require('./routes/scannerappRoutes'); // Import scanner app
 
 
 // -------------------- GET LOCAL IP --------------------
@@ -109,6 +110,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/bulkbooking', bulkbookingRoutes);
 app.use('/api/sub-bulk-booking', subBulkBookingRoutes);
 app.use('/api/parking-payments', parkingPaymentRoutes);
+app.use('/api/scanner', scannerapp); // Add scanner app route
 
 
 // -------------------- TEST ROUTE --------------------
