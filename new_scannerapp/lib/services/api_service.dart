@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl =
-      'https://api.parkwise.com'; // Replace with your actual API base URL
-
+      'http://175.157.26.88:5000/api'; // Replace with your actual API base URL
+  // 175.157.26.88
   // Method to send scanned QR data to the server
   static Future<Map<String, dynamic>?> sendScannedData(
     Map<String, dynamic> qrData,
@@ -97,11 +97,11 @@ class ApiService {
 
     switch (type.toLowerCase()) {
       case 'billing':
-        return '/api/billing/verify';
+        return '/scanner/scan-billing';
       case 'booking':
-        return '/api/booking/verify';
+        return '/booking/verify';
       case 'subbulkbooking':
-        return '/api/subbulkbooking/verify';
+        return '/subbulkbooking/verify';
       default:
         return '/api/verify';
     }

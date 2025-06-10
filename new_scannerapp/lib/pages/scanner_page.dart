@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../services/api_service.dart';
+import 'package:http/http.dart' as http;
 import '../models/qr_result.dart';
 import '../widgets/scanner_overlay.dart';
 
@@ -14,6 +15,7 @@ class ScannerPage extends StatefulWidget {
 }
 
 class _ScannerPageState extends State<ScannerPage> {
+  static const String baseUrl = 'http://192.168.8.145:5000/api';
   final MobileScannerController controller = MobileScannerController();
   bool scanned = false;
   String? scannedData;
@@ -45,6 +47,7 @@ class _ScannerPageState extends State<ScannerPage> {
       }
 
       // Mark as scanned to prevent multiple scans
+      if (!mounted) return;
       setState(() {
         scanned = true;
         scannedData = code;
@@ -56,12 +59,13 @@ class _ScannerPageState extends State<ScannerPage> {
       controller.stop();
 
       // Validate QR format
-      final Map<String, dynamic>? validData = ApiService.validateQrData(code);
+      final Map<String, dynamic>? validData = validateQrData(code);
 
       if (validData == null) {
         if (kDebugMode) {
           print('=== Invalid QR format');
         }
+        if (!mounted) return;
         setState(() {
           scanStatus = 'Invalid QR format';
           statusColor = Colors.red;
@@ -92,6 +96,7 @@ class _ScannerPageState extends State<ScannerPage> {
         if (kDebugMode) {
           print('=== Unknown QR type: $qrType');
         }
+        if (!mounted) return;
         setState(() {
           scanStatus = 'Unknown QR type: $qrType';
           statusColor = Colors.red;
@@ -104,12 +109,16 @@ class _ScannerPageState extends State<ScannerPage> {
       }
 
       String message = 'Processing $qrType...';
+      if (!mounted) return;
       setState(() {
         scanStatus = message;
       });
 
       // Send to API
-      final response = await ApiService.sendScannedData(validData);
+      final response = await sendScannedData(validData);
+
+      // Check if widget is still mounted before updating UI
+      if (!mounted) return;
 
       if (response != null) {
         if (kDebugMode) {
@@ -125,12 +134,14 @@ class _ScannerPageState extends State<ScannerPage> {
 
         // Check validation result
         if (result.isValid) {
+          if (!mounted) return;
           setState(() {
             scanStatus = 'Valid ${result.type} QR code';
             statusColor = Colors.green;
           });
           _showSuccessDialog(result);
         } else {
+          if (!mounted) return;
           setState(() {
             scanStatus = 'Invalid ${result.type} QR code';
             statusColor = Colors.red;
@@ -144,6 +155,7 @@ class _ScannerPageState extends State<ScannerPage> {
         if (kDebugMode) {
           print('=== API error or no response');
         }
+        if (!mounted) return;
         setState(() {
           scanStatus = 'Error verifying QR code';
           statusColor = Colors.red;
@@ -157,6 +169,7 @@ class _ScannerPageState extends State<ScannerPage> {
       if (kDebugMode) {
         print('=== Exception during scan: $e');
       }
+      if (!mounted) return;
       setState(() {
         scanned = true;
         scanStatus = 'Error: ${e.toString()}';
@@ -169,7 +182,123 @@ class _ScannerPageState extends State<ScannerPage> {
     }
   }
 
+  // Method to validate QR code data format
+  Map<String, dynamic>? validateQrData(String rawData) {
+    try {
+      // Try to parse as JSON first
+      final data = jsonDecode(rawData);
+
+      if (data is! Map<String, dynamic>) {
+        if (kDebugMode) {
+          print('=== QR data is not a valid JSON object');
+        }
+        return null;
+      }
+
+      // Check for required fields based on the type
+      if (!data.containsKey('type')) {
+        if (kDebugMode) {
+          print('=== QR data missing type field');
+        }
+        return null;
+      }
+
+      if (!data.containsKey('billingHash')) {
+        if (kDebugMode) {
+          print('=== QR data missing hash field');
+        }
+        return null;
+      }
+
+      // Categorize based on type
+      final String type = data['type'] as String;
+      if (kDebugMode) {
+        print('=== QR data type: $type');
+      }
+
+      return data;
+    } catch (e) {
+      if (kDebugMode) {
+        print('=== Error parsing QR data: $e');
+      }
+      return null;
+    }
+  }
+
+  // Send scanned data to the server
+  Future<Map<String, dynamic>?> sendScannedData(
+    Map<String, dynamic> qrData,
+  ) async {
+    try {
+      if (kDebugMode) {
+        print('=== Sending QR data to server: $qrData');
+      }
+
+      // Check QR data type to determine which endpoint to use
+      final String endpoint = _getEndpointForQrType(qrData);
+
+      final response = await http.post(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(qrData),
+      );
+
+      if (kDebugMode) {
+        print('=== API response status: ${response.statusCode}');
+      }
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (kDebugMode) {
+          print('=== API response body: $result');
+        }
+
+        // Transform the response to match our QrResult model
+        final Map<String, dynamic> transformedResponse = {
+          'hash': qrData['billingHash'],
+          'valid': result['success'] ?? false,
+        };
+
+        // If there's data in the response, add it to the transformed response
+        if (result.containsKey('data')) {
+          transformedResponse.addAll(result['data'] as Map<String, dynamic>);
+        } else {
+          // If no data, add the entire result
+          transformedResponse.addAll(result);
+        }
+
+        return transformedResponse;
+      } else {
+        if (kDebugMode) {
+          print('=== API error: ${response.body}');
+        }
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('=== Exception during API call: $e');
+      }
+      return null;
+    }
+  }
+
+  // Helper method to determine the endpoint based on QR type
+  String _getEndpointForQrType(Map<String, dynamic> qrData) {
+    final String type = qrData['type'] as String;
+
+    switch (type.toLowerCase()) {
+      case 'billing':
+        return '/scanner/scan-billing';
+      case 'booking':
+        return '/booking/verify';
+      case 'subbulkbooking':
+        return '/subbulkbooking/verify';
+      default:
+        return '/api/verify';
+    }
+  }
+
   void _showSuccessDialog(QrResult result) {
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -226,6 +355,7 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   void _showErrorDialog(String title, String message) {
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -245,6 +375,7 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   void _resetScanner() {
+    if (!mounted) return;
     setState(() {
       scanned = false;
       scannedData = null;

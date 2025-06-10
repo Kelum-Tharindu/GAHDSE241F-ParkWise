@@ -51,6 +51,7 @@ const allowedOrigins = [
   'http://localhost:55376',  // Flutter Web dev
   `http://${localIP}:3000`, // Flutter or React from another device
   `http://${localIP}:5173`, // Vite React from another device
+  `http://${localIP}:37754`, // Vite React from another device
   process.env.FRONTEND_URL  // React Prod
 ];
 
