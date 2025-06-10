@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ApiResponsePage extends StatelessWidget {
+class ApiResponsePage extends StatefulWidget {
   final Map<String, dynamic> response;
   const ApiResponsePage({super.key, required this.response});
+
+  @override
+  State<ApiResponsePage> createState() => _ApiResponsePageState();
+}
+
+class _ApiResponsePageState extends State<ApiResponsePage> {
+  bool _isConfirming = false;
+  bool _isConfirmed = false;
+
   bool get _isErrorResponse {
     // Check if response code indicates an error
-    final code = response['RESPONSE_CODE'];
+    final code = widget.response['RESPONSE_CODE'];
     return code != null && code.toString().toLowerCase() == 'err';
   }
 
   bool get _isBillingResponse {
     // Check if response code indicates billing calculation
-    final code = response['RESPONSE_CODE'];
+    final code = widget.response['RESPONSE_CODE'];
     return code != null && code.toString() == 'BILLING_CALCULATED';
   }
 
@@ -84,9 +95,9 @@ class ApiResponsePage extends StatelessWidget {
               color: const Color(0xFF8B0000).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.error_outline_rounded,
-              color: const Color(0xFF8B0000),
+              color: Color(0xFF8B0000),
               size: 40,
             ),
           ),
@@ -119,27 +130,27 @@ class ApiResponsePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(
                       Icons.info_outline,
-                      color: const Color(0xFF8B0000),
+                      color: Color(0xFF8B0000),
                       size: 20,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
                       'Error Details',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF8B0000),
+                        color: Color(0xFF8B0000),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  response['message']?.toString() ??
+                  widget.response['message']?.toString() ??
                       'Unknown error occurred. Please try scanning again.',
                   style: const TextStyle(
                     fontSize: 15,
@@ -179,9 +190,9 @@ class ApiResponsePage extends StatelessWidget {
               color: const Color(0xFF025940).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.check_circle_outline_rounded,
-              color: const Color(0xFF025940),
+              color: Color(0xFF025940),
               size: 40,
             ),
           ),
@@ -228,20 +239,20 @@ class ApiResponsePage extends StatelessWidget {
                 topRight: Radius.circular(12),
               ),
             ),
-            child: Row(
+            child: const Row(
               children: [
                 Icon(
                   Icons.data_object_rounded,
-                  color: const Color(0xFF025940),
+                  color: Color(0xFF025940),
                   size: 20,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   'Response Details',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF025940),
+                    color: Color(0xFF025940),
                   ),
                 ),
               ],
@@ -250,15 +261,13 @@ class ApiResponsePage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
-              children: response.entries
+              children: widget.response.entries
                   .where(
                     (entry) =>
                         !(_isErrorResponse &&
                             entry.key.toLowerCase() == 'code'),
                   )
-                  .map((entry) {
-                    return _buildResponseItem(entry.key, entry.value);
-                  })
+                  .map((entry) => _buildResponseItem(entry.key, entry.value))
                   .toList(),
             ),
           ),
@@ -332,62 +341,8 @@ class ApiResponsePage extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: ElevatedButton.icon(
-            onPressed: () =>
-                Navigator.of(context).popUntil((route) => route.isFirst),
-            icon: const Icon(Icons.qr_code_scanner_rounded),
-            label: Text(
-              _isBillingResponse ? 'Scan Another Bill' : 'Scan Another Code',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isErrorResponse
-                  ? const Color(0xFF8B0000)
-                  : const Color(0xFF025940),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-      ],
-    );
-  }
-
-  String _formatDuration(int durationInMinutes) {
-    final hours = durationInMinutes ~/ 60;
-    final minutes = durationInMinutes % 60;
-
-    if (hours > 0 && minutes > 0) {
-      return '${hours}h ${minutes}min';
-    } else if (hours > 0) {
-      return '${hours}h';
-    } else {
-      return '${minutes}min';
-    }
-  }
-
-  String _formatDateTime(String dateTimeStr) {
-    try {
-      final dateTime = DateTime.parse(dateTimeStr);
-      // Do not convert to local, just format as is
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return dateTimeStr;
-    }
-  }
-
   Widget _buildBillingView() {
-    final data = response['data'] as Map<String, dynamic>? ?? {};
+    final data = widget.response['data'] as Map<String, dynamic>? ?? {};
     final parkingName = data['parkingName']?.toString() ?? 'Unknown Parking';
     final entryTime = data['entryTime']?.toString() ?? '';
     final exitTime = data['exitTime']?.toString() ?? '';
@@ -395,9 +350,7 @@ class ApiResponsePage extends StatelessWidget {
     final priceFor30Min = data['priceFor30Min'] as num? ?? 0;
     final totalFee = data['totalFee'] as num? ?? 0;
     final paymentStatus = data['paymentStatus']?.toString() ?? 'pending';
-    //print exit and entry time
-    print('==++++++++Entry Time: ${_formatDateTime(entryTime)}');
-    print('==+++++++++Exit Time: ${_formatDateTime(exitTime)}');
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -640,5 +593,135 @@ class ApiResponsePage extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 54,
+          child: ElevatedButton.icon(
+            onPressed: () =>
+                Navigator.of(context).popUntil((route) => route.isFirst),
+            icon: const Icon(Icons.qr_code_scanner_rounded),
+            label: Text(
+              _isBillingResponse ? 'Scan Another Bill' : 'Scan Another Code',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isErrorResponse
+                  ? const Color(0xFF8B0000)
+                  : const Color(0xFF025940),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (_isBillingResponse && !_isConfirmed) ...[
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: _confirmPayment,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4CAF50),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+              child: _isConfirming
+                  ? const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 2.5,
+                    )
+                  : const Text(
+                      'Confirm Payment',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  String _formatDuration(int durationInMinutes) {
+    final hours = durationInMinutes ~/ 60;
+    final minutes = durationInMinutes % 60;
+
+    if (hours > 0 && minutes > 0) {
+      return '${hours}h ${minutes}min';
+    } else if (hours > 0) {
+      return '${hours}h';
+    } else {
+      return '${minutes}min';
+    }
+  }
+
+  String _formatDateTime(String dateTimeStr) {
+    try {
+      final dateTime = DateTime.parse(dateTimeStr);
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return dateTimeStr;
+    }
+  }
+
+  Future<void> _confirmPayment() async {
+    if (_isConfirming || _isConfirmed) return;
+
+    setState(() {
+      _isConfirming = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/api/parking-payment/confirm'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(widget.response),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _isConfirmed = true;
+          _isConfirming = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Payment confirmed successfully!'),
+              backgroundColor: Color(0xFF025940),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Failed to confirm payment');
+      }
+    } catch (e) {
+      setState(() {
+        _isConfirming = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error confirming payment: ${e.toString()}'),
+            backgroundColor: const Color(0xFF8B0000),
+          ),
+        );
+      }
+    }
   }
 }
