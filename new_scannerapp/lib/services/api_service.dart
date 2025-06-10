@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../pages/api_response_page.dart';
 
 class ApiService {
   static const String baseUrl =
@@ -28,18 +29,14 @@ class ApiService {
         print('=== API response status: ${response.statusCode}');
       }
 
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-        if (kDebugMode) {
-          print('=== API response body: $result');
-        }
-        return result as Map<String, dynamic>;
-      } else {
-        if (kDebugMode) {
-          print('=== API error: ${response.body}');
-        }
-        return null;
+      // Always return the response body as a Map, even for non-200 status
+      final result = jsonDecode(response.body);
+      if (kDebugMode) {
+        print('=== Full API Response: $result');
+        print('=== Response Keys: ${result.keys.toList()}');
+        print('=== Response Values: ${result.values.toList()}');
       }
+      return result as Map<String, dynamic>;
     } catch (e) {
       if (kDebugMode) {
         print('=== Exception during API call: $e');
@@ -107,3 +104,15 @@ class ApiService {
     }
   }
 }
+
+// After getting the response from sendScannedData, navigate to ApiResponsePage
+// Example usage (put this in your scanner or wherever you handle the response):
+//
+// final response = await ApiService.sendScannedData(qrData);
+// if (context.mounted && response != null) {
+//   print('Full API Response:');
+//   print(response);
+//   Navigator.of(context).push(
+//     MaterialPageRoute(
+//       builder: (context) => ApiResponsePage(response: response),
+//     ),
