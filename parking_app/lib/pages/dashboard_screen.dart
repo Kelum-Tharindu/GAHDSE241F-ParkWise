@@ -313,10 +313,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     title: 'Quick Access',
                     trailing: TextButton(
                       onPressed: () {},
-                      style: ButtonStyle(                        backgroundColor: MaterialStateProperty.all(
+                      style: ButtonStyle(                        backgroundColor: WidgetStateProperty.all(
                           Colors.white.withAlpha(20),
                         ),
-                        shape: MaterialStateProperty.all(
+                        shape: WidgetStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                             side: BorderSide(color: Colors.white.withAlpha(50)),
