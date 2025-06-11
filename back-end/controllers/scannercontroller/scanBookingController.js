@@ -15,7 +15,7 @@ exports.handleBookingCheckout = async (req, res) => {
   try {
     // Validate input
     const { billingHash } = req.body;
-
+    console.log("========Received billingHash:", billingHash);
     if (!billingHash) {
       return res.status(400).json({
         success: false,
@@ -342,7 +342,7 @@ exports.handleBooking = async (req, res) => {
       case "completed":
         return res.status(400).json({
           success: false,
-          RESPONSE_CODE: "BOOKING_ALREADY_COMPLETED",
+          RESPONSE_CODE: "err",
           message: "This booking has already been completed",
           data: {
             parkingName: bookingRecord.parkingName,

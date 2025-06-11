@@ -1,6 +1,6 @@
 class ApiConfig {
   // Base URL for API calls
-  static const String baseUrl = 'http://192.168.8.145:5000/api';
+  static const String baseUrl = 'http://192.168.8.100:5000/api';
   // static const String baseUrl = 'http://Localhost:5000/api';
 
   // Endpoint URLs

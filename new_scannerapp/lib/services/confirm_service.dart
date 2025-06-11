@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 class ConfirmService {
   /// Base URL for all API calls
   static const String baseUrl =
-      'http://192.168.8.145:5000/api'; // Using the same URL as in the original code
+      'http://192.168.8.100:5000/api'; // Using the same URL as in the original code
 
   /// Endpoint for payment confirmation
   static const String confirmEndpoint = '/scanner/confirm-payment';
