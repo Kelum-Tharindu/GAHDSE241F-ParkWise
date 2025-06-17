@@ -91,17 +91,17 @@ export default function App() {
           <Route path="/bar-chart" element={<BarChart />} />
           
           {/* Prediction Dashboard */}
-          <Route path="/prediction-dashboard" element={<PredictionDashboard />} />
+          <Route path="/prediction-dashboard" element={<ProtectedRoute requiredRole="admin"><PredictionDashboard /></ProtectedRoute>} />
 
           {/* Support Page */}
           <Route path="/support" element={<FAQ />} />
 
           <Route path="/account-settings" element={<AccountSettings/>} />          <Route path="/pricing" element={<Pricing />} />
 
-          <Route path="/payments" element={<Payments />} />
+          <Route path="/payments" element={<ProtectedRoute requiredRole="admin"><Payments /></ProtectedRoute>} />
 
-          <Route path="/reports" element={<Reports />} />
-          
+          <Route path="/reports" element={<ProtectedRoute requiredRole="admin"><Reports /></ProtectedRoute>} />
+
           <Route path="/target-management" element={<ProtectedRoute requiredRole="admin"><TargetManagementPage /></ProtectedRoute>} />
 
           <Route path="/view-lands" element={<LandownerParkingRentalsTable />} />
@@ -116,11 +116,11 @@ export default function App() {
 
           <Route path="/landowner-payouts" element={<LandownerPayoutsTable />} />
 
-          <Route path="/coordinator-purchased-chunks" element={<ParkingCoordinatorChunksTable />} />
+          <Route path="/coordinator-purchased-chunks" element={<ProtectedRoute requiredRole="Parking Coordinator"><ParkingCoordinatorChunksTable /></ProtectedRoute>} />
 
-          <Route path="/purchase-parking-chunk" element={<PurchaseParkingChunk />} />
+          <Route path="/purchase-parking-chunk" element={<ProtectedRoute requiredRole="Parking Coordinator"><PurchaseParkingChunk /></ProtectedRoute>} />
 
-          <Route path="/parking-chunk-payment" element={<ParkingChunkPayment />} />
+          <Route path="/parking-chunk-payment" element={<ProtectedRoute requiredRole="Parking Coordinator"><ParkingChunkPayment /></ProtectedRoute>} />
 
           {/* 2FA */}
         </Route>
