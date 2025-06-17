@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 class ParkingService {
   static const String baseUrl =
       // Replace with your actual backend URL
-      'http://192.168.8.145:5000/parking';
+      'http://192.168.8.100:5000/parking';
 
   Future<List<Map<String, dynamic>>> getAllParkingLocations() async {
     if (kDebugMode) {

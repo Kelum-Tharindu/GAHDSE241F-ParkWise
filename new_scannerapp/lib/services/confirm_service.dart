@@ -31,7 +31,7 @@ class ConfirmService {
         print(
           '=== Sending payment confirmation request for: ${billingData['data']?['parkingName'] ?? 'Unknown Parking'}',
         );
-        print("=====response: ${billingData}");
+        print("=====response: $billingData");
       }
 
       final response = await http.post(
@@ -93,7 +93,7 @@ class ConfirmService {
         print(
           '=== Sending booking checkout confirmation request for: ${checkoutData['data']?['parkingName'] ?? 'Unknown Parking'}',
         );
-        print("=====checkout data: ${checkoutData}");
+        print("=====checkout data: $checkoutData");
       }
 
       final response = await http.post(

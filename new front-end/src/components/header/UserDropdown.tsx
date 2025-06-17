@@ -20,7 +20,7 @@ export default function UserDropdown() {
   const avatarUrl =
     user && user.socialLinks && user.socialLinks.facebook
       ? user.socialLinks.facebook // Example: use facebook as avatar if you store avatar url there
-      : "/images/user/owner.jpg";
+      : "/images/user/owner.png";
   const displayName =
     user && (user.firstName || user.lastName)
       ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
