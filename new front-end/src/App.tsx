@@ -46,6 +46,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/AdminHome";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminManagement from "./pages/Tables/adminManagement";
 
 export default function App() {
   return (
@@ -71,12 +72,12 @@ export default function App() {
           <Route path="/form-elements" element={<FormElements />} />
 
           {/* Tables */}
-          <Route path="/basic-tables" element={<BasicTables />} />
+          <Route path="/basic-tables" element={<ProtectedRoute requiredRole="admin"><BasicTables /></ProtectedRoute>} />
           <Route path="/parking-tables" element={<ProtectedRoute requiredRole="admin"><ParkingTable /></ProtectedRoute>} />
-          <Route path="/user-management" element={<UserManagement />} />
-          <Route path="/admin-management" element={<AdminManagemet />} />
-          <Route path="/landowner-management" element={<LandownerManagement />} />
-          <Route path="/bulkmanager-management" element={<BulkmanagerTables />} />
+          <Route path="/user-management" element={<ProtectedRoute requiredRole="admin"><UserManagement /></ProtectedRoute>} />
+          <Route path="/admin-management" element={<ProtectedRoute requiredRole="admin"><AdminManagement /></ProtectedRoute>} />
+          <Route path="/landowner-management" element={<ProtectedRoute requiredRole="admin"><LandownerManagement /></ProtectedRoute>} />
+          <Route path="/bulkmanager-management" element={<ProtectedRoute requiredRole="admin"><BulkmanagerTables /></ProtectedRoute>} />
 
           {/* Ui Elements */}
           <Route path="/alerts" element={<Alerts />} />

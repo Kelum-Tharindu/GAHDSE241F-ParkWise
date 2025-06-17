@@ -50,6 +50,7 @@ export default function BookingListTable() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -67,6 +68,11 @@ export default function BookingListTable() {
 
     fetchBookings();
   }, []);
+
+  // Filter bookings by location
+  const filteredBookings = bookings.filter(booking => 
+    booking.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return <div className="text-center py-4">Loading bookings...</div>;
@@ -126,6 +132,25 @@ export default function BookingListTable() {
             </div>
           </div>
         </div>
+
+        {/* Add search bar for location filtering */}
+        <div className="p-4 flex items-center">
+          <div className="relative w-full md:w-64">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+              </svg>
+            </div>
+            <input 
+              type="text" 
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" 
+              placeholder="Search by location..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
         <div className="max-w-full overflow-x-auto">
           <Table>
             <TableHeader className="bg-gray-50 dark:bg-white/[0.02]">
@@ -176,7 +201,7 @@ export default function BookingListTable() {
             </TableHeader>
 
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {bookings.map((booking, index) => (
+              {filteredBookings.map((booking, index) => (
                 <TableRow 
                   key={booking.id}
                   className={`hover:bg-gray-50 transition-colors duration-150 ease-in-out dark:hover:bg-white/[0.02] ${index % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50/50 dark:bg-white/[0.01]'}`}
@@ -243,12 +268,13 @@ export default function BookingListTable() {
                     {booking.cost}
                   </TableCell>
                 </TableRow>
-              ))}            </TableBody>
+              ))}            
+            </TableBody>
           </Table>
         </div>
         <div className="px-5 py-3 border-t border-gray-100 dark:border-white/[0.05] flex justify-between items-center">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            Showing {bookings.length} entries
+            Showing {filteredBookings.length} entries
           </span>
           <div className="inline-flex rounded-md shadow-sm">
             <button className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 dark:bg-white/[0.03] dark:border-white/[0.1] dark:text-gray-300 dark:hover:bg-white/[0.05]">
