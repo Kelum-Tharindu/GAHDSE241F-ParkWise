@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 // ignore: unused_import
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart'; // Add this import for date parsing
-import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:convert';
 
 import 'package:parking_app/widgets/glassmorphic_app_bar.dart';
@@ -629,9 +628,6 @@ class _BookingHistoryState extends State<BookingHistory> {
     Map<String, dynamic> booking,
     Color bookingColor,
   ) {
-    // Create QR code data from booking details
-    final qrData = jsonEncode(booking);
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -675,9 +671,9 @@ class _BookingHistoryState extends State<BookingHistory> {
                     style: const TextStyle(color: Colors.white70, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 5),
-
-                  // QR Code
+                  const SizedBox(
+                    height: 5,
+                  ), // QR Code - using QR image from backend
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 20),
                     padding: const EdgeInsets.all(10),
@@ -685,13 +681,21 @@ class _BookingHistoryState extends State<BookingHistory> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: QrImageView(
-                      data: qrData,
-                      version: QrVersions.auto,
-                      size: 180,
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                    ),
+                    child:
+                        booking['qrData'] != null
+                            ? Image.memory(
+                              base64Decode(
+                                booking['qrData'].toString().split(',')[1],
+                              ),
+                              width: 180,
+                              height: 180,
+                            )
+                            : const Center(
+                              child: Text(
+                                "QR Code not available",
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            ),
                   ),
 
                   // Dashed line separator

@@ -1,8 +1,8 @@
-const Booking = require('../models/bookingmodel');
-const Parking = require('../models/parkingmodel');
-const User = require('../models/usermodel');
-const Transaction = require('../models/transactionModel');
-const crypto = require('crypto');
+const Booking = require("../models/bookingmodel");
+const Parking = require("../models/parkingmodel");
+const User = require("../models/usermodel");
+const Transaction = require("../models/transactionModel");
+const crypto = require("crypto");
 const { generateQR } = require("../utils/qrGenertor");
 
 // Helper: calculate duration in minutes
@@ -13,28 +13,30 @@ function calculateMinutes(entry, exit) {
 
 // Helper function to get date in Sri Lanka timezone
 function getSriLankaDate() {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Colombo' }));
+  return new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" })
+  );
 }
 
 // Format date to Sri Lanka format
 function formatSriLankaDate(date) {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleString('en-US', { 
-    timeZone: 'Asia/Colombo',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
+  if (!date) return "N/A";
+  return new Date(date).toLocaleString("en-US", {
+    timeZone: "Asia/Colombo",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 
 // Format time to Sri Lanka format
 function formatSriLankaTime(date) {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleString('en-US', { 
-    timeZone: 'Asia/Colombo',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
+  if (!date) return "N/A";
+  return new Date(date).toLocaleString("en-US", {
+    timeZone: "Asia/Colombo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   });
 }
 
@@ -43,14 +45,15 @@ const calculateFee = async (req, res) => {
   try {
     const { parkingName, vehicleType, entryTime, exitTime } = req.body;
     //print entry and exit times
-    console.log('#####Entry Time:', entryTime);
-    console.log('#####Exit Time:', exitTime);
+    console.log("#####Entry Time:", entryTime);
+    console.log("#####Exit Time:", exitTime);
 
     const parking = await Parking.findOne({ name: parkingName });
-    if (!parking) return res.status(404).json({ message: 'Parking not found' });
+    if (!parking) return res.status(404).json({ message: "Parking not found" });
 
     const pricing = parking.slotDetails[vehicleType];
-    if (!pricing) return res.status(400).json({ message: 'Invalid vehicle type' });
+    if (!pricing)
+      return res.status(400).json({ message: "Invalid vehicle type" });
 
     const totalMinutes = calculateMinutes(entryTime, exitTime);
     const usageFee = Math.ceil(totalMinutes / 30) * pricing.perPrice30Min;
@@ -63,10 +66,12 @@ const calculateFee = async (req, res) => {
       totalFee,
       entryTime,
       exitTime,
-      totalDuration: `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`
+      totalDuration: `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Fee calculation failed', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Fee calculation failed", error: error.message });
   }
 };
 
@@ -82,24 +87,29 @@ const confirmBooking = async (req, res) => {
       fee,
       paymentStatus,
       bookingState,
-      vehicleType
-    } = req.body;    // Generate unique billingHash and qrImage
+      vehicleType,
+    } = req.body; // Generate unique billingHash and qrImage
     const hashData = `${parkingName}${userId}${Date.now()}`;
-    const billingHash = crypto.createHash('sha256').update(hashData).digest('hex');
-    
+    const billingHash = crypto
+      .createHash("sha256")
+      .update(hashData)
+      .digest("hex");
+
     // Create QR data with type and billing hash in JSON format
     const qrData = {
       type: "booking",
       billingHash: billingHash,
       parkingName: parkingName,
-      userId: userId
+      userId: userId,
     };
-    
+
     // Generate QR code with structured data
     const qrImage = await generateQR(qrData);
 
     const totalMinutes = calculateMinutes(entryTime, exitTime);
-    const totalDuration = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+    const totalDuration = `${Math.floor(totalMinutes / 60)}h ${
+      totalMinutes % 60
+    }m`;
     const newBooking = new Booking({
       parkingName,
       userId,
@@ -112,7 +122,7 @@ const confirmBooking = async (req, res) => {
       billingHash,
       qrImage,
       totalDuration,
-      vehicleType
+      vehicleType,
     });
     const savedBooking = await newBooking.save();
 
@@ -125,13 +135,13 @@ const confirmBooking = async (req, res) => {
     try {
       // Create a transaction record for the booking
       const newTransaction = new Transaction({
-        type: 'booking',
+        type: "booking",
         bookingId: savedBooking._id,
         userId: userId, // Add the user ID to the transaction
         amount: fee.totalFee, // assuming fee.totalFee contains the total amount
-        method: 'online', // or get from req.body if payment method is provided
-        status: paymentStatus === 'paid' ? 'Completed' : 'Pending',
-        date: getSriLankaDate() // Store as Date object in Sri Lanka time
+        method: "online", // or get from req.body if payment method is provided
+        status: paymentStatus === "paid" ? "Completed" : "Pending",
+        date: getSriLankaDate(), // Store as Date object in Sri Lanka time
       });
 
       await newTransaction.save();
@@ -140,36 +150,43 @@ const confirmBooking = async (req, res) => {
       savedBooking.transactionId = newTransaction._id;
       await savedBooking.save();
 
-      console.log('Transaction created successfully:', newTransaction._id);
-      console.log('Transaction details:', {
+      console.log("Transaction created successfully:", newTransaction._id);
+      console.log("Transaction details:", {
         type: newTransaction.type,
         bookingId: newTransaction.bookingId,
         userId: newTransaction.userId,
-        amount: newTransaction.amount
+        amount: newTransaction.amount,
       });
-      console.log('Updated booking with transaction ID:', newTransaction._id);
+      console.log("Updated booking with transaction ID:", newTransaction._id);
     } catch (transactionError) {
-      console.error('Error creating transaction:', transactionError);
+      console.error("Error creating transaction:", transactionError);
       // Continue with the response as the booking was successful
       // You may want to add transaction error details to the response
     }
-    
+
     res.status(201).json(savedBooking);
   } catch (error) {
-    console.error('Error confirming booking:', error);
-    res.status(500).json({ message: 'Failed to confirm booking', error: error.message });
+    console.error("Error confirming booking:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to confirm booking", error: error.message });
   }
 };
 
 const getParkingNames = async (req, res) => {
   try {
-    console.log('Fetching parking names...');
-    const parkingNames = await Parking.find({}, 'name'); // Fetch only the 'name' field
-    res.status(200).json(parkingNames.map(parking => parking.name));
-    console.log('Fetched parking names:', parkingNames.map(parking => parking.name));
+    console.log("Fetching parking names...");
+    const parkingNames = await Parking.find({}, "name"); // Fetch only the 'name' field
+    res.status(200).json(parkingNames.map((parking) => parking.name));
+    console.log(
+      "Fetched parking names:",
+      parkingNames.map((parking) => parking.name)
+    );
   } catch (error) {
-    console.error('Error fetching parking names:', error);
-    res.status(500).json({ message: 'Failed to fetch parking names', error: error.message });
+    console.error("Error fetching parking names:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch parking names", error: error.message });
   }
 };
 
@@ -182,7 +199,7 @@ const getBookingHistoryByUserId = async (req, res) => {
     userId = userId.trim();
 
     if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+      return res.status(400).json({ message: "User ID is required" });
     }
 
     const bookings = await Booking.find({ userId })
@@ -190,20 +207,22 @@ const getBookingHistoryByUserId = async (req, res) => {
       .lean(); // Use lean for better performance since we're just reading data
 
     if (!bookings || bookings.length === 0) {
-      return res.status(404).json({ message: 'No booking history found for this user' });
+      return res
+        .status(404)
+        .json({ message: "No booking history found for this user" });
     }
 
     // Transform data to match front-end structure
-    const formattedBookings = bookings.map(booking => {
+    const formattedBookings = bookings.map((booking) => {
       // Get color based on booking status for UI display
       let color;
-      if (booking.bookingState === 'completed') {
+      if (booking.bookingState === "completed") {
         color = { r: 21, g: 166, b: 110, a: 1 }; // highlightColor
-      } else if (booking.bookingState === 'active') {
+      } else if (booking.bookingState === "active") {
         color = { r: 1, g: 50, b: 32, a: 1 }; // primaryColor
       } else {
         color = { r: 2, g: 89, b: 57, a: 1 }; // accentColor for cancelled or other states
-      }      // Format date to match front-end format (e.g., "Apr 15, 2025")
+      } // Format date to match front-end format (e.g., "Apr 15, 2025")
       const dateFormatted = formatSriLankaDate(booking.bookingDate);
 
       const totalFee = booking.fee?.totalFee || 0;
@@ -212,13 +231,21 @@ const getBookingHistoryByUserId = async (req, res) => {
         id: booking._id,
         location: booking.parkingName,
         date: dateFormatted,
-        duration: booking.totalDuration || 'N/A',
-        cost: `$${(totalFee ).toFixed(2)}`, // Convert cents to dollars with $ prefix
-        status: booking.bookingState.charAt(0).toUpperCase() + booking.bookingState.slice(1), // Capitalize first letter
-        color: color,        vehicleType: booking.vehicleType,
-        entryTime: booking.entryTime ? formatSriLankaTime(booking.entryTime) : 'N/A',
-        exitTime: booking.exitTime ? formatSriLankaTime(booking.exitTime) : 'N/A',
-        paymentStatus: booking.paymentStatus
+        duration: booking.totalDuration || "N/A",
+        cost: `$${totalFee.toFixed(2)}`, // Convert cents to dollars with $ prefix
+        status:
+          booking.bookingState.charAt(0).toUpperCase() +
+          booking.bookingState.slice(1), // Capitalize first letter
+        color: color,
+        vehicleType: booking.vehicleType,
+        entryTime: booking.entryTime
+          ? formatSriLankaTime(booking.entryTime)
+          : "N/A",
+        exitTime: booking.exitTime
+          ? formatSriLankaTime(booking.exitTime)
+          : "N/A",
+        paymentStatus: booking.paymentStatus,
+        qrData: booking.qrImage,
       };
     });
 
@@ -226,45 +253,47 @@ const getBookingHistoryByUserId = async (req, res) => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
-    
-    const currentMonthBookings = bookings.filter(booking => {
+
+    const currentMonthBookings = bookings.filter((booking) => {
       const bookingDate = new Date(booking.bookingDate);
-      return bookingDate.getMonth() === currentMonth && 
-             bookingDate.getFullYear() === currentYear;
+      return (
+        bookingDate.getMonth() === currentMonth &&
+        bookingDate.getFullYear() === currentYear
+      );
     });
-    
-    const monthName = new Date().toLocaleString('default', { month: 'long' });
+
+    const monthName = new Date().toLocaleString("default", { month: "long" });
     const totalSpent = currentMonthBookings.reduce((sum, booking) => {
       return sum + (booking.fee?.totalFee || 0);
     }, 0);
-    
+
     // Calculate total parking duration in minutes
     let totalMinutes = 0;
-    currentMonthBookings.forEach(booking => {
+    currentMonthBookings.forEach((booking) => {
       if (booking.entryTime && booking.exitTime) {
         totalMinutes += calculateMinutes(booking.entryTime, booking.exitTime);
       }
     });
-    
+
     const totalHours = Math.floor(totalMinutes / 60);
     const remainingMinutes = totalMinutes % 60;
-    
+
     const summary = {
       month: `${monthName} ${currentYear}`,
       totalSpent: `$${totalSpent.toFixed(2)}`,
       hoursParked: `${totalHours}h ${remainingMinutes}m`,
-      bookingsCount: currentMonthBookings.length.toString()
+      bookingsCount: currentMonthBookings.length.toString(),
     };
 
     res.status(200).json({
       bookings: formattedBookings,
-      summary: summary
+      summary: summary,
     });
   } catch (error) {
-    console.error('Error fetching booking history:', error);
-    res.status(500).json({ 
-      message: 'Failed to fetch booking history', 
-      error: error.message 
+    console.error("Error fetching booking history:", error);
+    res.status(500).json({
+      message: "Failed to fetch booking history",
+      error: error.message,
     });
   }
 };
@@ -277,7 +306,7 @@ const getAllBookings = async (req, res) => {
       .lean();
 
     if (!bookings || bookings.length === 0) {
-      return res.status(404).json({ message: 'No bookings found' });
+      return res.status(404).json({ message: "No bookings found" });
     }
 
     // Get current month's start and end dates
@@ -288,47 +317,54 @@ const getAllBookings = async (req, res) => {
     const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
 
     // Filter bookings for current month
-    const currentMonthBookings = bookings.filter(booking => {
+    const currentMonthBookings = bookings.filter((booking) => {
       const bookingDate = new Date(booking.bookingDate);
       return bookingDate >= firstDayOfMonth && bookingDate <= lastDayOfMonth;
     });
 
     // Transform data to match front-end structure
-    const formattedBookings = bookings.map(booking => {
+    const formattedBookings = bookings.map((booking) => {
       // Get color based on booking status
       let color;
       switch (booking.bookingState) {
-        case 'completed':
+        case "completed":
           color = { r: 21, g: 166, b: 110, a: 1 };
           break;
-        case 'active':
+        case "active":
           color = { r: 1, g: 50, b: 32, a: 1 };
           break;
-        case 'ongoing':
+        case "ongoing":
           color = { r: 255, g: 165, b: 0, a: 1 }; // Orange for ongoing
           break;
-        case 'cancelled':
+        case "cancelled":
           color = { r: 255, g: 0, b: 0, a: 1 }; // Red for cancelled
           break;
         default:
           color = { r: 2, g: 89, b: 57, a: 1 };
-      }      const dateFormatted = formatSriLankaDate(booking.bookingDate);
+      }
+      const dateFormatted = formatSriLankaDate(booking.bookingDate);
 
       // Format entry and exit times
-      const entryTimeFormatted = booking.entryTime ? formatSriLankaTime(booking.entryTime) : 'N/A';
-      const exitTimeFormatted = booking.exitTime ? formatSriLankaTime(booking.exitTime) : 'N/A';
+      const entryTimeFormatted = booking.entryTime
+        ? formatSriLankaTime(booking.entryTime)
+        : "N/A";
+      const exitTimeFormatted = booking.exitTime
+        ? formatSriLankaTime(booking.exitTime)
+        : "N/A";
 
       // Calculate extra time fee if exists
       const extraTimeFee = booking.exitedBookingTime?.extraTimeFee || 0;
-      const extraTime = booking.exitedBookingTime?.extraTime || 'N/A';
+      const extraTime = booking.exitedBookingTime?.extraTime || "N/A";
 
       return {
         id: booking._id,
         location: booking.parkingName,
         date: dateFormatted,
-        duration: booking.totalDuration || 'N/A',
+        duration: booking.totalDuration || "N/A",
         cost: `$${((booking.fee?.totalFee || 0) / 100).toFixed(2)}`,
-        status: booking.bookingState.charAt(0).toUpperCase() + booking.bookingState.slice(1),
+        status:
+          booking.bookingState.charAt(0).toUpperCase() +
+          booking.bookingState.slice(1),
         color: color,
         vehicleType: booking.vehicleType,
         entryTime: entryTimeFormatted,
@@ -341,36 +377,53 @@ const getAllBookings = async (req, res) => {
           usageFee: `$${((booking.fee?.usageFee || 0) / 100).toFixed(2)}`,
           bookingFee: `$${((booking.fee?.bookingFee || 0) / 100).toFixed(2)}`,
           totalFee: `$${((booking.fee?.totalFee || 0) / 100).toFixed(2)}`,
-          extraTimeFee: `$${(extraTimeFee / 100).toFixed(2)}`
-        },        extraTime: extraTime,
-        createdAt: formatSriLankaDate(booking.createdAt) + ' ' + formatSriLankaTime(booking.createdAt),
-        updatedAt: formatSriLankaDate(booking.updatedAt) + ' ' + formatSriLankaTime(booking.updatedAt)
+          extraTimeFee: `$${(extraTimeFee / 100).toFixed(2)}`,
+        },
+        extraTime: extraTime,
+        createdAt:
+          formatSriLankaDate(booking.createdAt) +
+          " " +
+          formatSriLankaTime(booking.createdAt),
+        updatedAt:
+          formatSriLankaDate(booking.updatedAt) +
+          " " +
+          formatSriLankaTime(booking.updatedAt),
       };
     });
 
     // Calculate summary statistics for current month only
-    const monthName = new Date().toLocaleString('default', { month: 'long' });
+    const monthName = new Date().toLocaleString("default", { month: "long" });
     const summary = {
       month: `${monthName} ${currentYear}`,
       totalBookings: currentMonthBookings.length,
-      activeBookings: currentMonthBookings.filter(b => b.bookingState === 'active').length,
-      completedBookings: currentMonthBookings.filter(b => b.bookingState === 'completed').length,
-      cancelledBookings: currentMonthBookings.filter(b => b.bookingState === 'cancelled').length,
-      ongoingBookings: currentMonthBookings.filter(b => b.bookingState === 'ongoing').length,
-      totalRevenue: (currentMonthBookings.reduce((sum, booking) => {
-        return sum + (booking.fee?.totalFee || 0);
-      }, 0) / 100).toFixed(2)
+      activeBookings: currentMonthBookings.filter(
+        (b) => b.bookingState === "active"
+      ).length,
+      completedBookings: currentMonthBookings.filter(
+        (b) => b.bookingState === "completed"
+      ).length,
+      cancelledBookings: currentMonthBookings.filter(
+        (b) => b.bookingState === "cancelled"
+      ).length,
+      ongoingBookings: currentMonthBookings.filter(
+        (b) => b.bookingState === "ongoing"
+      ).length,
+      totalRevenue: (
+        currentMonthBookings.reduce((sum, booking) => {
+          return sum + (booking.fee?.totalFee || 0);
+        }, 0) / 100
+      ).toFixed(2),
     };
 
     res.status(200).json({
       bookings: formattedBookings,
-      summary: summary
+      summary: summary,
     });
   } catch (error) {
-    console.error('Error fetching all bookings:', error);
-    res.status(500).json({ 
-      message: 'Failed to fetch bookings', 
-      error: error.message 
+    console.error("Error fetching all bookings:", error);
+    res.status(500).json({
+      message: "Failed to fetch bookings",
+      error: error.message,
     });
   }
 };
@@ -381,36 +434,50 @@ const getBookingDetails = async (req, res) => {
     // Get all bookings
     const bookings = await Booking.find().lean();
     if (!bookings || bookings.length === 0) {
-      return res.status(404).json({ message: 'No bookings found' });
+      return res.status(404).json({ message: "No bookings found" });
     }
 
     // Collect unique parking names and userIds
-    const parkingNames = [...new Set(bookings.map(b => b.parkingName))];
-    const userIds = [...new Set(bookings.map(b => b.userId.toString()))];
+    const parkingNames = [...new Set(bookings.map((b) => b.parkingName))];
+    const userIds = [...new Set(bookings.map((b) => b.userId.toString()))];
 
     // Fetch parking name to id map (if you use parkingId, adjust accordingly)
-    const parkings = await Parking.find({ name: { $in: parkingNames } }).select('_id name').lean();
+    const parkings = await Parking.find({ name: { $in: parkingNames } })
+      .select("_id name")
+      .lean();
     const parkingNameMap = {};
-    parkings.forEach(p => { parkingNameMap[p.name] = p.name; });
+    parkings.forEach((p) => {
+      parkingNameMap[p.name] = p.name;
+    });
 
     // Fetch user id to username map
-    const users = await User.find({ _id: { $in: userIds } }).select('_id username').lean();
+    const users = await User.find({ _id: { $in: userIds } })
+      .select("_id username")
+      .lean();
     const userMap = {};
-    users.forEach(u => { userMap[u._id.toString()] = u.username; });
+    users.forEach((u) => {
+      userMap[u._id.toString()] = u.username;
+    });
 
     // Build result
-    const result = bookings.map(b => ({
+    const result = bookings.map((b) => ({
       bookingId: b._id,
-      parkingName: parkingNameMap[b.parkingName] || b.parkingName || 'Unknown',
-      userName: userMap[b.userId.toString()] || 'Unknown',      vehicleType: b.vehicleType,
+      parkingName: parkingNameMap[b.parkingName] || b.parkingName || "Unknown",
+      userName: userMap[b.userId.toString()] || "Unknown",
+      vehicleType: b.vehicleType,
       bookingState: b.bookingState,
-      totalDuration: b.totalDuration || 'pending',
-      Date: b.bookingDate ? formatSriLankaDate(b.bookingDate) : 'N/A',
+      totalDuration: b.totalDuration || "pending",
+      Date: b.bookingDate ? formatSriLankaDate(b.bookingDate) : "N/A",
     }));
 
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch booking details', error: error.message });
+    res
+      .status(500)
+      .json({
+        message: "Failed to fetch booking details",
+        error: error.message,
+      });
   }
 };
 
@@ -420,5 +487,5 @@ module.exports = {
   getParkingNames,
   getBookingHistoryByUserId,
   getAllBookings,
-  getBookingDetails
+  getBookingDetails,
 };
