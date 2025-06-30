@@ -90,7 +90,7 @@ Follow these steps to set up the project locally on your machine.
    git clone https://github.com/Kelum-Tharindu/GAHDSE241F-ParkWise.git
    cd parkwise
 
-Change Backend URl In Below FIles:
--GAHDSE241F-ParkWise\parking_app\lib\services\parking_service.dart
--GAHDSE241F-ParkWise\parking_app\lib\services\enhanced_parking_service.dart
--GAHDSE241F-ParkWise\parking_app\lib\config\api_config.dart
+##Change Backend URl In Below FIles:
+- GAHDSE241F-ParkWise\parking_app\lib\services\parking_service.dart
+- GAHDSE241F-ParkWise\parking_app\lib\services\enhanced_parking_service.dart
+- GAHDSE241F-ParkWise\parking_app\lib\config\api_config.dart
